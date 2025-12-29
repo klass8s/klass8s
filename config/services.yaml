@@ -1,0 +1,103 @@
+parameters:
+    klass8s.annotation_domain: 'tequila.dev'
+    klass8s.container.resources.policies.enabled: '%env(defined:KLASS8S_USE_RESOURCE_POLICIES)%'
+    klass8s.deployment.replicas.policies.enabled: '%env(defined:KLASS8S_USE_REPLICAS_POLICIES)%'
+    klass8s.container.resources.policies.env: '%env(default:kernel.environment:KLASS8S_RESOURCE_POLICIES_ENV)%'
+    klass8s.deployment.replicas.policies.env: '%env(default:kernel.environment:KLASS8S_REPLICAS_POLICIES_ENV)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $env: '%kernel.environment%'
+            $annotationDomain: '%klass8s.annotation_domain%'
+            $manifestsDir: '%klass8s.manifests_dir%'
+            $containerResourcesPoliciesEnabled: '%klass8s.container.resources.policies.enabled%'
+            $containerResourcesPoliciesEnv: '%klass8s.container.resources.policies.env%'
+            $deploymentReplicasPoliciesEnabled: '%klass8s.deployment.replicas.policies.enabled%'
+            $deploymentReplicasPoliciesEnv: '%klass8s.deployment.replicas.policies.env%'
+
+    Klass8s\App\AppProcessor: ~
+    Klass8s\Core\Container\Env\ExternalConfigurationRegistry: ~
+    Klass8s\Core\Job\JobSpecProcessor: ~
+    Klass8s\Core\DefaultLabelsGenerator: ~
+    Klass8s\Core\Pod\PodSpecProcessor: ~
+    Klass8s\Core\Pod\PodTemplateSpecProcessor: ~
+    Klass8s\Dumper\AppDumper: ~
+    Klass8s\Proxy\EventDispatcherBridgeInterceptor: ~
+    Klass8s\ManifestGenerator\ManifestsGenerationService: ~
+    Klass8s\Helper\Metadata\MetadataHelper:
+        shared: false
+        autowire: true
+        autoconfigure: true
+    Klass8s\Helper\Names\DefaultNamesHelper:
+        shared: false
+        autowire: true
+        autoconfigure: true
+
+    Klass8s\Renderer\:
+        resource: '../src/Renderer/'
+
+    Klass8s\ResourceMaker\:
+        resource: '../src/ResourceMaker/'
+
+    Klass8s\Registry\AppRegistry: ~
+    Klass8s\Registry\ManifestRegistry:
+        public: true
+
+    Klass8s\Util\:
+        resource: '../src/Util/'
+
+    Klass8s\Helper\Metadata\MetadataHelperInterface: '@Klass8s\Helper\Metadata\MetadataHelper'
+    Klass8s\Helper\Names\NamesHelperInterface: '@Klass8s\Helper\Names\DefaultNamesHelper'
+    Klass8s\Core\Container\ContainerMakerInterface: '@Klass8s\Core\Container\ContainerMaker'
+    Klass8s\Core\LabelsGeneratorInterface: '@Klass8s\Core\DefaultLabelsGenerator'
+    Klass8s\Renderer\RendererInterface: '@Klass8s\Renderer\YamlRenderer'
+
+    Klass8s\Core\ManifestProcessor:
+        arguments:
+            $makers: !tagged_iterator { tag: 'klass8s.resource_maker' }
+
+    Klass8s\Core\Container\ContainerMaker:
+        arguments:
+            $middlewares: !tagged_iterator { tag: 'klass8s.middleware.container_image', default_priority_method: 'priority' }
+
+    Klass8s\Proxy\ProxyFactory:
+        arguments:
+            $bodyInterceptors: !tagged_iterator { tag: 'proximity.interceptor.body' }
+            $resultInterceptors: !tagged_iterator { tag: 'proximity.interceptor.result' }
+
+    Klass8s\Runtime\DelegatingRuntimeStatusResolver:
+        arguments:
+            $strategies: !tagged_iterator { tag: 'klass8s.runtime_status_resolver.strategy' }
+    Klass8s\Runtime\ManifestRuntimeStatusResolverInterface: '@Klass8s\Runtime\DelegatingRuntimeStatusResolver'
+
+    Klass8s\Bundle\:
+        resource: '../src/Bundle/'
+        exclude:
+          - '../src/Bundle/DependencyInjection'
+
+    Klass8s\Bundle\CodeGeneration\TemplateRenderer:
+        arguments:
+          - '%klass8s.class_templates_dir%'
+
+    Klass8s\Bundle\CodeGeneration\ClassDetailsResolver\ManifestResolver:
+        arguments:
+          - '%klass8s.namespace_prefix%'
+
+    Klass8s\Bundle\CodeGeneration\ClassDetailsResolver\AppResolver:
+      arguments:
+        - '%klass8s.code_dir%'
+        - '%klass8s.namespace_prefix%'
+
+    Klass8s\Bundle\CodeGeneration\ManifestGenerator\ContextRegistry:
+        arguments:
+          - !tagged_iterator { tag: 'klass8s.manifest_generator.context' }
+
+    Klass8s\Bundle\Checksum\ChecksumsService:
+        arguments:
+            $calculators: !tagged_iterator { tag: 'klass8s.checksum_calculator' }
+
+    Klass8s\Bundle\EnvManagement\Container\ReplicasPolicyConfiguratorInterface: '@Klass8s\Bundle\EnvManagement\Container\DummyReplicasPolicyConfigurator'
+    Klass8s\Bundle\EnvManagement\Container\ResourcePolicyConfiguratorInterface: '@Klass8s\Bundle\EnvManagement\Container\DummyResourcePolicyConfigurator'

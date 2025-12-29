@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Core\Autoscaling\Metric;
+
+enum SourceType: string
+{
+    case ContainerResource = 'ContainerResource';
+    case External = 'External';
+    case Object = 'Object';
+    case Pods = 'Pods';
+    case Resource = 'Resource';
+}

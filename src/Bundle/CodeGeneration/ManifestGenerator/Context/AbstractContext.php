@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Bundle\CodeGeneration\ClassDetails;
+use Klass8s\Core\ManifestInterface;
+use ReflectionException;
+
+abstract class AbstractContext implements ContextInterface
+{
+    abstract protected static function interfaceName(): string;
+
+    public function createDedicatedDir(): bool
+    {
+        return false;
+    }
+
+    public function parentInterface(): string
+    {
+        $interfaceName = static::interfaceName();
+
+        try {
+            $reflection = new \ReflectionClass($interfaceName);
+        } catch (ReflectionException) {
+            throw new \LogicException(sprintf('Class "%s", returned by %s::interfaceName(), does not exist', $interfaceName, static::class));
+        }
+
+        if (!$reflection->isInterface()) {
+            throw new \LogicException(sprintf('Class "%s", returned by %s::interfaceName(), must be an interface', $interfaceName, static::class));
+        }
+
+        if (!$reflection->implementsInterface(ManifestInterface::class)) {
+            throw new \LogicException(sprintf('Interface "%s", returned by %s::interfaceName(), must extend %s', $interfaceName, static::class, ManifestInterface::class));
+        }
+
+        return $interfaceName;
+    }
+
+    public function templateName(): string
+    {
+        return $this->kind().'.tpl.php';
+    }
+
+    public function templateVariables(ClassDetails $details, string $manifestName): array
+    {
+        return [
+            'namespace' => $details->namespace,
+            'className' => $details->className,
+            'manifestName' => $manifestName,
+            'fileName' => $manifestName,
+        ];
+    }
+}

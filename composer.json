@@ -1,0 +1,51 @@
+{
+    "name": "tequila/klass8s",
+    "description": "Define Kubernetes manifests as PHP classes",
+    "type": "symfony-bundle",
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Petr Buchin",
+            "email": "petrbuchyn@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.5",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "composer/semver": "^3.2",
+        "psr/event-dispatcher": "^1.0",
+        "tequila/k8schema": ">=1.32",
+        "tequila/proximity": "dev-main",
+        "symfony/yaml": ">=8.0",
+        "symfony/console": ">=8.0",
+        "symfony/dependency-injection": ">=8.0",
+        "symfony/config": ">=8.0",
+        "symfony/http-kernel": ">=8.0",
+        "symfony/string": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Klass8s\\": "src/",
+            "Klass8s\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "cs": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
+        "cs-check": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer check",
+        "tools-update": "composer update -d tools/php-cs-fixer --no-scripts",
+        "tests-bundle": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests/Bundle"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://composer.tequila.dev/"
+        }
+    ],
+    "require-dev": {
+        "symfony/test-pack": "^1.2",
+        "symfony/string": "^8.0"
+    }
+}

@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Core\Pod\Topology;
+
+enum WhenUnsatisfiable: string
+{
+    case DoNotSchedule = 'DoNotSchedule';
+    case ScheduleAnyway = 'ScheduleAnyway';
+}
