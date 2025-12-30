@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Klass8s\Tests;
 
+use Klass8s\Bundle\Klass8sBundle;
+use Proximity\Bundle\ProximityBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -15,6 +17,8 @@ class TestKernel extends Kernel
     {
         return [
             new FrameworkBundle(),
+            new ProximityBundle(),
+            new Klass8sBundle(),
         ];
     }
 
@@ -34,7 +38,7 @@ class TestKernel extends Kernel
     protected function getKernelParameters(): array
     {
         return array_replace(parent::getKernelParameters(), [
-            'kernel.project_dir' => __DIR__.'/../',
+            'kernel.project_dir' => __DIR__.'/../var/',
             'kernel.environment' => 'test',
             'kernel.runtime_mode.web' => false,
             'kernel.runtime_mode.cli' => true,
@@ -48,6 +52,12 @@ class TestKernel extends Kernel
             $container->loadFromExtension('framework', [
                 'test' => true,
                 'secret' => '%env(APP_SECRET)%',
+            ]);
+
+            $container->loadFromExtension('klass8s', [
+                'code_dir' => '%kernel.project_dir%/src/Apps',
+                'namespace_prefix' => 'ManifestsGenerator\Apps',
+                'manifests_dir' => '%kernel.project_dir%/k8s',
             ]);
         });
     }

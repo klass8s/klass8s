@@ -12,6 +12,7 @@ use Klass8s\Event\ManifestMethodCalledEvent;
 use Klass8s\Event\ManifestMethodEvent;
 use Proximity\MethodsInterception\BodyInterceptionResult;
 use Proximity\MethodsInterception\BodyInterceptorInterface;
+use Proximity\MethodsInterception\InterceptionContext;
 use Proximity\MethodsInterception\ResultInterceptorInterface;
 use Proximity\ProxyInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;

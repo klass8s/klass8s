@@ -22,7 +22,7 @@ class PrometheusTrigger extends AbstractTriggerBuilder
     private const string QUERY_PARAMETERS = 'queryParameters';
     private const string UNSAFE_SSL = 'unsafeSsl';
 
-    private function __construct(string $query)
+    public function __construct(string $query)
     {
         parent::__construct();
 

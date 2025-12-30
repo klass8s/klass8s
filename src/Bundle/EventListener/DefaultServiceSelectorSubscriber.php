@@ -13,10 +13,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 readonly class DefaultServiceSelectorSubscriber implements EventSubscriberInterface
 {
-    public function __construct(
-        private LabelsGeneratorInterface $labelsGenerator,
-        private array $excludedSelectorLabels,
-    ) {
+    public function __construct(private LabelsGeneratorInterface $labelsGenerator)
+    {
     }
 
     public function onServiceGenerated(ServiceGeneratedEvent $event): void
@@ -26,7 +24,6 @@ readonly class DefaultServiceSelectorSubscriber implements EventSubscriberInterf
             return;
         }
         $labels = $this->labelsGenerator->byManifestInstance($manifest);
-        $labels = array_diff_key($labels, array_fill_keys($this->excludedSelectorLabels, null));
         $event->service()->spec()->selector()->addAll($labels);
     }
 

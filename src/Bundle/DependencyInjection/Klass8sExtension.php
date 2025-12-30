@@ -30,7 +30,7 @@ class Klass8sExtension extends Extension
     {
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../../config')
+            new FileLocator(__DIR__.'/../../../config')
         );
         $loader->load('services.yaml');
 
@@ -159,8 +159,8 @@ class Klass8sExtension extends Extension
     {
         $errMessage = <<<ERR
             "klass8s.code_dir" config value was not specified.
-            Fallback value requires %kernel.project_dir%/src dir, which was resolved 
-            to "$srcDir", but this directory does not exist. Please configure "klass8s.code_dir" 
+            Fallback value requires %kernel.project_dir%/src dir, which was resolved
+            to "$srcDir", but this directory does not exist. Please configure "klass8s.code_dir"
             config value explicitly as an absolute path or use standard "src" directory
             for your code.
             ERR;

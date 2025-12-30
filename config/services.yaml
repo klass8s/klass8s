@@ -45,8 +45,9 @@ services:
     Klass8s\Autoscaling\Keda\ResourceMaker\:
         resource: '../src/Autoscaling/Keda/ResourceMaker/'
 
-    Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger:
+    Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\:
         resource: '../src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/'
+        exclude: '../src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/Prometheus/PrometheusTrigger.php'
 
     Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry:
         $builders: !tagged_iterator !php/const Klass8s\Bundle\Klass8sBundle::TAG_KEDA_TRIGGER_BUILDER
