@@ -1,5 +1,5 @@
 parameters:
-    klass8s.annotation_domain: 'tequila.dev'
+    klass8s.annotation_domain: 'klass8s.dev'
     klass8s.container.resources.policies.enabled: '%env(defined:KLASS8S_USE_RESOURCE_POLICIES)%'
     klass8s.deployment.replicas.policies.enabled: '%env(defined:KLASS8S_USE_REPLICAS_POLICIES)%'
     klass8s.container.resources.policies.env: '%env(default:kernel.environment:KLASS8S_RESOURCE_POLICIES_ENV)%'
