@@ -82,12 +82,12 @@ final class ModernStyle extends SymfonyStyle
         $f = $output->getFormatter();
 
         // Keep colors basic for the best cross-terminal consistency.
-        $f->setStyle('success', new OutputFormatterStyle('green', null, ['bold']));
-        $f->setStyle('error', new OutputFormatterStyle('red', null, ['bold']));
-        $f->setStyle('warning', new OutputFormatterStyle('yellow', null, ['bold']));
+        $f->setStyle('success', new OutputFormatterStyle('green', null));
+        $f->setStyle('error', new OutputFormatterStyle('red', null));
+        $f->setStyle('warning', new OutputFormatterStyle('yellow', null));
         $f->setStyle('info', new OutputFormatterStyle('cyan'));
         $f->setStyle('muted', new OutputFormatterStyle('gray'));
-        $f->setStyle('title', new OutputFormatterStyle('magenta', null, ['bold']));
-        $f->setStyle('k', new OutputFormatterStyle('white', null, ['bold']));
+        $f->setStyle('title', new OutputFormatterStyle('magenta', null));
+        $f->setStyle('k', new OutputFormatterStyle('white', null));
     }
 }
