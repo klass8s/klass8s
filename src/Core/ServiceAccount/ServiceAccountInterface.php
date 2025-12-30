@@ -11,7 +11,7 @@ use Klass8s\Core\ServiceAccount\Configurator\SecretsConfigurator;
 
 interface ServiceAccountInterface extends ManifestInterface
 {
-    public function automountServiceAccountToken(): bool|null;
+    public function automountServiceAccountToken(): ?bool;
 
     public function imagePullSecrets(ImagePullSecretsConfigurator $imagePullSecrets): void;
 

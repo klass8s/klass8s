@@ -15,7 +15,7 @@ class Env
     // Pseudo env used in some classes like EnvAwareContainerMaker
     public const DEFAULT = 'default';
 
-    private static \Closure|null $getEnvClosure = null;
+    private static ?\Closure $getEnvClosure = null;
 
     public static function var(string $name): string
     {

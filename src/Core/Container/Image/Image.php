@@ -28,12 +28,12 @@ class Image
         return $this->name;
     }
 
-    public function registryUrl(): string|null
+    public function registryUrl(): ?string
     {
         return $this->registryUrl;
     }
 
-    public function tag(): string|null
+    public function tag(): ?string
     {
         return $this->tag;
     }

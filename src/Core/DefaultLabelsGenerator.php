@@ -16,7 +16,7 @@ readonly class DefaultLabelsGenerator implements LabelsGeneratorInterface
     {
     }
 
-    public function byManifestClass(string $manifestClass, string|null $appAlias = null): array
+    public function byManifestClass(string $manifestClass, ?string$appAlias = null): array
     {
         $app = null === $appAlias
             ? $this->appFinder->appByManifestClass($manifestClass)

@@ -14,8 +14,8 @@ interface DeploymentInterface extends PodTemplateSpecInterface, ManifestInterfac
     public function selector(SelectorConfigurator $selector): void;
     public function replicas(): int;
     public function revisionHistoryLimit(): int;
-    public function minReadySeconds(): int|null;
-    public function progressDeadlineSeconds(): int|null;
+    public function minReadySeconds(): ?int;
+    public function progressDeadlineSeconds(): ?int;
     public function configureDeployment(Deployment $deployment): void;
     public function strategy(StrategyConfigurator $strategy): void;
 }

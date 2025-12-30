@@ -17,5 +17,5 @@ interface CronJobInterface extends JobInterface
     public function successfulJobsHistoryLimit(): ?int;
     public function configureCronJob(CronJob $cronJob): void;
     public function suspendCronJob(): bool;
-    public function timeZone(): string|null;
+    public function timeZone(): ?string;
 }

@@ -17,7 +17,7 @@ class IngressRulesConfigurator
      */
     private array $hostsMap = [];
 
-    private IngressRule|null $ruleWithoutHost = null;
+    private ?IngressRule $ruleWithoutHost = null;
 
     public function __construct(
         private readonly IngressRuleList $rules,

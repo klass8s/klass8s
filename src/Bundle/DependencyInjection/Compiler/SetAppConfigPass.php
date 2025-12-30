@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\DependencyInjection\Compiler;
 
 use Klass8s\Bundle\DependencyInjection\Compiler\Traits\GetAppAliasTrait;
+use Klass8s\Bundle\Klass8sBundle;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -16,7 +17,7 @@ final readonly class SetAppConfigPass implements CompilerPassInterface
     {
         $appConfigs = $container->getParameter('klass8s.config.apps');
 
-        foreach ($container->findTaggedServiceIds(AppsPass::APP_TAG) as $id => $tags) {
+        foreach ($container->findTaggedServiceIds(Klass8sBundle::TAG_APP) as $id => $tags) {
             $appDefinition = $container->getDefinition($id);
             if ($appDefinition->getClass() === $id) {
                 // Skip autowired app services, they will be removed in RemoveAutowiredAppsPass

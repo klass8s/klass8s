@@ -11,7 +11,7 @@ use Klass8s\Core\ManifestReference;
 
 abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements PersistentVolumeClaimInterface
 {
-    public function dataSource(): ManifestReference|null
+    public function dataSource(): ?ManifestReference
     {
         return null;
     }
@@ -24,7 +24,7 @@ abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements
     {
     }
 
-    public function storageClassName(): string|null
+    public function storageClassName(): ?string
     {
         return null;
     }
@@ -34,7 +34,7 @@ abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements
         return VolumeMode::Filesystem;
     }
 
-    public function volumeName(): string|null
+    public function volumeName(): ?string
     {
         return null;
     }

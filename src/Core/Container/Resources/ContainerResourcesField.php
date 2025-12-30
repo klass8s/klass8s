@@ -27,7 +27,7 @@ class ContainerResourcesField
         return $this->selector;
     }
 
-    public function setContainerName(string|null $containerName): self
+    public function setContainerName(?string $containerName): self
     {
         $this->selector->setContainerName($containerName);
 

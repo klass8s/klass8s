@@ -104,7 +104,7 @@ abstract class AbstractApp implements AppInterface
         return null !== $this->getManifest($manifestClass);
     }
 
-    public function getManifest(string $manifestClass): ManifestInterface|null
+    public function getManifest(string $manifestClass): ?ManifestInterface
     {
         if (!class_exists($manifestClass)) {
             throw new \InvalidArgumentException(sprintf('Class "%s" does not exist', $manifestClass));

@@ -6,7 +6,7 @@ namespace Klass8s\Core;
 
 final readonly class ManifestReference
 {
-    public function __construct(public string $appAlias, public string $className, public string|null $apiGroup = null)
+    public function __construct(public string $appAlias, public string $className, public ?string $apiGroup = null)
     {
     }
 
@@ -15,7 +15,7 @@ final readonly class ManifestReference
         return $this->appAlias;
     }
 
-    public function apiGroup(): string|null
+    public function apiGroup(): ?string
     {
         return $this->apiGroup;
     }

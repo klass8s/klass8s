@@ -6,6 +6,7 @@ namespace Klass8s\Bundle\DependencyInjection\Compiler;
 
 use Klass8s\App\AbstractApp;
 use Klass8s\App\AppInterface;
+use Klass8s\Bundle\Klass8sBundle;
 use Klass8s\Registry\AppRegistry;
 use Klass8s\Util\Str;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -16,8 +17,6 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class AppsPass implements CompilerPassInterface
 {
-    public const string APP_TAG = 'klass8s.app';
-
     private array $aliasToClassNamesMap;
     private array $classNameToAliasMap;
     private Definition $registryDefinition;
@@ -33,9 +32,6 @@ final class AppsPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
-        $container->registerForAutoconfiguration(AppInterface::class)
-            ->addTag(self::APP_TAG);
-
         $this->registryDefinition = $container->getDefinition(AppRegistry::class);
         $this->appsConfig = $container->getParameter('klass8s.config.apps');
 
@@ -120,13 +116,13 @@ final class AppsPass implements CompilerPassInterface
     private function collectAppClasses(ContainerBuilder $container): void
     {
         $this->appClasses = [];
-        foreach ($container->findTaggedServiceIds(self::APP_TAG) as $id => $tags) {
+        foreach ($container->findTaggedServiceIds(Klass8sBundle::TAG_APP) as $id => $tags) {
             if (!class_exists($id)) {
                 continue;
             }
             $class = new \ReflectionClass($id);
             if (!$class->implementsInterface(AppInterface::class)) {
-                throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', AppInterface::class, self::APP_TAG));
+                throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', AppInterface::class, Klass8sBundle::TAG_APP));
             }
 
             $this->appClasses[$class->getName()] = $class;
@@ -146,9 +142,9 @@ final class AppsPass implements CompilerPassInterface
         }
 
         $newDefinition = clone $appDefinition;
-        $newDefinition->addTag(self::APP_TAG, ['alias' => $alias]);
-        $id = static::appDefinitionId($alias);
-        if (is_subclass_of($newDefinition->getClass(), AbstractApp::class, true)) {
+        $newDefinition->addTag(Klass8sBundle::TAG_APP, ['alias' => $alias]);
+        $id = self::appDefinitionId($alias);
+        if (is_subclass_of($newDefinition->getClass(), AbstractApp::class)) {
             $newDefinition->addMethodCall('setAlias', [$alias]);
         }
         $container->setDefinition($id, $newDefinition);

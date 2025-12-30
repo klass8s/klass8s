@@ -21,7 +21,7 @@ readonly class IngressRuleConfigurator
     ) {
     }
 
-    public function addPath(PathType $pathType, string|null $path = null): HttpIngressPathConfigurator
+    public function addPath(PathType $pathType, ?string $path = null): HttpIngressPathConfigurator
     {
         if (null === $path && in_array($pathType, [PathType::Exact, PathType::Prefix])) {
             throw new \InvalidArgumentException(

@@ -6,8 +6,8 @@ namespace Klass8s\Util;
 
 final class PropertyAccessor
 {
-    private static \Closure|null $getter = null;
-    private static \Closure|null $setter = null;
+    private static ?\Closure $getter = null;
+    private static ?\Closure $setter = null;
 
     public static function get(object $object, string $propertyName): mixed
     {

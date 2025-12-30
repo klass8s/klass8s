@@ -30,7 +30,7 @@ interface ContainerInterface extends ProxyableInterface
     public function probes(ProbesConfigurator $probes): void;
     public function securityContext(SecurityContextConfigurator $context): void;
     public function image(): Image;
-    public function imagePullPolicy(): ImagePullPolicy|null;
-    public function workingDir(): string|null;
+    public function imagePullPolicy(): ?ImagePullPolicy;
+    public function workingDir(): ?string;
     public function configureContainer(Container $container): void;
 }

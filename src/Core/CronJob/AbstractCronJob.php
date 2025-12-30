@@ -45,7 +45,7 @@ abstract class AbstractCronJob extends AbstractJob implements CronJobInterface
     {
     }
 
-    public function timeZone(): string|null
+    public function timeZone(): ?string
     {
         return null;
     }

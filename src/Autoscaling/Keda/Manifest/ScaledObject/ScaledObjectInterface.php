@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject;
+
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Fallback;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaledObject;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaleTargetReference;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\ScaleTarget\WorkloadContainerReference;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Core\ManifestInterface;
+
+interface ScaledObjectInterface extends ManifestInterface
+{
+    public function scaleTargetRef(): ScaleTargetReference|WorkloadContainerReference;
+    public function pollingInterval(): int;
+    public function cooldownPeriod(): int;
+    public function idleReplicaCount(): ?int;
+    public function minReplicaCount(): int;
+    public function maxReplicaCount(): int;
+    public function fallback(): ?Fallback;
+    public function restoreToOriginalReplicaCount(): ?bool;
+    public function hpaName(): ?string;
+    public function behavior(BehaviorConfigurator $behavior): void;
+
+    /**
+     * @return Trigger[]
+     */
+    public function triggers(TriggerBuildersRegistry $builders): iterable;
+    public function configureScaledObject(ScaledObject $scaledObject): void;
+}

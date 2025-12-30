@@ -14,11 +14,11 @@ readonly class TolerationsConfigurator
     }
 
     public function add(
-        string|null $key,
+        ?string $key,
         TolerationOperator $operator = TolerationOperator::Equal,
-        string|null $value = null,
-        TolerationEffect|null $effect = null,
-        int|null $tolerationSeconds = null
+        ?string $value = null,
+        ?TolerationEffect $effect = null,
+        ?int $tolerationSeconds = null
     ): static {
         if (!$key && $operator !== TolerationOperator::Exists) {
             throw new \InvalidArgumentException('Operator must be "Exists" if $key is empty.');

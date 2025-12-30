@@ -15,7 +15,7 @@ abstract class AbstractMonitor extends AbstractManifest implements MonitorInterf
         return 'monitoring.coreos.com/v1';
     }
 
-    public function jobLabel(): string|null
+    public function jobLabel(): ?string
     {
         return null;
     }
@@ -28,7 +28,7 @@ abstract class AbstractMonitor extends AbstractManifest implements MonitorInterf
     {
     }
 
-    public function sampleLimit(): int|null
+    public function sampleLimit(): ?int
     {
         return null;
     }

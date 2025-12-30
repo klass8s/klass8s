@@ -31,7 +31,7 @@ interface AppInterface extends ConfigurableInterface
      */
     public function manifestFiles(): iterable;
 
-    public function getManifest(string $manifestClass): ManifestInterface|null;
+    public function getManifest(string $manifestClass): ?ManifestInterface;
 
     public function ownsManifest(string $manifestClass): bool;
 }

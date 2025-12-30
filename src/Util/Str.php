@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Klass8s\Util;
 
-use Stringable;
-use TypeError;
-
 final readonly class Str
 {
     public static function asClassName(string $str): string
@@ -18,7 +15,7 @@ final readonly class Str
 
     public static function camelCased(string $str): string
     {
-        return lcfirst(static::asClassName($str));
+        return lcfirst(self::asClassName($str));
     }
 
     public static function withoutSuffix(string $str, string $suffix): string
@@ -30,10 +27,10 @@ final readonly class Str
 
     public static function withSuffix(string $className, string $suffix): string
     {
-        return static::withoutSuffix($className, $suffix).$suffix;
+        return self::withoutSuffix($className, $suffix).$suffix;
     }
 
-    public static function asDirName(string $str, string|null $suffix = null): string
+    public static function asDirName(string $str, ?string $suffix = null): string
     {
         $className = self::asClassName($str);
 
@@ -59,20 +56,13 @@ final readonly class Str
     {
         $str = self::camelCased($str);
         $dashed = self::camelCasedToSeparatedWords($str, '-');
-        $valid = preg_replace('/([^\w\-]|[_])+/', '', $dashed);
+        $valid = preg_replace('/([^\w\-]|_)+/', '', $dashed);
 
         if (0 === strlen($valid)) {
-            throw new \InvalidArgumentException(
-                sprintf('String "%s" cannot be converted DNS subdomain representation', $str)
-            );
+            throw new \InvalidArgumentException(sprintf('String "%s" cannot be converted DNS subdomain representation', $str));
         }
         if (253 < strlen($valid)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'String "%s" DNS subdomain representation is too long (must be less than 253 characters)',
-                    $str
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('String "%s" DNS subdomain representation is too long (must be less than 253 characters)', $str));
         }
 
         return $valid;
@@ -101,25 +91,16 @@ final readonly class Str
         }
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
-        } elseif (is_int($value) || is_float($value) || $value instanceof Stringable) {
+        } elseif (is_int($value) || is_float($value) || $value instanceof \Stringable) {
             return (string)$value;
         }
 
-        $type = gettype($value);
-        throw new TypeError(
-            sprintf(
-                'Value, passed to %s::%s() must be bool, numeric or instance of Stringable, got "%s"',
-                static::class,
-                'stringify',
-                $type === 'object' ? static::class : $type
-            )
-        );
+        throw new \TypeError(sprintf('Value, passed to %s::%s() must be bool, numeric or instance of Stringable, got "%s"', self::class, 'stringify', get_debug_type($value)));
     }
 
     private static function camelCasedToSeparatedWords(string $camelCased, string $separator): string
     {
-        return strtolower(
-            preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1'.$separator, $camelCased)
-        );
+        return preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1'.$separator, $camelCased)
+                |> strtolower(...);
     }
 }

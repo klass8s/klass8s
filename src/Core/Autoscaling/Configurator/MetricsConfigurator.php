@@ -92,7 +92,7 @@ final readonly class MetricsConfigurator
         return $this;
     }
 
-    private function createMetricIdentifier(string $name, \Closure|null $selectorCallback): MetricIdentifier
+    private function createMetricIdentifier(string $name, ?\Closure $selectorCallback): MetricIdentifier
     {
         $identifier = new MetricIdentifier($name);
         if ($selectorCallback) {

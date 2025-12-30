@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection\Compiler\Traits;
 
-use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
+use Klass8s\Bundle\Klass8sBundle;
 
 trait GetAppAliasTrait
 {
@@ -18,7 +18,7 @@ trait GetAppAliasTrait
             }
         }
         if (null === $alias) {
-            throw new \LogicException(sprintf('"%s" tag on app service "%s" does not have "alias" attribute.', AppsPass::APP_TAG, $serviceId));
+            throw new \LogicException(sprintf('"%s" tag on app service "%s" does not have "alias" attribute.', Klass8sBundle::TAG_APP, $serviceId));
         }
 
         return $alias;

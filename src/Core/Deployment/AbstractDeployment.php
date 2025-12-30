@@ -72,12 +72,12 @@ abstract class AbstractDeployment extends AbstractManifest implements Deployment
     {
     }
 
-    public function minReadySeconds(): int|null
+    public function minReadySeconds(): ?int
     {
         return null;
     }
 
-    public function progressDeadlineSeconds(): int|null
+    public function progressDeadlineSeconds(): ?int
     {
         return null;
     }

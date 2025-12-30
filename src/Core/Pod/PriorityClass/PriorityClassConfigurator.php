@@ -52,7 +52,7 @@ class PriorityClassConfigurator
         $this->spec->setPriorityClassName($priorityClassName);
     }
 
-    public function name(): string|null
+    public function name(): ?string
     {
         return $this->spec->getPriorityClassName();
     }

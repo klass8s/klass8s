@@ -14,10 +14,10 @@ interface PersistentVolumeClaimInterface extends ManifestInterface
      * @return AccessMode[]
      */
     public function accessModes(): iterable;
-    public function dataSource(): ManifestReference|null;
+    public function dataSource(): ?ManifestReference;
     public function resources(PvcResourcesConfigurator $resources): void;
     public function selector(SelectorConfigurator $selector): void;
-    public function storageClassName(): string|null;
+    public function storageClassName(): ?string;
     public function volumeMode(): VolumeMode;
-    public function volumeName(): string|null;
+    public function volumeName(): ?string;
 }

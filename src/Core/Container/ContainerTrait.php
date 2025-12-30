@@ -63,7 +63,7 @@ trait ContainerTrait
         return ImagePullPolicy::IfNotPresent;
     }
 
-    public function workingDir(): string|null
+    public function workingDir(): ?string
     {
         return null;
     }

@@ -14,7 +14,7 @@ abstract class AbstractIngress extends AbstractManifest implements IngressInterf
     {
     }
 
-    public function ingressClassName(): string|null
+    public function ingressClassName(): ?string
     {
         return null;
     }

@@ -6,6 +6,7 @@ namespace Klass8s\Bundle\DependencyInjection\Compiler;
 
 use Klass8s\Bundle\DependencyInjection\Compiler\Traits\GetAppAliasTrait;
 use Klass8s\Bundle\EnvManagement\Attribute\EnabledForApps;
+use Klass8s\Bundle\Klass8sBundle;
 use Klass8s\Bundle\Util\AttributesUtil;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Container\ContainerInterface;
@@ -21,8 +22,6 @@ final class ManifestsPass implements CompilerPassInterface
 {
     use GetAppAliasTrait;
 
-    public const string MANIFEST_TAG = 'klass8s.manifest';
-
     private array $appReflectionsCache = [];
 
     /**
@@ -30,13 +29,10 @@ final class ManifestsPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
-        $container->registerForAutoconfiguration(ManifestInterface::class)
-            ->addTag(self::MANIFEST_TAG);
-
         $registryDefinition = $container->getDefinition(ManifestRegistry::class);
 
         $classNameToAliasesMap = $this->createAppClassToAliasesMap($container);
-        foreach ($container->findTaggedServiceIds(self::MANIFEST_TAG) as $id => $tags) {
+        foreach ($container->findTaggedServiceIds(Klass8sBundle::TAG_MANIFEST) as $id => $tags) {
             if (!class_exists($id)) {
                 continue;
             }
@@ -44,7 +40,7 @@ final class ManifestsPass implements CompilerPassInterface
             $manifestDefinition = $container->getDefinition($id);
             $manifestClass = new \ReflectionClass($manifestDefinition->getClass());
             if (!$manifestClass->implementsInterface(ManifestInterface::class)) {
-                throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', ManifestInterface::class, self::MANIFEST_TAG));
+                throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', ManifestInterface::class, Klass8sBundle::TAG_MANIFEST));
             }
 
             $manifestShortName = $manifestClass->getMethod('shortName')->invoke(null);
@@ -138,7 +134,7 @@ final class ManifestsPass implements CompilerPassInterface
     private function createAppClassToAliasesMap(ContainerBuilder $container): array
     {
         $map = [];
-        foreach ($container->findTaggedServiceIds(AppsPass::APP_TAG) as $id => $tags) {
+        foreach ($container->findTaggedServiceIds(Klass8sBundle::TAG_APP) as $id => $tags) {
             $definition = $container->getDefinition($id);
             $className = $definition->getClass();
 
