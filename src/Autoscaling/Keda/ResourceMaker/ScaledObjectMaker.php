@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Klass8s\Autoscaling\Keda\ResourceMaker;
 
-use Klass8s\App\AppInterface;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaledObject;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaleTargetReference;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
@@ -13,28 +12,29 @@ use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\ScaledObjectInterface;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\ScaleTarget\WorkloadContainerReference;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
 use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter;
+use Klass8s\Proxy\ProxyManager;
 use Klass8s\ResourceMaker\AbstractResourceMaker;
-use Klass8s\Util\ClassName;
-use Klass8s\Util\VersionedManifestReferencesService;
 
 class ScaledObjectMaker extends AbstractResourceMaker
 {
     public function __construct(
-        private readonly VersionedManifestReferencesService $referencesService,
+        private readonly VersionedManifestClassReferenceConverter $referencesService,
         private readonly TriggerBuildersRegistry $buildersRegistry
     ) {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ScaledObjectInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|ScaledObjectInterface $manifest, AppInterface $app): ScaledObject
+    protected function makeResource(ManifestInterface|ScaledObjectInterface $manifest): ScaledObject
     {
         $scaledObject = new ScaledObject();
-        $app->metadataHelper()->configureMeta($manifest, $scaledObject);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $scaledObject);
 
         $targetRef = $this->scaleTargetRef($manifest);
         $scaledObject->setScaleTargetRef($targetRef);
@@ -69,7 +69,7 @@ class ScaledObjectMaker extends AbstractResourceMaker
                 throw new \TypeError(
                     sprintf(
                         'Each element of %s::triggers() must be an instance of %s, %s given',
-                        ClassName::real($manifest),
+                        ProxyManager::unwrapClassName($manifest),
                         Trigger::class,
                         is_object($trigger) ? $trigger::class : gettype($trigger)
                     )

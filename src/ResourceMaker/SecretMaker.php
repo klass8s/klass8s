@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Core\V1\Secret;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Secret\SecretInterface;
 use Klass8s\Event\SecretGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\ResourceMaker\Traits\PrefixMapKeysTrait;
-use Klass8s\Util\StringMapProxy;
+use Klass8s\Value\StringMapProxy;
 
-class SecretMaker extends AbstractResourceMaker
+final class SecretMaker extends AbstractResourceMaker
 {
     use PrefixMapKeysTrait;
 
-    public function makeResource(ManifestInterface|SecretInterface $manifest, AppInterface $app): Secret
+    public function makeResource(ManifestInterface|SecretInterface $manifest): Secret
     {
         $secret = new Secret();
 
-        $app->metadataHelper()->configureMeta($manifest, $secret);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $secret);
         $data = StringMapProxy::make($secret->data());
         $manifest->data($data);
         $stringData = StringMapProxy::make($secret->stringData());
@@ -44,7 +44,7 @@ class SecretMaker extends AbstractResourceMaker
         return $secret;
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return SecretInterface::class;
     }

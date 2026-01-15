@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Monitoring\Prometheus;
 
 use K8Schema\Collection\StringList;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 use Klass8s\Monitoring\Prometheus\Configurator\NamespaceSelectorConfigurator;
 
 abstract class AbstractMonitor extends AbstractManifest implements MonitorInterface

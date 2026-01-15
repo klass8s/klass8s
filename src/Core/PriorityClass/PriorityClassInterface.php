@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Core\PriorityClass;
 
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface PriorityClassInterface extends ManifestInterface
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Monitoring\Prometheus;
 
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractPrometheusRule extends AbstractManifest implements PrometheusRuleInterface
 {

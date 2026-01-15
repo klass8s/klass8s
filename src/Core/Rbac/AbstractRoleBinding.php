@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\Rbac;
 
 use K8Schema\Api\Rbac\V1\RoleBinding;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractRoleBinding extends AbstractManifest implements RoleBindingInterface
 {

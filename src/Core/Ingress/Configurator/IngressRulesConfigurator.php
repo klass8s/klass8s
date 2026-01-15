@@ -7,8 +7,8 @@ namespace Klass8s\Core\Ingress\Configurator;
 use K8Schema\Api\Networking\V1\IngressRule;
 use K8Schema\Api\Networking\V1\IngressRuleList;
 use Klass8s\App\AppInterface;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\ManifestReferencesService;
 
 class IngressRulesConfigurator
 {
@@ -22,7 +22,7 @@ class IngressRulesConfigurator
     public function __construct(
         private readonly IngressRuleList $rules,
         private readonly AppInterface $app,
-        private readonly ManifestReferencesService $referencesService,
+        private readonly ManifestClassReferenceConverter $referencesService,
         private readonly AppRegistry $appRegistry,
     ) {
     }

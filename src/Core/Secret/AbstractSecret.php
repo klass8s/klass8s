@@ -6,7 +6,7 @@ namespace Klass8s\Core\Secret;
 
 use K8Schema\Api\Core\V1\Secret;
 use K8Schema\Collection\StringMap;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractSecret extends AbstractManifest implements SecretInterface
 {

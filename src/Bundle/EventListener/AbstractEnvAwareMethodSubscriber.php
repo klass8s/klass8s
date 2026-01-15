@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\EventListener;
 
 use Klass8s\Event\ProxyableMethodCalledEventInterface;
-use Klass8s\Util\ReflectionUtil;
-use Klass8s\Util\Str;
+use Klass8s\Util\SignatureChecker;
+use Klass8s\Util\StringUtil;
 use Proximity\ProxyInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -31,15 +31,15 @@ abstract class AbstractEnvAwareMethodSubscriber extends AbstractMethodResultSubs
         if (!$this->supports($event)) {
             return;
         }
-        $envAwareMethodName = $this->methodName().Str::asClassName($this->env);
+        $envAwareMethodName = $this->methodName().StringUtil::asClassName($this->env);
         if (!$class->hasMethod($envAwareMethodName)) {
             return;
         }
 
         $originalMethod = $class->getMethod($methodName);
         $envAwareMethod = $class->getMethod($envAwareMethodName);
-        if (!ReflectionUtil::sameSignature($originalMethod, $envAwareMethod)) {
-            throw new \LogicException(sprintf('Class "%s" has env-aware version of method "%s": method "%s", but signatures does not match.', $class->getName(), $methodName, $envAwareMethodName));
+        if (!SignatureChecker::check($originalMethod, $envAwareMethod)) {
+            throw new \LogicException(sprintf('Class "%s" has env-aware version of method "%s": method "%s", but signatures do not match.', $class->getName(), $methodName, $envAwareMethodName));
         }
 
         $returnType = $envAwareMethod->getReturnType();

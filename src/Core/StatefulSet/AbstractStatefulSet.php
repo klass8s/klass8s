@@ -7,9 +7,7 @@ namespace Klass8s\Core\StatefulSet;
 use K8Schema\Api\Apps\V1\StatefulSet;
 use K8Schema\Api\Core\V1\PodSpec;
 use K8Schema\Collection\StringMap;
-use Klass8s\Core\AbstractManifest;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestReference;
 use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
 use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
 use Klass8s\Core\Pod\Policy\RestartPolicy;
@@ -18,6 +16,8 @@ use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
 use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
 use Klass8s\Core\Pod\Volume\VolumesConfigurator;
 use Klass8s\Core\StatefulSet\UpdateStrategy\UpdateStrategyConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
 
 abstract class AbstractStatefulSet extends AbstractManifest implements StatefulSetInterface
 {
@@ -102,7 +102,7 @@ abstract class AbstractStatefulSet extends AbstractManifest implements StatefulS
         return null;
     }
 
-    public function serviceAccount(): ?ManifestReference
+    public function serviceAccount(): ?ManifestClassReference
     {
         return null;
     }

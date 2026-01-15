@@ -37,48 +37,37 @@ readonly class EnvConfigurator
     public function addFromClasses(string ...$classes): static
     {
         foreach ($classes as $class) {
-            $this->addFrom($class);
+            $this->addFromClass($class);
         }
 
         return $this;
     }
 
     /**
-     * @param string      $className      class name of a ConfigMap or a Secret
-     * @param bool        $mustExist
-     * @param string|null $varNamesPrefix allowed only for configmaps
-     *
-     * @return $this
+     * @param class-string<SecretInterface>|class-string<ConfigMapInterface> $className
+     * @param ?string $varNamesPrefix Allowed only for configmaps
      */
-    public function addFrom(string $className, bool $mustExist = true, ?string $varNamesPrefix = null): static
+    public function addFromClass(string $className, bool $mustExist = true, ?string $varNamesPrefix = null): static
     {
         $class = new \ReflectionClass($className);
 
         if ($class->implementsInterface(ConfigMapInterface::class)) {
-            return $this->addConfigMap($className, $mustExist, $varNamesPrefix);
+            return $this->addConfigMapClass($className, $mustExist, $varNamesPrefix);
         } elseif ($class->implementsInterface(SecretInterface::class)) {
             if (null !== $varNamesPrefix) {
-                throw new \LogicException(
-                    sprintf(
-                        '$varNamesPrefix must be specified only with config map classes, but specified with secret class "%s"',
-                        $className
-                    )
-                );
+                throw new \LogicException(sprintf('$varNamesPrefix must be specified only with config map classes, but specified with secret class "%s"', $className));
             }
 
-            return $this->addSecret($className, $mustExist);
+            return $this->addSecretClass($className, $mustExist);
         }
 
-        throw new \InvalidArgumentException(
-            sprintf(
-                '$className must be a name of class, that implements either "%s" or "%s"',
-                ConfigMapInterface::class,
-                SecretInterface::class
-            )
-        );
+        throw new \InvalidArgumentException(sprintf('$className must be a name of class, that implements either "%s" or "%s"', ConfigMapInterface::class, SecretInterface::class));
     }
 
-    public function addConfigMap(string $configMapClass, bool $mustExist = true, ?string $varNamesPrefix = null): static
+    /**
+     * @param class-string<ConfigMapInterface> $configMapClass
+     */
+    public function addConfigMapClass(string $configMapClass, bool $mustExist = true, ?string $varNamesPrefix = null): static
     {
         $event = new ConfigMapEnvSourceEvent($configMapClass, $this->app, $this);
         $this->dispatcher->dispatch($event, $event::NAME);
@@ -87,9 +76,9 @@ readonly class EnvConfigurator
         }
 
         $this->ensureAppOwnsManifestClass($configMapClass);
-        $cmName = $this->app->namesHelper()->byConfigMapClass($configMapClass);
+        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
 
-        $this->addConfigMapByName($cmName, $mustExist, $varNamesPrefix);
+        $this->addConfigMap($cmName, $mustExist, $varNamesPrefix);
 
         $event = new ConfigMapEnvSourceAddedEvent($configMapClass, $this->app, $this);
         $this->dispatcher->dispatch($event, $event::NAME);
@@ -97,7 +86,7 @@ readonly class EnvConfigurator
         return $this;
     }
 
-    public function addConfigMapByName(string $configMapName, bool $mustExist = true, ?string $varNamesPrefix = null, bool $external = false): static
+    public function addConfigMap(string $configMapName, bool $mustExist = true, ?string $varNamesPrefix = null, bool $external = false): static
     {
         $envFromSource = new EnvFromSource();
         if (null !== $varNamesPrefix) {
@@ -116,7 +105,10 @@ readonly class EnvConfigurator
         return $this;
     }
 
-    public function addSecret(string $secretClass, bool $mustExist = true): static
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function addSecretClass(string $secretClass, bool $mustExist = true): static
     {
         $event = new SecretEnvSourceEvent($secretClass, $this->app, $this);
         $this->dispatcher->dispatch($event, $event::NAME);
@@ -125,9 +117,9 @@ readonly class EnvConfigurator
         }
 
         $this->ensureAppOwnsManifestClass($secretClass);
-        $secretName = $this->app->namesHelper()->bySecretClass($secretClass);
+        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
 
-        $this->addSecretByName($secretName, $mustExist);
+        $this->addSecret($secretName, $mustExist);
 
         $event = new SecretEnvSourceAddedEvent($secretClass, $this->app, $this);
         $this->dispatcher->dispatch($event, $event::NAME);
@@ -135,7 +127,7 @@ readonly class EnvConfigurator
         return $this;
     }
 
-    public function addSecretByName(string $secretName, bool $mustExist = true, bool $external = false): static
+    public function addSecret(string $secretName, bool $mustExist = true, bool $external = false): static
     {
         $envFromSource = new EnvFromSource();
         $envFromSource->secretRef()
@@ -161,10 +153,13 @@ readonly class EnvConfigurator
         return $this;
     }
 
-    public function varFromConfigMap(string $varName, string $configMapClass, string $configMapKey, bool $optional = false): static
+    /**
+     * @param class-string<ConfigMapInterface> $configMapClass
+     */
+    public function varFromConfigMapClass(string $varName, string $configMapClass, string $configMapKey, bool $optional = false): static
     {
         $this->ensureAppOwnsManifestClass($configMapClass);
-        $cmName = $this->app->namesHelper()->byConfigMapClass($configMapClass);
+        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
 
         $keySelector = new ConfigMapKeySelector($configMapKey);
         $keySelector
@@ -178,10 +173,13 @@ readonly class EnvConfigurator
         return $this;
     }
 
-    public function varFromSecret(string $varName, string $secretClass, string $secretKey, bool $optional = false): static
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function varFromSecretClass(string $varName, string $secretClass, string $secretKey, bool $optional = false): static
     {
         $this->ensureAppOwnsManifestClass($secretClass);
-        $secretName = $this->app->namesHelper()->bySecretClass($secretClass);
+        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
 
         $keySelector = new SecretKeySelector($secretKey);
         $keySelector
@@ -231,7 +229,7 @@ readonly class EnvConfigurator
 
     private function ensureAppOwnsManifestClass(string $className): void
     {
-        if ($this->app->ownsManifest($className)) {
+        if ($this->app->ownsManifestClass($className)) {
             return;
         }
 

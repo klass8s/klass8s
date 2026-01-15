@@ -6,5 +6,13 @@ namespace Klass8s\Config;
 
 interface ConfigAwareInterface
 {
+    /**
+     * @var array<string, mixed>
+     */
+    public protected(set) array $config {
+        get;
+        set;
+    }
+
     public function setConfig(array $config): void;
 }

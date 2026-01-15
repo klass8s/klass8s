@@ -8,15 +8,15 @@ use K8Schema\Api\Networking\V1\HTTPIngressPath;
 use K8Schema\Api\Networking\V1\IngressRule;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Ingress\Http\PathType;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\ManifestReferencesService;
 
 readonly class IngressRuleConfigurator
 {
     public function __construct(
         private IngressRule $rule,
         private AppInterface $app,
-        private ManifestReferencesService $referencesService,
+        private ManifestClassReferenceConverter $referencesService,
         private AppRegistry $appRegistry,
     ) {
     }

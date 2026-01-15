@@ -8,7 +8,7 @@ use Klass8s\App\AbstractApp;
 use Klass8s\App\AppInterface;
 use Klass8s\Bundle\Klass8sBundle;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -44,7 +44,7 @@ final class AppsPass implements CompilerPassInterface
 
     public static function appDefinitionId(string $appAlias): string
     {
-        return 'klass8s.apps.'.Str::underscored($appAlias);
+        return 'klass8s.apps.'.StringUtil::underscored($appAlias);
     }
 
     private function registerByConfig(ContainerBuilder $container): void
@@ -131,7 +131,7 @@ final class AppsPass implements CompilerPassInterface
 
     private function createNewDefinition(string $class, string $alias, ContainerBuilder $container): void
     {
-        if (!Str::isValidDNSSubdomain($alias)) {
+        if (!StringUtil::isValidDNSSubdomain($alias)) {
             throw new InvalidConfigurationException(sprintf('App alias "%s" must be a valid DNS subdomain name.', $alias));
         }
 

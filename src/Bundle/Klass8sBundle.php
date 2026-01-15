@@ -17,7 +17,7 @@ use Klass8s\Bundle\DependencyInjection\Compiler\RemoveAutowiredAppsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\SetAppConfigPass;
 use Klass8s\Bundle\DependencyInjection\Klass8sExtension;
 use Klass8s\Bundle\EnvManagement\DIContainerRegistry;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Middleware\ContainerImageMiddlewareInterface;
 use Klass8s\ResourceMaker\ResourceMakerInterface;
 use Klass8s\Runtime\ManifestStatusResolverStrategyInterface;

@@ -6,11 +6,11 @@ namespace Klass8s\Bundle\EventListener;
 
 use Klass8s\Bundle\Attribute\NoDefaultMetadataLabels;
 use Klass8s\Bundle\Util\AttributesUtil;
-use Klass8s\Core\LabelsGeneratorInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\MetadataConfigurator;
 use Klass8s\Event\ProxyableMethodEventInterface;
-use Klass8s\Util\ClassName;
+use Klass8s\Manifest\Labels\LabelsGeneratorInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\ProxyManager;
 
 class DefaultMetadataLabelsSubscriber extends AbstractManifestMethodSubscriber
 {
@@ -28,10 +28,10 @@ class DefaultMetadataLabelsSubscriber extends AbstractManifestMethodSubscriber
     {
         /** @var ManifestInterface $manifest */
         $manifest = $event->proxyable();
-        if ($this->classHasNoLabelsAttribute(ClassName::real($manifest))) {
+        if ($this->classHasNoLabelsAttribute(ProxyManager::unwrapClassName($manifest))) {
             return;
         }
-        $labels = $this->labelsGenerator->byManifestInstance($manifest);
+        $labels = $this->labelsGenerator->forManifest($manifest);
         /** @var MetadataConfigurator $meta */
         $meta = $event->methodParams()['meta'];
         $meta->labels()->addAll($labels);

@@ -11,7 +11,7 @@ use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\ScaleTarget\WorkloadContainerReference;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
 use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface ScaledObjectInterface extends ManifestInterface
 {

@@ -7,6 +7,7 @@ namespace Klass8s\Core\Pod\ImagePullSecrets;
 use K8Schema\Api\Core\V1\LocalObjectReference;
 use K8Schema\Api\Core\V1\LocalObjectReferenceList;
 use Klass8s\App\AppInterface;
+use Klass8s\Core\Secret\SecretInterface;
 
 final readonly class ImagePullSecretsConfigurator
 {
@@ -16,14 +17,17 @@ final readonly class ImagePullSecretsConfigurator
     ) {
     }
 
-    public function addSecretByClassName(string $secretClassName): self
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function addSecretClass(string $secretClass): self
     {
-        $secretName = $this->app->namesHelper()->bySecretClass($secretClassName);
+        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
 
-        return $this->addSecretByName($secretName);
+        return $this->addSecret($secretName);
     }
 
-    public function addSecretByName(string $secretName): self
+    public function addSecret(string $secretName): self
     {
         $ref = new LocalObjectReference();
         $ref->setName($secretName);

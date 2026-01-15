@@ -6,33 +6,30 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Core\V1\PersistentVolumeClaim;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
 use Klass8s\Core\Persistence\PvcResourcesConfigurator;
-use Klass8s\Util\ManifestReferencesService;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 
-/**
- * @method PersistentVolumeClaim make(ManifestInterface $manifest, AppInterface $app)
- */
-class PersistentVolumeClaimMaker extends AbstractResourceMaker
+final class PersistentVolumeClaimMaker extends AbstractResourceMaker
 {
-    public function __construct(private ManifestReferencesService $referencesService)
+    public function __construct(private readonly ManifestClassReferenceConverter $referencesService)
     {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return PersistentVolumeClaimInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|PersistentVolumeClaimInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|PersistentVolumeClaimInterface $manifest): APIResourceInterface
     {
         $pvc = new PersistentVolumeClaim();
         $spec = $pvc->spec();
 
-        $app->metadataHelper()->configureMeta($manifest, $pvc);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $pvc);
         $this->configureAccessModes($manifest, $pvc);
         $this->configureDataSource($manifest, $pvc);
 

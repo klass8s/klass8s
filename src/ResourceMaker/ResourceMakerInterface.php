@@ -6,10 +6,10 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\APIResourceInterface;
 use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface ResourceMakerInterface
 {
-    public function make(ManifestInterface $manifest, AppInterface $app): APIResourceInterface;
-    public function supports(ManifestInterface $manifest, AppInterface $app): bool;
+    public function make(ManifestInterface $manifest): APIResourceInterface;
+    public function supports(ManifestInterface $manifest): bool;
 }

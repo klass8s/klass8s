@@ -7,16 +7,15 @@ namespace Klass8s\ResourceMaker;
 use K8Schema\Api\Batch\V1\CronJob;
 use K8Schema\Api\Batch\V1\CronJobSpec;
 use K8Schema\Api\Batch\V1\JobTemplateSpec;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\CronJob\CronJobInterface;
 use Klass8s\Core\Job\JobInterface;
 use Klass8s\Core\Job\JobSpecProcessor;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Pod\Policy\RestartPolicy;
 use Klass8s\Event\CronJobGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 
-class CronJobMaker extends AbstractResourceMaker
+final class CronJobMaker extends AbstractResourceMaker
 {
     private readonly JobSpecProcessor $jobSpecProcessor;
 
@@ -25,14 +24,15 @@ class CronJobMaker extends AbstractResourceMaker
         $this->jobSpecProcessor = $jobSpecProcessor;
     }
 
-    protected function makeResource(ManifestInterface|CronJobInterface $manifest, AppInterface $app): CronJob
+    protected function makeResource(ManifestInterface|CronJobInterface $manifest): CronJob
     {
         $spec = new CronJobSpec($manifest->schedule());
         $cronJob = new CronJob($spec);
 
-        $app->metadataHelper()->configureMeta($manifest, $cronJob);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $cronJob);
 
-        $this->configureJobTemplate($spec->jobTemplate(), $manifest->job(), $app);
+        $this->configureJobTemplate($spec->jobTemplate(), $manifest->job());
 
         $concurrencyPolicy = $manifest->concurrencyPolicy();
         $failedJobsHistoryLimit = $manifest->failedJobsHistoryLimit();
@@ -75,17 +75,17 @@ class CronJobMaker extends AbstractResourceMaker
         return $cronJob;
     }
 
-    private function configureJobTemplate(JobTemplateSpec $templateSpec, JobInterface $manifest, AppInterface $app): void
+    private function configureJobTemplate(JobTemplateSpec $templateSpec, JobInterface $manifest): void
     {
         $jobSpec = $templateSpec->spec();
         $manifest->selector(new SelectorConfigurator($jobSpec->selector()));
-        $this->jobSpecProcessor->process($manifest, $jobSpec, $app);
+        $this->jobSpecProcessor->process($manifest, $jobSpec);
         foreach ($jobSpec->selector()->matchLabels()->all() as $name => $value) {
             $templateSpec->metadata()->labels()->add($name, $value);
         }
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return CronJobInterface::class;
     }

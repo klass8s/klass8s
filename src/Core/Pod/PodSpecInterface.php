@@ -7,7 +7,6 @@ namespace Klass8s\Core\Pod;
 use K8Schema\Api\Core\V1\PodSpec;
 use K8Schema\Collection\StringMap;
 use Klass8s\Core\Container\ContainerInterface;
-use Klass8s\Core\ManifestReference;
 use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
 use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
 use Klass8s\Core\Pod\Policy\RestartPolicy;
@@ -15,6 +14,7 @@ use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
 use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
 use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
 use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+use Klass8s\Manifest\Reference\ManifestClassReference;
 
 interface PodSpecInterface
 {
@@ -37,7 +37,7 @@ interface PodSpecInterface
     public function configurePodSpec(PodSpec $spec): void;
     public function priorityClass(PriorityClassConfigurator $priorityClass): void;
     public function serviceAccountName(): ?string;
-    public function serviceAccount(): ?ManifestReference;
+    public function serviceAccount(): ?ManifestClassReference;
     public function terminationGracePeriodSeconds(): ?int;
     public function topologySpreadConstraints(TopologySpreadConstraintsConfigurator $constraints): void;
 }

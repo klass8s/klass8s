@@ -15,7 +15,7 @@ class RoleBindingMaker extends AbstractRoleBindingMaker
         return new RoleBinding($ref);
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return RoleBindingInterface::class;
     }

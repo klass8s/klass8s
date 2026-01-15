@@ -6,7 +6,7 @@ namespace Klass8s\Core\ConfigMap;
 
 use K8Schema\Api\Core\V1\ConfigMap;
 use K8Schema\Collection\StringMap;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractConfigMap extends AbstractManifest implements ConfigMapInterface
 {

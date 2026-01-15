@@ -8,5 +8,7 @@ use Klass8s\App\AppInterface;
 
 interface AppAwareInterface
 {
+    public protected(set) AppInterface $app { get; set; }
+
     public function setApp(AppInterface $app): void;
 }

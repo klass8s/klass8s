@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Klass8s\Core\Persistence;
 
 use K8Schema\Api\Core\V1\PersistentVolume;
-use Klass8s\Core\AbstractManifest;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestReference;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
 
 abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements PersistentVolumeClaimInterface
 {
-    public function dataSource(): ?ManifestReference
+    public function dataSource(): ?ManifestClassReference
     {
         return null;
     }

@@ -8,6 +8,8 @@ use K8Schema\Api\Rbac\V1\ClusterRole;
 use K8Schema\Api\Rbac\V1\Role;
 use K8Schema\Api\Rbac\V1\RoleRef;
 use Klass8s\App\AppInterface;
+use Klass8s\Core\Rbac\ClusterRoleInterface;
+use Klass8s\Core\Rbac\RoleInterface;
 use Klass8s\Registry\AppRegistry;
 
 readonly class RoleRefConfigurator
@@ -31,18 +33,24 @@ readonly class RoleRefConfigurator
         $this->ref->setKind(ClusterRole::KIND)->setName($clusterRoleName);
     }
 
+    /**
+     * @param class-string<RoleInterface> $roleClass
+     */
     public function fromRoleClass(string $roleClass): void
     {
         $this->ensureAppOwnsManifestClass($roleClass);
-        $name = $this->app->namesHelper()->byManifestClass($roleClass);
+        $name = $this->app->resourceNameByManifestClass($roleClass, RoleInterface::class);
 
         $this->fromRoleName($name);
     }
 
+    /**
+     * @param class-string<ClusterRoleInterface> $clusterRoleClass
+     */
     public function fromClusterRoleClass(string $clusterRoleClass): void
     {
         $this->ensureAppOwnsManifestClass($clusterRoleClass);
-        $name = $this->app->namesHelper()->byManifestClass($clusterRoleClass);
+        $name = $this->app->resourceNameByManifestClass($clusterRoleClass, ClusterRoleInterface::class);
 
         $this->fromClusterRoleName($name);
     }
@@ -54,7 +62,7 @@ readonly class RoleRefConfigurator
 
     private function ensureAppOwnsManifestClass(string $className): void
     {
-        if ($this->app->ownsManifest($className)) {
+        if ($this->app->ownsManifestClass($className)) {
             return;
         }
 

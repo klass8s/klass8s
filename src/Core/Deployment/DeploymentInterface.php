@@ -6,8 +6,8 @@ namespace Klass8s\Core\Deployment;
 
 use K8Schema\Api\Apps\V1\Deployment;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Pod\PodTemplateSpecInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface DeploymentInterface extends PodTemplateSpecInterface, ManifestInterface
 {

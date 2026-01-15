@@ -7,24 +7,24 @@ namespace Klass8s\ResourceMaker;
 use K8Schema\Api\Core\V1\Service;
 use K8Schema\Api\Core\V1\ServicePortList;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
 use Klass8s\Core\Service\Configurator\ServiceTypeConfigurator;
 use Klass8s\Core\Service\ServiceInterface;
 use Klass8s\Event\ServiceGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 
-class ServiceMaker extends AbstractResourceMaker
+final class ServiceMaker extends AbstractResourceMaker
 {
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ServiceInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|ServiceInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|ServiceInterface $manifest): APIResourceInterface
     {
         $service = new Service();
-        $app->metadataHelper()->configureMeta($manifest, $service);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $service);
 
         $clusterIp = $manifest->clusterIP();
         if (null !== $clusterIp) {
@@ -40,7 +40,7 @@ class ServiceMaker extends AbstractResourceMaker
 
         $ports = new ServicePortsConfigurator($service->spec()->ports());
         $manifest->ports($ports);
-        $this->validatePorts($service->spec()->ports(), $manifest, $app);
+        self::validatePorts($service->spec()->ports(), $manifest);
 
         $manifest->selector($service->spec()->selector());
         $manifest->configureService($service);
@@ -50,18 +50,13 @@ class ServiceMaker extends AbstractResourceMaker
         return $service;
     }
 
-    private function validatePorts(ServicePortList $ports, ServiceInterface $manifest, AppInterface $app): void
+    private static function validatePorts(ServicePortList $ports, ServiceInterface $manifest): void
     {
         $ports = $ports->all();
         if (count($ports) > 1) {
             foreach ($ports as $port) {
                 if (null === $port->getName()) {
-                    throw new \LogicException(
-                        sprintf(
-                            'Multiple ports specified for service "%s", therefore all ports must have name',
-                            $app->namesHelper()->fullName($manifest::shortName())
-                        )
-                    );
+                    throw new \LogicException(sprintf('Multiple ports specified for service "%s", therefore all ports must have name', $manifest->resourceName));
                 }
             }
         }

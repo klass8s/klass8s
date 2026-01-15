@@ -10,7 +10,7 @@ use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\RolloutConfigurator;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\ScalingStrategyConfigurator;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface ScaledJobInterface extends ManifestInterface
 {

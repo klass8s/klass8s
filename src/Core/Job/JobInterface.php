@@ -6,8 +6,8 @@ namespace Klass8s\Core\Job;
 
 use K8Schema\Api\Batch\V1\Job;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Pod\PodTemplateSpecInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface JobInterface extends PodTemplateSpecInterface, ManifestInterface
 {

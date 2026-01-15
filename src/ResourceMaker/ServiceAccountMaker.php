@@ -6,29 +6,29 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Core\V1\ServiceAccount;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\ServiceAccount\Configurator\ImagePullSecretsConfigurator;
 use Klass8s\Core\ServiceAccount\Configurator\SecretsConfigurator;
 use Klass8s\Core\ServiceAccount\ServiceAccountInterface;
 use Klass8s\Event\ServiceAccountGeneratedEvent;
-use Klass8s\Util\ManifestReferencesService;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 
 class ServiceAccountMaker extends AbstractResourceMaker
 {
-    public function __construct(private readonly ManifestReferencesService $referencesService)
+    public function __construct(private readonly ManifestClassReferenceConverter $referencesService)
     {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ServiceAccountInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|ServiceAccountInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|ServiceAccountInterface $manifest): APIResourceInterface
     {
         $serviceAccount = new ServiceAccount();
-        $app->metadataHelper()->configureMeta($manifest, $serviceAccount);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $serviceAccount);
 
         $imagePullSecrets = new ImagePullSecretsConfigurator($this->referencesService, $serviceAccount->imagePullSecrets());
         $secrets = new SecretsConfigurator($this->referencesService, $serviceAccount->secrets());

@@ -8,33 +8,32 @@ use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
 use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscaler;
 use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerSpec;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
 use Klass8s\Core\Autoscaling\Configurator\MetricsConfigurator;
 use Klass8s\Core\Autoscaling\HorizontalPodAutoscalerInterface;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Core\VersionedManifestReference;
-use Klass8s\Util\VersionedManifestReferencesService;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\VersionedManifestClassReference;
+use Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter;
 
-class HorizontalPodAutoscalerMaker extends AbstractResourceMaker
+final class HorizontalPodAutoscalerMaker extends AbstractResourceMaker
 {
-    public function __construct(private readonly VersionedManifestReferencesService $referencesService)
+    public function __construct(private readonly VersionedManifestClassReferenceConverter $refConverter)
     {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return HorizontalPodAutoscalerInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|HorizontalPodAutoscalerInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|HorizontalPodAutoscalerInterface $manifest): APIResourceInterface
     {
         $scaleTargetRef = $this->scaleTargetRef($manifest->scaleTargetRef());
 
         $hpaSpec = new HorizontalPodAutoscalerSpec($manifest->maxReplicas(), $scaleTargetRef);
         $hpaSpec->setMinReplicas($manifest->minReplicas());
 
-        $metricsConfigurator = new MetricsConfigurator($hpaSpec->metrics(), $this->referencesService);
+        $metricsConfigurator = new MetricsConfigurator($hpaSpec->metrics(), $this->refConverter);
         $manifest->metrics($metricsConfigurator);
 
         $behaviorConfigurator = new BehaviorConfigurator($hpaSpec->behavior());
@@ -42,19 +41,20 @@ class HorizontalPodAutoscalerMaker extends AbstractResourceMaker
 
         $hpa = new HorizontalPodAutoscaler($hpaSpec);
 
-        $app->metadataHelper()->configureMeta($manifest, $hpa);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $hpa);
 
         $manifest->configureHorizontalPodAutoscaler($hpa);
 
         return $hpa;
     }
 
-    private function scaleTargetRef(VersionedManifestReference|CrossVersionObjectReference $reference): CrossVersionObjectReference
+    private function scaleTargetRef(VersionedManifestClassReference|CrossVersionObjectReference $reference): CrossVersionObjectReference
     {
         if ($reference instanceof CrossVersionObjectReference) {
             return $reference;
         }
 
-        return $this->referencesService->toCrossVersionObjectReference($reference);
+        return $this->refConverter->toCrossVersionObjectReference($reference);
     }
 }

@@ -7,8 +7,8 @@ namespace Klass8s\Bundle\EventListener\Traits;
 use Klass8s\Bundle\EnvManagement\Attribute\AfterMethod;
 use Klass8s\Bundle\EnvManagement\Attribute\BeforeMethod;
 use Klass8s\Bundle\Util\AttributesUtil;
-use Klass8s\Core\ProxyableInterface;
-use Klass8s\Util\ReflectionUtil;
+use Klass8s\Proxy\ProxyableInterface;
+use Klass8s\Util\SignatureChecker;
 use Proximity\ProxyInterface;
 
 trait ApplyWrappersTrait
@@ -54,7 +54,7 @@ trait ApplyWrappersTrait
             }
 
             $originalMethod = $class->getMethod($methodName);
-            if (!ReflectionUtil::sameSignature($originalMethod, $method)) {
+            if (!SignatureChecker::check($originalMethod, $method)) {
                 throw new \LogicException(sprintf('Method "%s::%s()" uses attribute "%s" to wrap method "%s()", but has another signature', $class->getName(), $method->getName(), $attributeClass, $methodName));
             }
 

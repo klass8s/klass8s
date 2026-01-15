@@ -7,8 +7,8 @@ namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\Fallback;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaledObject;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
-use Klass8s\Core\AbstractManifest;
 use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractScaledObject extends AbstractManifest implements ScaledObjectInterface
 {

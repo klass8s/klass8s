@@ -6,7 +6,7 @@ namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
 
 use K8Schema\Collection\StringMap;
 use Klass8s\Core\Autoscaling\Metric\TargetType;
-use Klass8s\Util\StringMapProxy;
+use Klass8s\Value\StringMapProxy;
 
 class Trigger implements \JsonSerializable
 {

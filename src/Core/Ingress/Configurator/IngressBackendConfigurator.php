@@ -7,16 +7,17 @@ namespace Klass8s\Core\Ingress\Configurator;
 use K8Schema\Api\Networking\V1\IngressBackend;
 use K8Schema\Api\Networking\V1\IngressServiceBackend;
 use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestReference;
+use Klass8s\Core\Service\ServiceInterface;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\ManifestReferencesService;
 
 readonly class IngressBackendConfigurator
 {
     public function __construct(
         private AppInterface $app,
         private AppRegistry $appRegistry,
-        private ManifestReferencesService $referencesService,
+        private ManifestClassReferenceConverter $referencesService,
         private IngressBackend $backend
     ) {
     }
@@ -34,14 +35,16 @@ readonly class IngressBackendConfigurator
         $this->backend->setService($serviceBackend);
     }
 
+    /**
+     * @param class-string<ServiceInterface> $serviceClass
+     */
     public function fromServiceClassAndPort(string $serviceClass, int|string $servicePort): void
     {
-        $serviceName = $this->app->namesHelper()->byServiceClass($serviceClass);
-
+        $serviceName = $this->app->resourceNameByManifestClass($serviceClass, ServiceInterface::class);
         $this->fromServiceNameAndPort($serviceName, $servicePort);
     }
 
-    public function fromManifestReference(ManifestReference $manifestReference): void
+    public function fromManifestReference(ManifestClassReference $manifestReference): void
     {
         $resource = $this->referencesService->toTypedLocalObjectReference($manifestReference);
         $this->backend->setResource($resource);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\EventListener\Traits;
 
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ProxyableInterface;
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Core\StatefulSet\StatefulSetInterface;
 use Proximity\ProxyInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
@@ -13,8 +13,10 @@ trait EnsureMethodIsNotDeclaredInUserManifestTrait
 {
     private string $env;
 
-    protected function ensureMethodIsNotDeclaredInUserManifest(ProxyableInterface $manifest, string $methodName, AppInterface $app): void
-    {
+    protected function ensureMethodIsNotDeclaredInUserManifest(
+        DeploymentInterface|StatefulSetInterface $manifest,
+        string $methodName,
+    ): void {
         $class = new \ReflectionObject($manifest);
         if ($class->implementsInterface(ProxyInterface::class)) {
             $class = $class->getParentClass();
@@ -34,14 +36,14 @@ trait EnsureMethodIsNotDeclaredInUserManifestTrait
 
             throw new \LogicException(
                 sprintf(
-                    '%s for manifest "%s" in app "%s" are declared both in manifests config and in method %s::%s(), '
+                    '%s for manifest "%s" in app "%s" are declared both in manifests\' config and in method %s::%s(), '
                     .'which leads to ambiguity. Please choose one way to define %s for this manifest.',
                     ucfirst($methodName),
-                    $class->getShortName(),
-                    $app->alias(),
+                    $class->name,
+                    $manifest->app->alias,
                     $class->getShortName(),
                     $method->getName(),
-                    $methodName
+                    $methodName,
                 )
             );
         }

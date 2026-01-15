@@ -20,6 +20,9 @@ class PriorityClassConfigurator
     ) {
     }
 
+    /**
+     * @param class-string<PriorityClassInterface> $phpClassName
+     */
     public function fromPHPClass(string $phpClassName): void
     {
         $this->prohibitMultipleCalls();
@@ -31,18 +34,18 @@ class PriorityClassConfigurator
             throw new \InvalidArgumentException(sprintf('$phpClassName must be a name of class that implements "%s", given "%s"', PriorityClassInterface::class, $phpClassName));
         }
 
-        if (!$this->app->ownsManifest($phpClassName)) {
+        if (!$this->app->ownsManifestClass($phpClassName)) {
             $msg = <<<'ERR'
                 App "%s" does not have manifests with class "%s". Please use method "%s::withExternalApp()"
                 for using priority classes from another app. Example:
 
-                $priorityClass->withExternalApp('externalAppAlias')->fromPHPClass(ExternalPriorityClass::class);
+                $priorityClass->withExternalApp('external-app')->fromPHPClass(ExternalPriorityClass::class);
                 ERR;
 
             throw new \InvalidArgumentException(sprintf($msg, $this->app->alias(), $phpClassName, static::class));
         }
 
-        $priorityClassName = $this->app->namesHelper()->byManifestClass($phpClassName);
+        $priorityClassName = $this->app->resourceNameByManifestClass($phpClassName, PriorityClassInterface::class);
         $this->spec->setPriorityClassName($priorityClassName);
     }
 

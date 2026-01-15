@@ -15,7 +15,7 @@ class ClusterRoleBindingMaker extends AbstractRoleBindingMaker
         return new ClusterRoleBinding($ref);
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ClusterRoleBindingInterface::class;
     }

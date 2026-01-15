@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Klass8s\Core\Ingress;
 
 use K8Schema\Api\Networking\V1\Ingress;
-use Klass8s\Core\AbstractManifest;
 use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractIngress extends AbstractManifest implements IngressInterface
 {
