@@ -7,8 +7,8 @@ namespace Klass8s\App;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Config\ConfigurableInterface;
-use Klass8s\Core\MetadataAwareInterface;
 use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\MetadataAwareInterface;
 
 interface AppInterface extends ConfigurableInterface
 {

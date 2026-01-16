@@ -29,7 +29,7 @@ final class ModernStyle extends SymfonyStyle
     {
         $messages = is_array($message) ? array_values($message) : [$message];
         foreach ($messages as $message) {
-            $this->line('success', $message, '✅');
+            $this->line('success', $message, '✔︎');
         }
     }
 
@@ -74,7 +74,7 @@ final class ModernStyle extends SymfonyStyle
 
     private function line(string $style, string $message, string $emoji): void
     {
-        $this->writeln(sprintf(' %s <%s>%s</%s>', $emoji, $style, OutputFormatter::escape($message), $style));
+        $this->writeln(sprintf(' <%s>%s</%s> %s', $style, $emoji, $style, $message));
     }
 
     public static function applyTheme(OutputInterface $output): void

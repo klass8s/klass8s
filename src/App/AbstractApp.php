@@ -7,10 +7,10 @@ namespace Klass8s\App;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Config\ConfigAwareTrait;
-use Klass8s\Core\MetadataAwareInterface;
-use Klass8s\Core\MetadataConfigurator;
 use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Manifest\ManifestNameResolver;
+use Klass8s\Manifest\MetadataAwareInterface;
+use Klass8s\Manifest\MetadataConfigurator;
 use Klass8s\Registry\ManifestRegistry;
 
 abstract class AbstractApp implements AppInterface
@@ -41,7 +41,7 @@ abstract class AbstractApp implements AppInterface
     public function resourceNameByManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string
     {
         $name = ManifestNameResolver::resourceNameFromManifestClass($manifestClass, $this->alias);
-        if (!is_a($manifestClass, $classToValidateAgainst, true)) {
+        if (null !== $classToValidateAgainst && !is_a($manifestClass, $classToValidateAgainst, true)) {
             throw new \LogicException(sprintf('Manifest class "%s" is not a subclass of "%s".', $manifestClass, $classToValidateAgainst));
         }
         if (!$this->ownsManifestClass($manifestClass)) {

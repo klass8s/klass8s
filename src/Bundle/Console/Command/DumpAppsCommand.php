@@ -78,7 +78,7 @@ class DumpAppsCommand extends Command
 
         $this->dispatcher->dispatch(new ManifestsDumpedEvent(), ManifestsDumpedEvent::NAME);
 
-        $io->success(sprintf('Manifests are dumped to "<comment>%s</comment>".', $outputDirName));
+        $io->success(sprintf('Manifests are dumped to <comment>%s</comment>.', $outputDirName));
 
         return self::SUCCESS;
     }

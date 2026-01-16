@@ -6,10 +6,10 @@ namespace Klass8s\Bundle\EventListener;
 
 use Klass8s\Bundle\Attribute\NoDefaultMetadataLabels;
 use Klass8s\Bundle\Util\AttributesUtil;
-use Klass8s\Core\MetadataConfigurator;
 use Klass8s\Event\ProxyableMethodEventInterface;
 use Klass8s\Manifest\Labels\LabelsGeneratorInterface;
 use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\MetadataConfigurator;
 use Klass8s\Proxy\ProxyManager;
 
 class DefaultMetadataLabelsSubscriber extends AbstractManifestMethodSubscriber

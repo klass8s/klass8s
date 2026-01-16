@@ -7,8 +7,6 @@ namespace Klass8s\Manifest;
 use Klass8s\App\AbstractApp;
 use Klass8s\App\AppInterface;
 use Klass8s\Config\ConfigAwareTrait;
-use Klass8s\Core\DynamicNameAwareInterface;
-use Klass8s\Core\MetadataConfigurator;
 use Klass8s\Util\StringUtil;
 use Proximity\ProxyInterface;
 
@@ -44,17 +42,6 @@ abstract class AbstractManifest implements ManifestInterface
 
             return $this->manifestInstanceName.'.'.StringUtil::asDNSSubdomain($this::kind());
         }
-    }
-
-    public function fileNameWithoutExtension(): string
-    {
-        $name = match (true) {
-            $this instanceof FullNameAwareInterface => $this->manifestFullName(),
-            $this instanceof DynamicNameAwareInterface => $this->name(),
-            default => $this::manifestName(),
-        };
-
-        return $name.'.'.StringUtil::asDNSSubdomain(static::kind());
     }
 
     public function metadata(MetadataConfigurator $meta): void

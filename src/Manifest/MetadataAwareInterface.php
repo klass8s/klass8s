@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Klass8s\Core;
+namespace Klass8s\Manifest;
 
 interface MetadataAwareInterface
 {
