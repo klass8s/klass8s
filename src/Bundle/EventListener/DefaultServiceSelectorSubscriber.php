@@ -6,9 +6,9 @@ namespace Klass8s\Bundle\EventListener;
 
 use Klass8s\Bundle\Attribute\NoDefaultServiceSelector;
 use Klass8s\Bundle\Util\AttributesUtil;
-use Klass8s\Core\LabelsGeneratorInterface;
 use Klass8s\Event\ServiceGeneratedEvent;
-use Klass8s\Util\ClassName;
+use Klass8s\Manifest\Labels\LabelsGeneratorInterface;
+use Klass8s\Proxy\ProxyManager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 readonly class DefaultServiceSelectorSubscriber implements EventSubscriberInterface
@@ -20,10 +20,10 @@ readonly class DefaultServiceSelectorSubscriber implements EventSubscriberInterf
     public function onServiceGenerated(ServiceGeneratedEvent $event): void
     {
         $manifest = $event->manifest();
-        if ($this->classHasNoSelectorAttribute(ClassName::real($manifest))) {
+        if ($this->classHasNoSelectorAttribute(ProxyManager::unwrapClassName($manifest))) {
             return;
         }
-        $labels = $this->labelsGenerator->byManifestInstance($manifest);
+        $labels = $this->labelsGenerator->forManifest($manifest);
         $event->service()->spec()->selector()->addAll($labels);
     }
 

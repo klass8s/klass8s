@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Core\SelfRenderingManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\SelfMakingManifestInterface;
 
 class SelfRenderingManifestResourceMaker extends AbstractResourceMaker
 {
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
-        return SelfRenderingManifestInterface::class;
+        return SelfMakingManifestInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|SelfRenderingManifestInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|SelfMakingManifestInterface $manifest): APIResourceInterface
     {
-        $apiResource = $manifest->render();
-        $app->metadataHelper()->configureMeta($manifest, $apiResource);
+        $apiResource = $manifest->make();
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $apiResource);
 
         return $apiResource;
     }

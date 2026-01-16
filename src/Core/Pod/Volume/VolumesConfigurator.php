@@ -7,6 +7,8 @@ namespace Klass8s\Core\Pod\Volume;
 use K8Schema\Api\Core\V1\Volume;
 use K8Schema\Api\Core\V1\VolumeList;
 use Klass8s\App\AppInterface;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
 use Klass8s\Core\Pod\Volume\Builder\ConfigMapVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\DownwardAPIVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\EmptyDirVolumeBuilder;
@@ -14,6 +16,7 @@ use Klass8s\Core\Pod\Volume\Builder\HostPathVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\PVCVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\SecretVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\VolumeBuilderInterface;
+use Klass8s\Core\Secret\SecretInterface;
 use Klass8s\Registry\AppRegistry;
 
 readonly class VolumesConfigurator
@@ -25,14 +28,17 @@ readonly class VolumesConfigurator
     ) {
     }
 
-    public function fromConfigMap(string $volumeName, string $configMapClass): ConfigMapVolumeBuilder
+    /**
+     * @param class-string<ConfigMapInterface> $configMapClass
+     */
+    public function fromConfigMapClass(string $volumeName, string $configMapClass): ConfigMapVolumeBuilder
     {
-        $cmName = $this->app->namesHelper()->byConfigMapClass($configMapClass);
+        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
 
-        return $this->fromConfigMapName($volumeName, $cmName);
+        return $this->fromConfigMap($volumeName, $cmName);
     }
 
-    public function fromConfigMapName(string $volumeName, string $configMapName): ConfigMapVolumeBuilder
+    public function fromConfigMap(string $volumeName, string $configMapName): ConfigMapVolumeBuilder
     {
         return $this->initBuilder(new ConfigMapVolumeBuilder($configMapName), $volumeName);
     }
@@ -51,22 +57,37 @@ readonly class VolumesConfigurator
         return $this->initBuilder($builder, $volumeName);
     }
 
-    public function fromPersistentVolumeClaim(string $volumeName, string $pvcClass): PVCVolumeBuilder
+    /**
+     * @param class-string<PersistentVolumeClaimInterface> $pvcClass
+     */
+    public function fromPvcClass(string $volumeName, string $pvcClass): PVCVolumeBuilder
     {
-        $pvcName = $this->app->namesHelper()->byManifestClass($pvcClass);
+        $pvcName = $this->app->resourceNameByManifestClass($pvcClass, PersistentVolumeClaimInterface::class);
+
+        return $this->fromPvc($volumeName, $pvcName);
+    }
+
+    /**
+     * @param string $pvcName PVC name, not a manifest class name
+     */
+    public function fromPvc(string $volumeName, string $pvcName): PVCVolumeBuilder
+    {
         $builder = new PVCVolumeBuilder($pvcName);
 
         return $this->initBuilder($builder, $volumeName);
     }
 
-    public function fromSecret(string $volumeName, string $secretClass): SecretVolumeBuilder
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function fromSecretClass(string $volumeName, string $secretClass): SecretVolumeBuilder
     {
-        $secretName = $this->app->namesHelper()->bySecretClass($secretClass);
+        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
 
-        return $this->fromSecretName($volumeName, $secretName);
+        return $this->fromSecret($volumeName, $secretName);
     }
 
-    public function fromSecretName(string $volumeName, string $secretName): SecretVolumeBuilder
+    public function fromSecret(string $volumeName, string $secretName): SecretVolumeBuilder
     {
         return $this->initBuilder(new SecretVolumeBuilder($secretName), $volumeName);
     }

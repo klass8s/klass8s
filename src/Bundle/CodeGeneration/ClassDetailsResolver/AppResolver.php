@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\CodeGeneration\ClassDetailsResolver;
 
 use Klass8s\Bundle\CodeGeneration\ClassDetails;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 
 readonly class AppResolver
 {
@@ -30,21 +30,21 @@ readonly class AppResolver
 
     private function getClassName(string $appName): string
     {
-        $className = Str::asClassName($appName);
+        $className = StringUtil::asClassName($appName);
 
-        return Str::withSuffix($className, self::SUFFIX_APP);
+        return StringUtil::withSuffix($className, self::SUFFIX_APP);
     }
 
     private function getNamespace(string $appName): string
     {
-        $dirName = Str::asDirName($appName, self::SUFFIX_APP);
+        $dirName = StringUtil::asDirName($appName, self::SUFFIX_APP);
 
         return $this->namespacePrefix.'\\'.$dirName;
     }
 
     private function getDir(string $appName): string
     {
-        $dirName = Str::asDirName($appName, self::SUFFIX_APP);
+        $dirName = StringUtil::asDirName($appName, self::SUFFIX_APP);
 
         return $this->codeDir.DIRECTORY_SEPARATOR.$dirName;
     }

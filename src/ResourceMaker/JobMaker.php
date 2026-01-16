@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Batch\V1\Job;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\CronJob\CronJobInterface;
 use Klass8s\Core\Job\JobInterface;
 use Klass8s\Core\Job\JobSpecProcessor;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Pod\Policy\RestartPolicy;
 use Klass8s\Event\JobGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 
-class JobMaker extends AbstractResourceMaker
+final class JobMaker extends AbstractResourceMaker
 {
     private JobSpecProcessor $jobSpecProcessor;
 
@@ -23,20 +22,21 @@ class JobMaker extends AbstractResourceMaker
         $this->jobSpecProcessor = $jobSpecProcessor;
     }
 
-    public function supports(ManifestInterface $manifest, AppInterface $app): bool
+    public function supports(ManifestInterface $manifest): bool
     {
-        return $manifest instanceof JobInterface && !($manifest instanceof CronJobInterface);
+        return $manifest instanceof JobInterface && !$manifest instanceof CronJobInterface;
     }
 
-    protected function makeResource(ManifestInterface|JobInterface $manifest, AppInterface $app): Job
+    protected function makeResource(ManifestInterface|JobInterface $manifest): Job
     {
         $job = new Job();
         $spec = $job->spec();
 
         $manifest->selector(new SelectorConfigurator($spec->selector()));
 
-        $app->metadataHelper()->configureMeta($manifest, $job);
-        $this->jobSpecProcessor->process($manifest, $spec, $app);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $job);
+        $this->jobSpecProcessor->process($manifest, $spec);
         foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
             $job->metadata()->labels()->add($name, $value);
         }
@@ -54,7 +54,7 @@ class JobMaker extends AbstractResourceMaker
         return $job;
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return JobInterface::class;
     }

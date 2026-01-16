@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection\Compiler;
 
+use Klass8s\App\AppInterface;
 use Klass8s\Bundle\DependencyInjection\Compiler\Traits\GetAppAliasTrait;
 use Klass8s\Bundle\EnvManagement\Attribute\EnabledForApps;
 use Klass8s\Bundle\Klass8sBundle;
 use Klass8s\Bundle\Util\AttributesUtil;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\Container\ContainerInterface;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Registry\ManifestRegistry;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -43,7 +43,7 @@ final class ManifestsPass implements CompilerPassInterface
                 throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', ManifestInterface::class, Klass8sBundle::TAG_MANIFEST));
             }
 
-            $manifestShortName = $manifestClass->getMethod('shortName')->invoke(null);
+            $manifestName = $manifestClass->getMethod('manifestName')->invoke(null);
             $manifestKind = $manifestClass->getMethod('kind')->invoke(null);
 
             foreach ($classNameToAliasesMap as $className => $aliases) {
@@ -61,9 +61,9 @@ final class ManifestsPass implements CompilerPassInterface
                     $dedicatedManifestDefinition = clone $manifestDefinition;
                     $newId = sprintf(
                         'klass8s.apps.%s.manifests.%s_%s',
-                        Str::underscored($alias),
-                        Str::underscored($manifestShortName),
-                        Str::underscored($manifestKind)
+                        StringUtil::underscored($alias),
+                        StringUtil::underscored($manifestName),
+                        StringUtil::underscored($manifestKind)
                     );
 
                     if ($container->hasDefinition($newId)) {
@@ -75,7 +75,7 @@ final class ManifestsPass implements CompilerPassInterface
                     $appRef = new Reference(AppsPass::appDefinitionId($alias));
                     $dedicatedManifestDefinition->addMethodCall('setApp', [$appRef]);
 
-                    $registryDefinition->addMethodCall('add', [$alias, new Reference($newId)]);
+                    $registryDefinition->addMethodCall('add', [new Reference($newId)]);
 
                     $this->autowireContainerClasses($container, $newId, $alias);
                 }

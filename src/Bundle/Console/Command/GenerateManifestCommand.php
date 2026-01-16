@@ -6,11 +6,11 @@ namespace Klass8s\Bundle\Console\Command;
 
 use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
 use Klass8s\Bundle\CodeGeneration\ManifestGenerator\ContextRegistry;
-use Klass8s\Bundle\CodeGeneration\ManifestGenerator\ManifestGenerator;
+use Klass8s\Bundle\CodeGeneration\ManifestGenerator\ManifestClassGenerator;
 use Klass8s\Bundle\Console\UI\ModernStyle;
 use Klass8s\Registry\AppRegistry;
 use Klass8s\Registry\ManifestRegistry;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -32,7 +32,7 @@ class GenerateManifestCommand extends Command
         private readonly AppRegistry $appRegistry,
         private readonly ManifestRegistry $manifestRegistry,
         private readonly ContextRegistry $contextRegistry,
-        private readonly ManifestGenerator $generator,
+        private readonly ManifestClassGenerator $generator,
     ) {
         parent::__construct();
     }
@@ -110,7 +110,7 @@ class GenerateManifestCommand extends Command
         $typeName = $input->getArgument(self::ARGUMENT_MANIFEST_TYPE);
 
         $supportedTypes = array_map(
-            fn (string $kind) => Str::asDNSSubdomain($kind),
+            fn (string $kind) => StringUtil::asDNSSubdomain($kind),
             $this->contextRegistry->kinds()
         );
 
@@ -119,7 +119,7 @@ class GenerateManifestCommand extends Command
             $typeName = $io->askQuestion($question);
         }
 
-        $kind = Str::asClassName($typeName);
+        $kind = StringUtil::asClassName($typeName);
         if (!$this->contextRegistry->has($kind)) {
             throw new \InvalidArgumentException(sprintf('Manifest type "%s" is not supported. Supported types: "%s"', $typeName, implode('", "', $supportedTypes)));
         }
@@ -130,7 +130,7 @@ class GenerateManifestCommand extends Command
     private function getManifestName(InputInterface $input, ContextInterface $context, string $appAlias): string
     {
         $name = $input->getArgument(self::ARGUMENT_MANIFEST_NAME);
-        if (!Str::isValidDNSSubdomain($name)) {
+        if (!StringUtil::isValidDNSSubdomain($name)) {
             $errTemplate = <<<'ERR'
                 Name "%s" is not valid for manifest name. It must be valid DNS subdomain name, i.e. it must:
                 - contain no more than 253 characters
@@ -144,7 +144,7 @@ class GenerateManifestCommand extends Command
 
         $manifest = $this->manifestRegistry->query($appAlias)
             ->instancesOf($context->parentInterface())
-            ->shortName($name)
+            ->instanceName($name)
             ->getFirstResult();
 
         if (null !== $manifest) {

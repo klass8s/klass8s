@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\Rbac;
 
 use K8Schema\Api\Rbac\V1\ClusterRoleBinding;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractClusterRoleBinding extends AbstractManifest implements ClusterRoleBindingInterface
 {

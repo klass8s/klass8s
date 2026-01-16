@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\Container\Ports;
 
 use K8Schema\Api\Core\V1\ContainerPort;
+use Klass8s\Core\Service\IPProtocol;
 
 class ContainerPortBuilder
 {
@@ -36,9 +37,9 @@ class ContainerPortBuilder
         return $this;
     }
 
-    public function setProtocol(string $protocol): self
+    public function setProtocol(IPProtocol $protocol): self
     {
-        $this->port->setProtocol($protocol);
+        $this->port->setProtocol($protocol->value);
 
         return $this;
     }

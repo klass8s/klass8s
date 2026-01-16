@@ -18,22 +18,26 @@ class AutoSetReplicasSubscriber extends AbstractMethodSubscriber
 
     protected function supports(ProxyableMethodEventInterface $event): bool
     {
-        $manifest = $event->proxyable();
-        $supportedWorkload = $manifest instanceof DeploymentInterface || $manifest instanceof StatefulSetInterface;
+        if ('replicas' !== $event->methodName()) {
+            return false;
+        }
 
-        return $supportedWorkload && 'replicas' === $event->methodName();
+        $manifest = $event->proxyable();
+
+        return $manifest instanceof DeploymentInterface || $manifest instanceof StatefulSetInterface;
     }
 
     protected function beforeMethod(ProxyableMethodEventInterface $event): void
     {
         /** @var DeploymentInterface|StatefulSetInterface $manifest */
         $manifest = $event->proxyable();
+        if (!$manifest instanceof DeploymentInterface && !$manifest instanceof StatefulSetInterface) {
+            throw new \InvalidArgumentException(sprintf('Manifest "%s" must implement either %s or %s, but implements neither.', $manifest::class, DeploymentInterface::class, StatefulSetInterface::class));
+        }
 
-        /** @var AppInterface $app */
-        $app = PropertyAccessor::get($manifest, 'app');
-        $replicas = $app->manifestConfig($manifest::shortName())['replicas'] ?? null;
+        $replicas = $manifest->config['replicas'] ?? null;
         if ($replicas) {
-            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'replicas', $app);
+            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'replicas');
             $event->setReturnValue($replicas);
         }
     }

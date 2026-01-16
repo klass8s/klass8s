@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\PriorityClass;
 
 use K8Schema\Api\Scheduling\V1\PriorityClass;
-use Klass8s\Core\AbstractManifest;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractPriorityClass extends AbstractManifest implements PriorityClassInterface
 {

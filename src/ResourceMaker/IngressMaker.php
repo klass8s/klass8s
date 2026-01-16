@@ -6,27 +6,27 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Networking\V1\Ingress;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
 use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
 use Klass8s\Core\Ingress\IngressInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Event\IngressGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\ManifestReferencesService;
 
-class IngressMaker extends AbstractResourceMaker
+final class IngressMaker extends AbstractResourceMaker
 {
     public function __construct(
-        private readonly ManifestReferencesService $referencesService,
+        private readonly ManifestClassReferenceConverter $referencesService,
         private readonly AppRegistry $appRegistry
     ) {
     }
 
-    protected function makeResource(ManifestInterface|IngressInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|IngressInterface $manifest): APIResourceInterface
     {
         $ingress = new Ingress();
-        $app->metadataHelper()->configureMeta($manifest, $ingress);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $ingress);
 
         $backendConfigurator = new IngressBackendConfigurator(
             app: $app,
@@ -56,7 +56,7 @@ class IngressMaker extends AbstractResourceMaker
         return $ingress;
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return IngressInterface::class;
     }

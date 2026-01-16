@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace Klass8s\Registry;
 
-use Klass8s\Core\FullNameAwareInterface;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Proxy\ProxyFactory;
 use Klass8s\Registry\Query\ManifestsQuery;
 use Klass8s\Runtime\ManifestRuntimeStatusResolverInterface;
-use Klass8s\Util\ManifestShortName;
+use Proximity\ProxyInterface;
 
 final class ManifestRegistry
 {
     /**
-     * @var ManifestInterface[][]
+     * @var array<string, array<string, ManifestInterface&ProxyInterface>>
      */
     private array $manifests = [];
 
@@ -24,49 +23,26 @@ final class ManifestRegistry
     ) {
     }
 
-    /**
-     * @param string            $appAlias
-     * @param ManifestInterface $manifest
-     *
-     * @throws \ReflectionException
-     */
-    public function add(string $appAlias, ManifestInterface $manifest): void
+    public function add(ManifestInterface $manifest): void
     {
+        $appAlias = $manifest->app->alias();
         $this->manifests[$appAlias] ??= [];
 
-        $shortName = $manifest instanceof FullNameAwareInterface
-            ? $manifest->fullName()
-            : ManifestShortName::getFrom($manifest);
-        $key = sprintf('%s_%s', $shortName, $manifest::kind());
+        $key = sprintf('%s_%s', $manifest::kind(), $manifest->manifestInstanceName);
         if (array_key_exists($key, $this->manifests[$appAlias])) {
-            $existingManifestClass = new \ReflectionClass($this->manifests[$appAlias][$key]);
-            if ($existingManifestClass->implementsInterface(ProxyInterface::class)) {
-                $existingManifestClass = $existingManifestClass->getParentClass();
+            $existingManifest = $this->manifests[$appAlias][$key];
+            if ($existingManifest === $manifest) {
+                return;
             }
-            throw new \LogicException(
-                sprintf(
-                    'Manifests instances of classes "%s" and "%s" have the same kind and short name, which is forbidden.',
-                    $existingManifestClass->getName(),
-                    $manifest::class
-                )
-            );
+
+            throw new \LogicException(sprintf('Manifests instances of classes "%s" and "%s" have the same kind and instance name, which is forbidden.', $existingManifest::className(), $manifest::class));
         }
 
         if (!$this->statusResolver->isClassEnabled(new \ReflectionClass($manifest))) {
             return;
         }
 
-        $this->manifests[$appAlias][] = $this->proxyFactory->makeProxy($manifest);
-    }
-
-    /**
-     * @param string $appAlias
-     *
-     * @return ManifestInterface[]
-     */
-    public function forApp(string $appAlias): iterable
-    {
-        return $this->query($appAlias)->execute();
+        $this->manifests[$appAlias][$key] = $this->proxyFactory->makeProxy($manifest);
     }
 
     public function query(string $appAlias): ManifestsQuery

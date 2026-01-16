@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Event;
 
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Proximity\ProxyInterface;
 
 class ManifestMethodEvent extends AbstractProxyableMethodEvent

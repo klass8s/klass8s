@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\EventListener;
 
 use Klass8s\Bundle\EventListener\Traits\EnsureMethodIsNotDeclaredInUserManifestTrait;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\Container\ContainerInterface;
 use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
 use Klass8s\Core\Container\Resources\CPU;
@@ -16,7 +15,6 @@ use Klass8s\Core\StatefulSet\StatefulSetInterface;
 use Klass8s\Event\ContainerMethodEvent;
 use Klass8s\Event\ManifestMethodEvent;
 use Klass8s\Event\ProxyableMethodEventInterface;
-use Klass8s\Util\PropertyAccessor;
 
 class AutoSetResourcesSubscriber extends AbstractMethodSubscriber
 {
@@ -36,12 +34,12 @@ class AutoSetResourcesSubscriber extends AbstractMethodSubscriber
     {
         /** @var DeploymentInterface|StatefulSetInterface $manifest */
         $manifest = $event->proxyable();
-        /** @var AppInterface $app */
-        $app = PropertyAccessor::get($manifest, 'app');
-        $config = $app->manifestConfig($manifest::shortName())['resources'] ?? [];
+        if (!$manifest instanceof DeploymentInterface && !$manifest instanceof StatefulSetInterface) {
+            throw new \InvalidArgumentException(sprintf('Manifest "%s" must implement either %s or %s, but implements neither.', $manifest::class, DeploymentInterface::class, StatefulSetInterface::class));
+        }
 
-        /** @var ContainerResourcesInterface $resources */
-        $resources = $event->methodParams()['resources'];
+        $config = $manifest->config['resources'] ?? [];
+        $resources = $event->typedMethodParam('resources', ContainerResourcesInterface::class);
 
         $cpuRequests = $config['requests']['cpu'] ?? null;
         $cpuLimits = $config['limits']['cpu'] ?? null;
@@ -73,7 +71,7 @@ class AutoSetResourcesSubscriber extends AbstractMethodSubscriber
         if (!empty($config['requests']) || !empty($config['limits'])) {
             // We don't want ambiguous behavior, so only one way of specifying resources should be used:
             // if resources are automatically set from config, they should not be set by method
-            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'resources', $app);
+            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'resources');
             $event->setReturnValue(null); // This is done to prevent method body
         }
     }

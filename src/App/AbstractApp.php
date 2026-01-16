@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Klass8s\App;
 
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Config\ConfigAwareTrait;
-use Klass8s\Core\ManifestFile;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Helper\Metadata\MetadataHelperInterface;
-use Klass8s\Helper\Names\NamesHelperInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\ManifestNameResolver;
+use Klass8s\Manifest\MetadataAwareInterface;
+use Klass8s\Manifest\MetadataConfigurator;
 use Klass8s\Registry\ManifestRegistry;
 
 abstract class AbstractApp implements AppInterface
@@ -17,13 +18,9 @@ abstract class AbstractApp implements AppInterface
     use ConfigAwareTrait;
 
     protected string $alias;
-    protected array $files = [];
 
-    public function __construct(
-        protected MetadataHelperInterface $metadataHelper,
-        protected NamesHelperInterface $namesHelper,
-        protected ManifestRegistry $manifestRegistry
-    ) {
+    public function __construct(protected ManifestRegistry $manifestRegistry)
+    {
     }
 
     public function alias(): string
@@ -36,53 +33,22 @@ abstract class AbstractApp implements AppInterface
         $this->alias = $alias;
     }
 
-    public function addManifestFile(string $fileNameWithoutExtension, APIResourceInterface $resource): void
+    public function manifestConfig(ManifestInterface $manifest): array
     {
-        if (array_key_exists($fileNameWithoutExtension, $this->files)) {
-            throw new \LogicException(
-                sprintf(
-                    'Filename "%s" for app "%s" is already reserved by "%s" instance',
-                    $fileNameWithoutExtension,
-                    $this::name(),
-                    get_class($this->files[$fileNameWithoutExtension])
-                )
-            );
+        return $this->config['manifests'][$manifest->manifestInstanceName] ?? [];
+    }
+
+    public function resourceNameByManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string
+    {
+        $name = ManifestNameResolver::resourceNameFromManifestClass($manifestClass, $this->alias);
+        if (null !== $classToValidateAgainst && !is_a($manifestClass, $classToValidateAgainst, true)) {
+            throw new \LogicException(sprintf('Manifest class "%s" is not a subclass of "%s".', $manifestClass, $classToValidateAgainst));
         }
-        $this->files[$fileNameWithoutExtension] = new ManifestFile($fileNameWithoutExtension, $resource);
-    }
+        if (!$this->ownsManifestClass($manifestClass)) {
+            throw new \InvalidArgumentException(sprintf('App "%s" does not own manifest class "%s".', $this->alias, $manifestClass));
+        }
 
-    public function manifestConfig(string $shortName): array
-    {
-        return $this->config['manifests'][$shortName] ?? [];
-    }
-
-    public function manifestNamePrefix(): string
-    {
-        return $this->alias;
-    }
-
-    public function manifestFiles(): iterable
-    {
-        return $this->files;
-    }
-
-    public function metadataHelper(): MetadataHelperInterface
-    {
-        $this->metadataHelper->setNamesHelper($this->namesHelper());
-
-        return $this->metadataHelper;
-    }
-
-    public function namesHelper(): NamesHelperInterface
-    {
-        $this->namesHelper->setPrefix($this->manifestNamePrefix());
-
-        return $this->namesHelper;
-    }
-
-    public function config(): array
-    {
-        return $this->config;
+        return $name;
     }
 
     public function readFile(string $filePath): string
@@ -99,21 +65,38 @@ abstract class AbstractApp implements AppInterface
         return file_get_contents($path);
     }
 
-    public function ownsManifest(string $manifestClass): bool
+    /**
+     * @param class-string<ManifestInterface> $manifestClass
+     */
+    public function ownsManifestClass(string $manifestClass): bool
     {
-        return null !== $this->getManifest($manifestClass);
+        return null !== $this->getManifestByClass($manifestClass);
     }
 
-    public function getManifest(string $manifestClass): ?ManifestInterface
+    /**
+     * @template T of ManifestInterface
+     *
+     * @param class-string<T> $manifestClass
+     * @return T|null
+     */
+    public function getManifestByClass(string $manifestClass): ?ManifestInterface
     {
-        if (!class_exists($manifestClass)) {
-            throw new \InvalidArgumentException(sprintf('Class "%s" does not exist', $manifestClass));
-        }
-        $shortName = $manifestClass::shortName();
-
         return $this->manifestRegistry->query($this->alias)
             ->instancesOf($manifestClass)
-            ->shortName($shortName)
+            ->instanceName(ManifestNameResolver::manifestNameFromClass($manifestClass))
             ->getFirstResult();
+    }
+
+    public static function configureMeta(MetadataAwareInterface $metadataAware, APIResourceInterface $apiObject): ObjectMeta
+    {
+        $meta = $apiObject->metadata();
+        $metaConfigurator = new MetadataConfigurator($meta->labels(), $meta->annotations());
+        $metadataAware->metadata($metaConfigurator);
+
+        if ($metadataAware instanceof ManifestInterface) {
+            $meta->setName($metadataAware->resourceName);
+        }
+
+        return $meta;
     }
 }

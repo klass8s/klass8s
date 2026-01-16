@@ -15,9 +15,9 @@ use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
 use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
 use Klass8s\Core\Pod\Volume\VolumesConfigurator;
 use Klass8s\Event\PodSpecGeneratedEvent;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
+use Klass8s\Proxy\ProxyManager;
 use Klass8s\Registry\AppRegistry;
-use Klass8s\Util\ClassName;
-use Klass8s\Util\ManifestReferencesService;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 final readonly class PodSpecProcessor
@@ -26,7 +26,7 @@ final readonly class PodSpecProcessor
         private ContainerMakerInterface $containerMaker,
         private AppRegistry $appRegistry,
         private EventDispatcherInterface $dispatcher,
-        private ManifestReferencesService $referencesService,
+        private ManifestClassReferenceConverter $referencesService,
     ) {
     }
 
@@ -48,7 +48,7 @@ final readonly class PodSpecProcessor
             throw new \LogicException(
                 sprintf(
                     'No containers were returned from method %s::containers()',
-                    ClassName::real($builder)
+                    ProxyManager::unwrapClassName($builder)
                 )
             );
         }

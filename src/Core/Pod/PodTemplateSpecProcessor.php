@@ -6,8 +6,8 @@ namespace Klass8s\Core\Pod;
 
 use K8Schema\Api\Core\V1\PodTemplateSpec;
 use Klass8s\App\AppInterface;
-use Klass8s\Core\MetadataConfigurator;
 use Klass8s\Event\PodTemplateSpecGeneratedEvent;
+use Klass8s\Manifest\MetadataConfigurator;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 final readonly class PodTemplateSpecProcessor

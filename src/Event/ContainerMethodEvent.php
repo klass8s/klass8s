@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Event;
 
 use Klass8s\Core\Container\ContainerInterface;
-use Klass8s\Core\ProxyableInterface;
+use Klass8s\Proxy\ProxyableInterface;
 use Proximity\ProxyInterface;
 
 class ContainerMethodEvent extends AbstractProxyableMethodEvent

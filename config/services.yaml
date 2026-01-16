@@ -21,20 +21,14 @@ services:
     Klass8s\App\AppProcessor: ~
     Klass8s\Core\Container\Env\ExternalConfigurationRegistry: ~
     Klass8s\Core\Job\JobSpecProcessor: ~
-    Klass8s\Core\DefaultLabelsGenerator: ~
+    Klass8s\Manifest\Labels\DefaultLabelsGenerator: ~
     Klass8s\Core\Pod\PodSpecProcessor: ~
     Klass8s\Core\Pod\PodTemplateSpecProcessor: ~
-    Klass8s\Dumper\AppDumper: ~
     Klass8s\Proxy\EventDispatcherBridgeInterceptor: ~
-    Klass8s\ManifestGenerator\ManifestsGenerationService: ~
-    Klass8s\Helper\Metadata\MetadataHelper:
-        shared: false
-        autowire: true
-        autoconfigure: true
-    Klass8s\Helper\Names\DefaultNamesHelper:
-        shared: false
-        autowire: true
-        autoconfigure: true
+    Klass8s\Manifest\ManifestGenerator: ~
+    Klass8s\Manifest\Reference\ManifestClassReferenceConverter: ~
+    Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter: ~
+
 
     Klass8s\Renderer\:
         resource: '../src/Renderer/'
@@ -59,13 +53,11 @@ services:
     Klass8s\Util\:
         resource: '../src/Util/'
 
-    Klass8s\Helper\Metadata\MetadataHelperInterface: '@Klass8s\Helper\Metadata\MetadataHelper'
-    Klass8s\Helper\Names\NamesHelperInterface: '@Klass8s\Helper\Names\DefaultNamesHelper'
     Klass8s\Core\Container\ContainerMakerInterface: '@Klass8s\Core\Container\ContainerMaker'
-    Klass8s\Core\LabelsGeneratorInterface: '@Klass8s\Core\DefaultLabelsGenerator'
+    Klass8s\Manifest\Labels\LabelsGeneratorInterface: '@Klass8s\Manifest\Labels\DefaultLabelsGenerator'
     Klass8s\Renderer\RendererInterface: '@Klass8s\Renderer\YamlRenderer'
 
-    Klass8s\Core\ManifestProcessor:
+    Klass8s\Manifest\ManifestProcessor:
         arguments:
             $makers: !tagged_iterator { tag: 'klass8s.resource_maker' }
 
@@ -86,7 +78,7 @@ services:
     Klass8s\Bundle\:
         resource: '../src/Bundle/'
         exclude:
-          - '../src/Bundle/DependencyInjection'
+          - '../src/Bundle/DependencyInjection/*'
 
     Klass8s\Bundle\CodeGeneration\TemplateRenderer:
         arguments:

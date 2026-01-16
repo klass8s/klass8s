@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Klass8s\App;
 
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Config\ConfigurableInterface;
-use Klass8s\Core\ManifestFile;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Helper\Metadata\MetadataHelperInterface;
-use Klass8s\Helper\Names\NamesHelperInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\MetadataAwareInterface;
 
 interface AppInterface extends ConfigurableInterface
 {
@@ -20,18 +19,13 @@ interface AppInterface extends ConfigurableInterface
      */
     public function alias(): string;
 
-    public function addManifestFile(string $fileNameWithoutExtension, APIResourceInterface $resource): void;
-    public function metadataHelper(): MetadataHelperInterface;
-    public function namesHelper(): NamesHelperInterface;
-    public function manifestNamePrefix(): string;
-    public function manifestConfig(string $shortName): array;
-
     /**
-     * @return ManifestFile[]
+     * @param class-string<ManifestInterface> $manifestClass
+     * @param class-string<ManifestInterface>|null $classToValidateAgainst If set, $manifestClass will be ensured to be a subclass of this
      */
-    public function manifestFiles(): iterable;
-
-    public function getManifest(string $manifestClass): ?ManifestInterface;
-
-    public function ownsManifest(string $manifestClass): bool;
+    public function resourceNameByManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string;
+    public function manifestConfig(ManifestInterface $manifest): array;
+    public function getManifestByClass(string $manifestClass): ?ManifestInterface;
+    public function ownsManifestClass(string $manifestClass): bool;
+    public static function configureMeta(MetadataAwareInterface $metadataAware, APIResourceInterface $apiObject): ObjectMeta;
 }

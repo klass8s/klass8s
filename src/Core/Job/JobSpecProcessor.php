@@ -17,8 +17,9 @@ final readonly class JobSpecProcessor
         $this->podSpecProcessor = $podSpecProcessor;
     }
 
-    public function process(JobInterface $manifest, JobSpec $spec, AppInterface $app): void
+    public function process(JobInterface $manifest, JobSpec $spec): void
     {
+        $app = $manifest->app;
         $this->podSpecProcessor->process($manifest, $spec->template(), $app);
 
         foreach ($spec->selector()->matchLabels()->all() as $name => $value) {

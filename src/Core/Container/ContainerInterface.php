@@ -15,7 +15,7 @@ use Klass8s\Core\Container\Ports\PortsConfigurator;
 use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
 use Klass8s\Core\Container\Security\SecurityContextConfigurator;
 use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
-use Klass8s\Core\ProxyableInterface;
+use Klass8s\Proxy\ProxyableInterface;
 
 interface ContainerInterface extends ProxyableInterface
 {

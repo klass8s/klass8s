@@ -6,7 +6,7 @@ namespace Klass8s\Monitoring\Prometheus;
 
 use K8Schema\Collection\StringList;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Monitoring\Prometheus\Configurator\NamespaceSelectorConfigurator;
 
 interface MonitorInterface extends ManifestInterface

@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Klass8s\Core\ServiceAccount\Configurator;
 
 use K8Schema\Api\Core\V1\LocalObjectReferenceList;
-use Klass8s\Core\ManifestReference;
 use Klass8s\Core\Secret\SecretInterface;
-use Klass8s\Util\ManifestReferencesService;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 
 readonly class ImagePullSecretsConfigurator
 {
     public function __construct(
-        private ManifestReferencesService $referencesService,
+        private ManifestClassReferenceConverter $referencesService,
         private LocalObjectReferenceList $secrets
     ) {
     }
 
-    public function add(ManifestReference $secretReference): static
+    public function add(ManifestClassReference $secretReference): static
     {
         $secretClass = $secretReference->className();
         if (!is_subclass_of($secretClass, SecretInterface::class, true)) {

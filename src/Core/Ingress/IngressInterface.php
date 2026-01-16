@@ -7,7 +7,7 @@ namespace Klass8s\Core\Ingress;
 use K8Schema\Api\Networking\V1\Ingress;
 use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
 use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 interface IngressInterface extends ManifestInterface
 {

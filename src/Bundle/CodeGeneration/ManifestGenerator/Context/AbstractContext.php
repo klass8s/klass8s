@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
 
 use Klass8s\Bundle\CodeGeneration\ClassDetails;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use ReflectionException;
 
 abstract class AbstractContext implements ContextInterface

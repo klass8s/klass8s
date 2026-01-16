@@ -6,7 +6,7 @@ namespace Klass8s\Bundle\CodeGeneration\ClassDetailsResolver;
 
 use Klass8s\Bundle\CodeGeneration\ClassDetails;
 use Klass8s\App\AppInterface;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 
 readonly class ManifestResolver
 {
@@ -15,13 +15,13 @@ readonly class ManifestResolver
      */
     public function getClassDetails(AppInterface $app, string $manifestName, string $suffix, bool $useDedicatedDir = false): ClassDetails
     {
-        $className = Str::withSuffix(Str::asClassName($manifestName), $suffix);
-        $namespace = Str::asNamespace($app).'\\Manifest';
-        $dir = Str::asDir($app).DIRECTORY_SEPARATOR.'Manifest';
+        $className = StringUtil::withSuffix(StringUtil::asClassName($manifestName), $suffix);
+        $namespace = StringUtil::asNamespace($app).'\\Manifest';
+        $dir = StringUtil::asDir($app).DIRECTORY_SEPARATOR.'Manifest';
         $fileName = $className.'.php';
 
         if ($useDedicatedDir) {
-            $dirName = Str::asDirName($manifestName, $suffix);
+            $dirName = StringUtil::asDirName($manifestName, $suffix);
             $namespace .= '\\'.$dirName;
             $dir .= DIRECTORY_SEPARATOR.$dirName;
         }

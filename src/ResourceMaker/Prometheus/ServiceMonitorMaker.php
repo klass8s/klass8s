@@ -11,7 +11,7 @@ use Klass8s\Monitoring\Prometheus\ServiceMonitor\ServiceMonitorInterface;
 
 class ServiceMonitorMaker extends AbstractMonitorMaker
 {
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ServiceMonitorInterface::class;
     }

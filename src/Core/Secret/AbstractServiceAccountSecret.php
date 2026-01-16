@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\Secret;
 
 use K8Schema\Collection\StringMap;
-use Klass8s\Core\MetadataConfigurator;
+use Klass8s\Manifest\MetadataConfigurator;
 
 abstract class AbstractServiceAccountSecret extends AbstractSecret
 {

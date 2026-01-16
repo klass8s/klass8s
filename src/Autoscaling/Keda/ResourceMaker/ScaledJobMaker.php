@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Klass8s\Autoscaling\Keda\ResourceMaker;
 
-use Klass8s\App\AppInterface;
 use Klass8s\Autoscaling\Keda\API\ScaledJob\ScaledJob;
 use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
 use Klass8s\Autoscaling\Keda\Event\ScaledJobGeneratedEvent;
@@ -12,9 +11,9 @@ use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\RolloutConfigurator
 use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\ScalingStrategyConfigurator;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\ScaledJobInterface;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\ProxyManager;
 use Klass8s\ResourceMaker\AbstractResourceMaker;
-use Klass8s\Util\ClassName;
 
 final class ScaledJobMaker extends AbstractResourceMaker
 {
@@ -22,17 +21,19 @@ final class ScaledJobMaker extends AbstractResourceMaker
     {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ScaledJobInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|ScaledJobInterface $manifest, AppInterface $app): ScaledJob
+    protected function makeResource(ManifestInterface|ScaledJobInterface $manifest): ScaledJob
     {
         $jobTargetRef = $manifest->jobTargetRef();
 
         $scaledJob = new ScaledJob($jobTargetRef);
-        $app->metadataHelper()->configureMeta($manifest, $scaledJob);
+
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $scaledJob);
 
         if ($envSourceContainerName = $manifest->envSourceContainerName()) {
             $scaledJob->setEnvSourceContainerName($envSourceContainerName);
@@ -57,7 +58,7 @@ final class ScaledJobMaker extends AbstractResourceMaker
                 throw new \TypeError(
                     sprintf(
                         'Each element of %s::triggers() must be an instance of %s, %s given',
-                        ClassName::real($manifest),
+                        ProxyManager::unwrapClassName($manifest),
                         Trigger::class,
                         is_object($trigger) ? $trigger::class : gettype($trigger)
                     )

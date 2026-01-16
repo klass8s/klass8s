@@ -15,16 +15,16 @@ use K8Schema\Api\Autoscaling\V2\ObjectMetricSource;
 use K8Schema\Api\Autoscaling\V2\PodsMetricSource;
 use K8Schema\Api\Autoscaling\V2\ResourceMetricSource;
 use Klass8s\Core\Autoscaling\Metric\SourceType;
-use Klass8s\Core\Autoscaling\Metric\TypedMetricTarget;
 use Klass8s\Core\Autoscaling\Metric\TargetType;
+use Klass8s\Core\Autoscaling\Metric\TypedMetricTarget;
 use Klass8s\Core\Container\Resources\ContainerResource;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\VersionedManifestReference;
-use Klass8s\Util\VersionedManifestReferencesService;
+use Klass8s\Manifest\Reference\VersionedManifestClassReference;
+use Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter;
 
 final readonly class MetricsConfigurator
 {
-    public function __construct(private MetricSpecList $metrics, private VersionedManifestReferencesService $referencesService)
+    public function __construct(private MetricSpecList $metrics, private VersionedManifestClassReferenceConverter $referencesService)
     {
     }
 
@@ -63,11 +63,11 @@ final readonly class MetricsConfigurator
         return $this;
     }
 
-    public function addObjectMetric(string $name, TypedMetricTarget $target, VersionedManifestReference|CrossVersionObjectReference $describedObject, ?\Closure $selectorCallback = null): self
+    public function addObjectMetric(string $name, TypedMetricTarget $target, VersionedManifestClassReference|CrossVersionObjectReference $describedObject, ?\Closure $selectorCallback = null): self
     {
         $target = $this->dtoToMetricTarget($target);
         $identifier = $this->createMetricIdentifier($name, $selectorCallback);
-        if ($describedObject instanceof VersionedManifestReference) {
+        if ($describedObject instanceof VersionedManifestClassReference) {
             $describedObject = $this->referencesService->toCrossVersionObjectReference($describedObject);
         }
 

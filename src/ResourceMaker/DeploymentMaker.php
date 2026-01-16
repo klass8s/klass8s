@@ -6,15 +6,14 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Apps\V1\Deployment;
 use K8Schema\Api\Apps\V1\DeploymentStrategy;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\Deployment\DeploymentInterface;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Core\Pod\PodTemplateSpecProcessor;
 use Klass8s\Core\Deployment\StrategyConfigurator;
+use Klass8s\Core\Pod\PodTemplateSpecProcessor;
 use Klass8s\Event\DeploymentGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
 
-class DeploymentMaker extends AbstractResourceMaker
+final class DeploymentMaker extends AbstractResourceMaker
 {
     use ConfigureSelectorTrait;
 
@@ -22,14 +21,15 @@ class DeploymentMaker extends AbstractResourceMaker
     {
     }
 
-    public function makeResource(ManifestInterface|DeploymentInterface $manifest, AppInterface $app): Deployment
+    public function makeResource(ManifestInterface|DeploymentInterface $manifest): Deployment
     {
         $deployment = new Deployment();
 
         $this->configureSelector($manifest, $deployment->spec()->selector());
         $this->configureStrategy($manifest, $deployment->spec()->strategy());
 
-        $app->metadataHelper()->configureMeta($manifest, $deployment);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $deployment);
         $this->specProcessor->process($manifest, $deployment->spec()->template(), $app);
 
         $spec = $deployment->spec();
@@ -56,7 +56,7 @@ class DeploymentMaker extends AbstractResourceMaker
         return $deployment;
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return DeploymentInterface::class;
     }

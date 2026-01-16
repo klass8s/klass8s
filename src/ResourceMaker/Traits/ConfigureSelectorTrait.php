@@ -6,8 +6,8 @@ namespace Klass8s\ResourceMaker\Traits;
 
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Util\ClassName;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\ProxyManager;
 
 trait ConfigureSelectorTrait
 {
@@ -20,8 +20,8 @@ trait ConfigureSelectorTrait
             throw new \LogicException(
                 sprintf(
                     'Manifest class "%s" does not provide selector labels or expressions. Please implement method "%s"::selector()',
-                    ClassName::real($manifest),
-                    ClassName::real($manifest),
+                    ProxyManager::unwrapClassName($manifest),
+                    ProxyManager::unwrapClassName($manifest),
                 )
             );
         }

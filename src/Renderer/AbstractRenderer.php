@@ -6,28 +6,44 @@ namespace Klass8s\Renderer;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    public function __construct(protected FilteringService $filteringService)
-    {
-    }
-
-    protected function withoutNullValues(\JsonSerializable|array $object): array
+    final protected function withoutNullValues(\JsonSerializable|array $object): array
     {
         $json = json_encode($object);
         $data = json_decode($json, true);
 
-        $data = $this->filteringService->filterArray($data);
+        $data = self::filterArray($data);
 
-        array_walk($data, [$this, 'walkFunction']);
+        array_walk($data, self::walkFunction(...));
 
-        return $this->filteringService->filterArray($data);
+        return self::filterArray($data);
     }
 
-    private function walkFunction(&$value): void
+    private static function walkFunction(&$value): void
     {
-        if (\is_array($value)) {
-            \array_walk($value, [$this, 'walkFunction']);
+        if (is_array($value)) {
+            array_walk($value, self::walkFunction(...));
 
-            $value = $this->filteringService->filterArray($value);
+            $value = self::filterArray($value);
         }
+    }
+
+    private static function filterArray(array $array): array
+    {
+        $parent = $array; // copy argument to a new array
+        return array_filter($array, static function (mixed $value, int|string $key) use ($parent): bool {
+            if ('emptyDir' === $key && [] === $value) {
+                $parentCopy = $parent;
+                unset($parentCopy['name']);
+                $parentCopy = array_filter(
+                    $parentCopy,
+                    static fn (mixed $value, int|string $key) => !in_array($value, [null, []], true),
+                    ARRAY_FILTER_USE_BOTH
+                );
+
+                return empty($parentCopy);
+            }
+
+            return !in_array($value, [null, []], true);
+        }, ARRAY_FILTER_USE_BOTH);
     }
 }

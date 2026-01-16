@@ -6,7 +6,7 @@ namespace Klass8s\Event;
 
 use K8Schema\APIResourceInterface;
 use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 class ManifestGeneratedEvent implements ManifestGeneratedEventInterface
 {
@@ -20,7 +20,6 @@ class ManifestGeneratedEvent implements ManifestGeneratedEventInterface
     public function __construct(
         private readonly ManifestInterface $manifest,
         private readonly APIResourceInterface $resource,
-        public readonly AppInterface $app,
     ) {
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Prometheus;
 
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
-use Klass8s\Util\Str;
+use Klass8s\Util\StringUtil;
 
 class PrometheusTrigger extends AbstractTriggerBuilder
 {
@@ -66,7 +66,7 @@ class PrometheusTrigger extends AbstractTriggerBuilder
 
     public function ignoreNullValues(bool $ignoreNullValues): static
     {
-        $this->set(self::IGNORE_NULL_VALUES, Str::stringify($ignoreNullValues));
+        $this->set(self::IGNORE_NULL_VALUES, StringUtil::stringify($ignoreNullValues));
 
         return $this;
     }
@@ -80,7 +80,7 @@ class PrometheusTrigger extends AbstractTriggerBuilder
 
     public function unsafeSsl(bool $unsafeSsl): static
     {
-        $this->set(self::UNSAFE_SSL, Str::stringify($unsafeSsl));
+        $this->set(self::UNSAFE_SSL, StringUtil::stringify($unsafeSsl));
 
         return $this;
     }

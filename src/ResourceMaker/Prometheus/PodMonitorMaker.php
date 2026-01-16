@@ -18,7 +18,7 @@ class PodMonitorMaker extends AbstractMonitorMaker
         $manifest->podMetricsEndpoints($endpoints);
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return PodMonitorInterface::class;
     }

@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Core\V1\ConfigMap;
-use Klass8s\App\AppInterface;
 use Klass8s\Core\ConfigMap\ConfigMapInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Event\ConfigMapGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\ResourceMaker\Traits\PrefixMapKeysTrait;
-use Klass8s\Util\StringMapProxy;
+use Klass8s\Value\StringMapProxy;
 
-class ConfigMapMaker extends AbstractResourceMaker
+final class ConfigMapMaker extends AbstractResourceMaker
 {
     use PrefixMapKeysTrait;
 
-    protected function makeResource(ManifestInterface|ConfigMapInterface $manifest, AppInterface $app): ConfigMap
+    protected function makeResource(ManifestInterface|ConfigMapInterface $manifest): ConfigMap
     {
         $configMap = new ConfigMap();
 
-        $app->metadataHelper()->configureMeta($manifest, $configMap);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $configMap);
         $data = StringMapProxy::make($configMap->data());
         $manifest->data($data);
         $binaryData = $configMap->binaryData();
@@ -38,7 +38,7 @@ class ConfigMapMaker extends AbstractResourceMaker
         return $configMap;
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return ConfigMapInterface::class;
     }

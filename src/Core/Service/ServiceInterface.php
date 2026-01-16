@@ -6,9 +6,9 @@ namespace Klass8s\Core\Service;
 
 use K8Schema\Api\Core\V1\Service;
 use K8Schema\Collection\StringMap;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
 use Klass8s\Core\Service\Configurator\ServiceTypeConfigurator;
+use Klass8s\Manifest\ManifestInterface;
 
 interface ServiceInterface extends ManifestInterface
 {

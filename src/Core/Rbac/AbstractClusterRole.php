@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Klass8s\Core\Rbac;
 
 use K8Schema\Api\Rbac\V1\ClusterRole;
-use Klass8s\Core\AbstractManifest;
 use Klass8s\Core\Rbac\Configurator\AggregationRuleConfigurator;
+use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractClusterRole extends AbstractManifest implements ClusterRoleInterface
 {

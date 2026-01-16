@@ -8,8 +8,7 @@ use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use K8Schema\Collection\StringList;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Monitoring\Prometheus\Configurator\NamespaceSelectorConfigurator;
 use Klass8s\Monitoring\Prometheus\MonitorApiResource;
 use Klass8s\Monitoring\Prometheus\MonitorInterface;
@@ -22,7 +21,7 @@ abstract class AbstractMonitorMaker extends AbstractResourceMaker
 
     abstract protected function configureMonitor(MonitorInterface $manifest, \ArrayObject $data): void;
 
-    protected function makeResource(ManifestInterface|MonitorInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|MonitorInterface $manifest): APIResourceInterface
     {
         $data = new \ArrayObject();
         $data['apiVersion'] = $manifest::apiVersion();
@@ -33,7 +32,8 @@ abstract class AbstractMonitorMaker extends AbstractResourceMaker
         $data['spec']['namespaceSelector'] = new \ArrayObject();
 
         $monitor = new MonitorApiResource($data);
-        $app->metadataHelper()->configureMeta($manifest, $monitor);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $monitor);
         $this->configureSelector($manifest, $data['spec']['selector']);
 
         $namespaceSelector = new NamespaceSelectorConfigurator($data['spec']['namespaceSelector']);

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Klass8s\ResourceMaker;
 
-use Composer\Semver\Comparator;
 use K8Schema\Api\Apps\V1\StatefulSet;
 use K8Schema\Api\Apps\V1\StatefulSetSpec;
+use K8Schema\Api\Core\V1\PersistentVolumeClaim;
 use K8Schema\APIResourceInterface;
-use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
+use K8Schema\K8SApi;
 use Klass8s\Core\Pod\PodTemplateSpecProcessor;
+use Klass8s\Core\Service\ServiceInterface;
 use Klass8s\Core\StatefulSet\StatefulSetInterface;
 use Klass8s\Core\StatefulSet\UpdateStrategy\UpdateStrategyConfigurator;
 use Klass8s\Event\StatefulSetGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Proxy\ProxyFactory;
 use Klass8s\Registry\AppRegistry;
 use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
-use K8Schema\K8SApi;
 
 class StatefulSetMaker extends AbstractResourceMaker
 {
@@ -31,18 +31,18 @@ class StatefulSetMaker extends AbstractResourceMaker
     ) {
     }
 
-    protected function supportsClass(): string
+    protected function supportedClass(): string
     {
         return StatefulSetInterface::class;
     }
 
-    protected function makeResource(ManifestInterface|StatefulSetInterface $manifest, AppInterface $app): APIResourceInterface
+    protected function makeResource(ManifestInterface|StatefulSetInterface $manifest): APIResourceInterface
     {
         $serviceReference = $manifest->serviceName();
-        $app = $this->appRegistry->get($serviceReference->appAlias());
-        $serviceName = $app->namesHelper()->byServiceClass($serviceReference->className());
+        $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias());
+        $serviceName = $serviceOwningApp->resourceNameByManifestClass($serviceReference->className(), ServiceInterface::class);
 
-        if (Comparator::greaterThanOrEqualTo(K8SApi::VERSION, 'v1.33.1')) {
+        if (K8SApi::versionIsHigherThanOrEqualTo('v1.33.1')) {
             $sts = new StatefulSet();
             $spec = $sts->spec();
             $spec->setServiceName($serviceName);
@@ -52,7 +52,8 @@ class StatefulSetMaker extends AbstractResourceMaker
         }
 
         $this->configureSelector($manifest, $spec->selector());
-        $app->metadataHelper()->configureMeta($manifest, $sts);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $sts);
         $this->podSpecProcessor->process($manifest, $spec->template(), $app);
 
         foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
@@ -73,12 +74,13 @@ class StatefulSetMaker extends AbstractResourceMaker
         $manifest->updateStrategy($updateStrategy);
 
         foreach ($manifest->volumeClaimTemplates() as $template) {
-            $template->setApp($app);
+            $template->app = $app;
             if (!str_contains($template::class, '@anonymous')) {
                 $template = $this->proxyFactory->makeProxy($template);
             }
-            $pvc = $this->pvcMaker->make($template, $app);
-            $pvc->metadata()->setName($template::shortName()); // Rewrite PVC full name to it's short name
+            /** @var PersistentVolumeClaim $pvc */
+            $pvc = $this->pvcMaker->make($template);
+            $pvc->metadata()->setName($template::manifestName()); // Rewrite PVC full name to it's short name
             $spec->volumeClaimTemplates()->add($pvc);
         }
 

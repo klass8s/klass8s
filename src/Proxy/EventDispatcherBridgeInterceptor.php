@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Klass8s\Proxy;
 
 use Klass8s\Core\Container\ContainerInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Event\ContainerMethodCalledEvent;
 use Klass8s\Event\ContainerMethodEvent;
 use Klass8s\Event\ManifestMethodCalledEvent;
 use Klass8s\Event\ManifestMethodEvent;
+use Klass8s\Manifest\ManifestInterface;
 use Proximity\MethodsInterception\BodyInterceptionResult;
 use Proximity\MethodsInterception\BodyInterceptorInterface;
 use Proximity\MethodsInterception\InterceptionContext;

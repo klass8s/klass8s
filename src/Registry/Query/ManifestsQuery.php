@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Klass8s\Registry\Query;
 
-use Klass8s\Core\FullNameAwareInterface;
-use Klass8s\Core\ManifestInterface;
-use Klass8s\Util\ManifestShortName;
+use Klass8s\Manifest\FullNameAwareInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\ManifestNameResolver;
 
 final class ManifestsQuery
 {
@@ -22,18 +22,16 @@ final class ManifestsQuery
     {
     }
 
-    public function instancesOf(string $className): static
+    public function instancesOf(string $className): self
     {
         return $this->addClosure(
             fn (ManifestInterface $manifest): bool => $manifest instanceof $className
         );
     }
 
-    public function shortName(string $name): static
+    public function instanceName(string $name): self
     {
-        return $this->addClosure(
-            fn (ManifestInterface $manifest): bool => !$manifest instanceof FullNameAwareInterface && ManifestShortName::getFrom($manifest) === $name
-        );
+        return $this->addClosure(fn (ManifestInterface $manifest): bool => !$manifest instanceof FullNameAwareInterface && $name === $manifest->manifestInstanceName);
     }
 
     /**

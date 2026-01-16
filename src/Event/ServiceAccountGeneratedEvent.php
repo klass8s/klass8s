@@ -7,8 +7,8 @@ namespace Klass8s\Event;
 use K8Schema\Api\Core\V1\ServiceAccount;
 use K8Schema\APIResourceInterface;
 use Klass8s\App\AppInterface;
-use Klass8s\Core\ManifestInterface;
 use Klass8s\Core\ServiceAccount\ServiceAccountInterface;
+use Klass8s\Manifest\ManifestInterface;
 
 readonly class ServiceAccountGeneratedEvent implements ManifestGeneratedEventInterface
 {

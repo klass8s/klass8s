@@ -8,6 +8,7 @@ use K8Schema\Api\Rbac\V1\Subject;
 use K8Schema\Api\Rbac\V1\SubjectList;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Authentication\WellKnownUserOrGroup;
+use Klass8s\Core\ServiceAccount\ServiceAccountInterface;
 use Klass8s\Registry\AppRegistry;
 
 readonly class SubjectsConfigurator
@@ -51,10 +52,13 @@ readonly class SubjectsConfigurator
         return $this;
     }
 
+    /**
+     * @param class-string<ServiceAccountInterface> $serviceAccountClass
+     */
     public function addServiceAccountClass(string $serviceAccountClass, string $namespace): static
     {
         $this->ensureAppOwnsManifestClass($serviceAccountClass);
-        $name = $this->app->namesHelper()->byManifestClass($serviceAccountClass);
+        $name = $this->app->resourceNameByManifestClass($serviceAccountClass, ServiceAccountInterface::class);
         $this->addServiceAccount($name, $namespace);
 
         return $this;
@@ -67,7 +71,7 @@ readonly class SubjectsConfigurator
 
     private function ensureAppOwnsManifestClass(string $className): void
     {
-        if ($this->app->ownsManifest($className)) {
+        if ($this->app->ownsManifestClass($className)) {
             return;
         }
 
