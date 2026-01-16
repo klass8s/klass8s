@@ -8,6 +8,7 @@ use Symfony\Component\Yaml\Yaml;
 
 final readonly class YamlString
 {
+    private const string DOCUMENT_SEPARATOR = "\n---\n";
     private const int INLINE_LEVEL = 5;
     private const int INDENTATION_SPACES = 4;
 
@@ -18,6 +19,14 @@ final readonly class YamlString
 
     public function __construct(string $value)
     {
+        if (str_contains($value, self::DOCUMENT_SEPARATOR)) {
+            $documents = explode(self::DOCUMENT_SEPARATOR, $value) |> array_filter(...);
+            array_map(fn (string $document) => Yaml::parse($document), $documents); // validate documents
+            $this->value = $value;
+
+            return;
+        }
+
         $this->value = Yaml::dump(Yaml::parse($value), self::INLINE_LEVEL, self::INDENTATION_SPACES);
     }
 
