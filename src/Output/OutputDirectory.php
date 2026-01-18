@@ -51,10 +51,10 @@ final class OutputDirectory
         $path = $directoryPath.'/'.$this->name;
         if (!is_dir($path)) {
             if (file_exists($path)) {
-                throw new \LogicException(sprintf('Path for output directory "%s" already exists and it is a file.', $directoryPath));
+                throw new \LogicException(sprintf('Path for output directory "%s" already exists and it is a file.', $path));
             }
 
-            mkdir($directoryPath, 0o777, true);
+            mkdir($path, 0o777, true);
         }
 
         foreach ($this->files as $file) {
