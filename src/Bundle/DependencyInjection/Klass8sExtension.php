@@ -51,6 +51,18 @@ class Klass8sExtension extends Extension
 
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
         $config['apps'] = array_replace_recursive($config['apps'], $finalAppsConfig);
+
+        foreach ($config['helm']['releases'] ?? [] as $releaseConfig) {
+            $chart = $releaseConfig['chart'];
+            if (str_starts_with($chart, '.')) {
+                $projectDir = $container->getParameter('kernel.project_dir');
+                $path = $projectDir.DIRECTORY_SEPARATOR.ltrim($chart, './\\');
+                if (!file_exists($path)) {
+                    throw new \InvalidArgumentException(sprintf('Chart path "%s" does not exist', $path));
+                }
+            }
+        }
+
         $this->loadInternal($config, $container);
     }
 
