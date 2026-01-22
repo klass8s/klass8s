@@ -20,12 +20,12 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'k8s:generate:manifest',
-    description: 'Creates a new Manifest skeleton',
+    name: 'k8s:make:manifest',
+    description: 'Creates a new manifest class in specified app.',
 )]
-class GenerateManifestCommand extends Command
+class MakeManifestCommand extends Command
 {
-    private const string ARGUMENT_MANIFEST_TYPE = 'manifest-type';
+    private const string ARGUMENT_MANIFEST_KIND = 'manifest-type';
     private const string ARGUMENT_MANIFEST_NAME = 'manifest-name';
 
     public function __construct(
@@ -46,7 +46,7 @@ class GenerateManifestCommand extends Command
                 'Manifest short name without type suffix (e.g. <fg=yellow>users-sync</>)'
             )
             ->addArgument(
-                self::ARGUMENT_MANIFEST_TYPE,
+                self::ARGUMENT_MANIFEST_KIND,
                 InputArgument::OPTIONAL,
                 'Manifest type (e.g. <fg=yellow>deployment</> or <fg=yellow>config-map</>)'
             )
@@ -107,7 +107,7 @@ class GenerateManifestCommand extends Command
 
     private function getContext(InputInterface $input, SymfonyStyle $io): ContextInterface
     {
-        $typeName = $input->getArgument(self::ARGUMENT_MANIFEST_TYPE);
+        $typeName = $input->getArgument(self::ARGUMENT_MANIFEST_KIND);
 
         $supportedTypes = array_map(
             fn (string $kind) => StringUtil::asDNSSubdomain($kind),
@@ -115,13 +115,13 @@ class GenerateManifestCommand extends Command
         );
 
         if (null === $typeName) {
-            $question = new ChoiceQuestion('Please choose a manifest type', $supportedTypes);
+            $question = new ChoiceQuestion('Choose a manifest kind', $supportedTypes);
             $typeName = $io->askQuestion($question);
         }
 
         $kind = StringUtil::asClassName($typeName);
         if (!$this->contextRegistry->has($kind)) {
-            throw new \InvalidArgumentException(sprintf('Manifest type "%s" is not supported. Supported types: "%s"', $typeName, implode('", "', $supportedTypes)));
+            throw new \InvalidArgumentException(sprintf('Manifest kind "%s" is not supported. Supported types: "%s".', $typeName, implode('", "', $supportedTypes)));
         }
 
         return $this->contextRegistry->get($kind);

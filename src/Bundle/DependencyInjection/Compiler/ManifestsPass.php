@@ -67,7 +67,7 @@ final class ManifestsPass implements CompilerPassInterface
                     );
 
                     if ($container->hasDefinition($newId)) {
-                        throw new \LogicException(sprintf('Classes %s and %s have the same kind and same shortName, but this combination must be unique within the app boundaries', $dedicatedManifestDefinition->getClass(), $container->getDefinition($newId)->getClass()));
+                        throw new \LogicException(sprintf('Classes %s and %s have the same kind and same manifest name, but this combination must be unique within the app boundaries.', $dedicatedManifestDefinition->getClass(), $container->getDefinition($newId)->getClass()));
                     }
 
                     $container->setDefinition($newId, $dedicatedManifestDefinition);

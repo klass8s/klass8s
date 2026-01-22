@@ -6,6 +6,6 @@ namespace Klass8s\Renderer;
 
 interface RendererInterface
 {
-    public function render(\JsonSerializable|array $object): string;
+    public function render(\JsonSerializable|array $resource): string;
     public function fileExtension(): string;
 }

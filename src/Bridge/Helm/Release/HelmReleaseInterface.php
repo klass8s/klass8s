@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Bridge\Helm\Release;
 
-use Klass8s\Bridge\Helm\Chart\ChartReference;
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
 
 interface HelmReleaseInterface
 {

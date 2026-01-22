@@ -6,9 +6,12 @@ namespace Klass8s\Manifest;
 
 trait ManifestTemplateTrait
 {
+    /**
+     * @internal
+     */
     protected bool $manifestNameSet = false;
 
-    public protected(set) string $manifestName {
+    protected(set) string $manifestName {
         get {
             if (!$this->manifestNameSet) {
                 throw new \RuntimeException('Manifest name is not set yet.');

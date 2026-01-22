@@ -22,39 +22,22 @@ final readonly class ResourcesReferenceResolver
         }
 
         $appAlias = $matches[2];
-        $manifestShortName = $matches[4];
+        $manifestName = $matches[4];
         $appAlias = $appAlias ?: $currentAppAlias;
 
         $appConfig = $appsConfig[$appAlias] ?? null;
         if (null === $appConfig) {
-            throw new InvalidConfigurationException(
-                sprintf('App "%s" from resources reference string "%s" does not exist', $appAlias, $reference)
-            );
+            throw new InvalidConfigurationException(sprintf('App "%s" from resources reference string "%s" does not exist', $appAlias, $reference));
         }
 
-        $manifestConfig = $appConfig['manifests'][$manifestShortName] ?? null;
+        $manifestConfig = $appConfig['manifests'][$manifestName] ?? null;
         if (null === $manifestConfig) {
-            throw new InvalidConfigurationException(
-                sprintf(
-                    'Config for manifest "%s" in app "%s" from resources reference string "%s" does not exist',
-                    $manifestShortName,
-                    $appAlias,
-                    $reference
-                )
-            );
+            throw new InvalidConfigurationException(sprintf('Config for manifest "%s" in app "%s" from resources reference string "%s" does not exist.', $manifestName, $appAlias, $reference));
         }
 
         $resourcesConfig = $manifestConfig['resources'][$resourcesKey] ?? null;
         if (null === $resourcesConfig) {
-            throw new InvalidConfigurationException(
-                sprintf(
-                    'Resources %s are not specified for manifest "%s" in app "%s" (resources reference string is "%s")',
-                    $resourcesKey,
-                    $manifestShortName,
-                    $appAlias,
-                    $reference
-                )
-            );
+            throw new InvalidConfigurationException(sprintf('Resources %s are not specified for manifest "%s" in app "%s" (resources reference string is "%s").', $resourcesKey, $manifestName, $appAlias, $reference));
         }
 
         if (is_string($resourcesConfig)) {
@@ -63,13 +46,6 @@ final readonly class ResourcesReferenceResolver
             return $resourcesConfig;
         }
 
-        throw new InvalidConfigurationException(
-            sprintf(
-                'Resources %s config for manifest "%s" in app "%s" is neither string nor array',
-                $resourcesKey,
-                $manifestShortName,
-                $appAlias
-            )
-        );
+        throw new InvalidConfigurationException(sprintf('Resources %s config for manifest "%s" in app "%s" is neither string nor array', $resourcesKey, $manifestName, $appAlias));
     }
 }

@@ -13,22 +13,28 @@ services:
             $env: '%kernel.environment%'
             $annotationDomain: '%klass8s.annotation_domain%'
             $manifestsDir: '%klass8s.manifests_dir%'
+            $projectDir: '%kernel.project_dir%'
+            $cacheDir: '%kernel.cache_dir%'
             $containerResourcesPoliciesEnabled: '%klass8s.container.resources.policies.enabled%'
             $containerResourcesPoliciesEnv: '%klass8s.container.resources.policies.env%'
             $deploymentReplicasPoliciesEnabled: '%klass8s.deployment.replicas.policies.enabled%'
             $deploymentReplicasPoliciesEnv: '%klass8s.deployment.replicas.policies.env%'
 
     Klass8s\App\AppProcessor: ~
+    Klass8s\App\AppManager: ~
     Klass8s\Core\Container\Env\ExternalConfigurationRegistry: ~
     Klass8s\Core\Job\JobSpecProcessor: ~
     Klass8s\Manifest\Labels\DefaultLabelsGenerator: ~
     Klass8s\Core\Pod\PodSpecProcessor: ~
     Klass8s\Core\Pod\PodTemplateSpecProcessor: ~
     Klass8s\Proxy\EventDispatcherBridgeInterceptor: ~
-    Klass8s\Manifest\ManifestGenerator: ~
     Klass8s\Manifest\Reference\ManifestClassReferenceConverter: ~
     Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter: ~
 
+    Klass8s\Bridge\Helm\:
+        resource: '../src/Bridge/Helm/'
+        exclude:
+            - '../src/Bridge/Helm/Release/HelmRelease.php'
 
     Klass8s\Renderer\:
         resource: '../src/Renderer/'

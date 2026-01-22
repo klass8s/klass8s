@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Klass8s\Manifest;
+namespace Klass8s\App;
 
-use Klass8s\App\AppProcessor;
 use Klass8s\Event\ManifestsProcessedEvent;
 use Klass8s\Output\OutputDirectory;
 use Klass8s\Renderer\RendererInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
-final readonly class ManifestGenerator
+final readonly class AppManager
 {
     private const string OUTPUT_DIRECTORY_APPS = 'apps';
 
@@ -21,7 +20,7 @@ final readonly class ManifestGenerator
     ) {
     }
 
-    public function generate(string ...$appAliases): OutputDirectory
+    public function generateManifests(string ...$appAliases): OutputDirectory
     {
         $outputDir = new OutputDirectory(self::OUTPUT_DIRECTORY_APPS, $this->renderer);
 

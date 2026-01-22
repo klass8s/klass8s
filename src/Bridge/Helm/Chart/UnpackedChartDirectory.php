@@ -17,5 +17,10 @@ final readonly class UnpackedChartDirectory
         if (!is_readable($path)) {
             throw new \InvalidArgumentException(sprintf('Chart directory "%s" is not readable.', $path));
         }
+
+        $chartYamlPath = $path.'/Chart.yaml';
+        if (!file_exists($chartYamlPath)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" does not contain Chart.yaml file.', $path));
+        }
     }
 }

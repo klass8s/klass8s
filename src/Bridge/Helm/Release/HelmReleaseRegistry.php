@@ -6,7 +6,17 @@ namespace Klass8s\Bridge\Helm\Release;
 
 final class HelmReleaseRegistry
 {
-    public private(set) array $releases = [];
+    /**
+     * @var array<string, HelmReleaseInterface>
+     */
+    private(set) array $releases = [];
+
+    /**
+     * @var string[]
+     */
+    public array $releaseNames {
+        get => array_keys($this->releases);
+    }
 
     public function add(HelmReleaseInterface $release): void
     {
@@ -19,5 +29,19 @@ final class HelmReleaseRegistry
         }
 
         $this->releases[$release->name] = $release;
+    }
+
+    public function get(string $name): HelmReleaseInterface
+    {
+        if (!$this->has($name)) {
+            throw new \OutOfBoundsException(sprintf('Release "%s" does not exist in the registry.', $name));
+        }
+
+        return $this->releases[$name];
+    }
+
+    public function has(string $name): bool
+    {
+        return array_key_exists($name, $this->releases);
     }
 }

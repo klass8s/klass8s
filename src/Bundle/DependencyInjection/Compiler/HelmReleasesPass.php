@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Bundle\DependencyInjection\Compiler;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
+use Klass8s\Bridge\Helm\Release\HelmRelease;
+use Klass8s\Bridge\Helm\Release\HelmReleaseRegistry;
+use Klass8s\Bundle\Klass8sBundle;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
+
+final readonly class HelmReleasesPass implements CompilerPassInterface
+{
+    public function process(ContainerBuilder $container): void
+    {
+        $config = $container->getParameter('klass8s.config.helm');
+        foreach ($config['releases'] as $releaseName => $releaseConfig) {
+            $values = $releaseConfig['values'] ?? null;
+            $valuesProviderId = $releaseConfig['valuesFrom'] ?? null;
+            $valuesProvider = null;
+            if ($values) {
+                $values = $container->resolveEnvPlaceholders($values);
+            } elseif ($valuesProviderId) {
+                if (!$container->hasDefinition($valuesProviderId)) {
+                    throw new \LogicException(sprintf('Service "%s", used as values provider for Helm release "%s", does not exist.', $valuesProviderId, $releaseName));
+                }
+                $valuesProvider = new Reference($valuesProviderId);
+            } else {
+                throw new \LogicException(sprintf('Helm release "%s" must have either "values" or "valuesFrom" property set.', $releaseName));
+            }
+
+            $definition = new Definition(HelmRelease::class, [
+                'name' => $releaseName,
+                'chart' => new ChartReference($releaseConfig['chart'], $releaseConfig['version'] ?? null),
+                'values' => $values,
+                'valuesProvider' => $valuesProvider,
+            ]);
+
+            $releaseId = sprintf('klass8s.helm.release.%s', $releaseName);
+            if ($container->hasDefinition($releaseId)) {
+                throw new \LogicException(sprintf('Helm release "%s" is already registered.', $releaseName));
+            }
+            $container->setDefinition($releaseId, $definition);
+        }
+
+        if (!$container->has(HelmReleaseRegistry::class)) {
+            throw new \LogicException(sprintf('Service "%s" does not exist.', HelmReleaseRegistry::class));
+        }
+        $registryDefinition = $container->getDefinition(HelmReleaseRegistry::class);
+
+        // Releases from configuration are registered above, other releases are autowired and autoconfigured from the user's classes.
+        $releaseIds = array_keys($container->findTaggedServiceIds(Klass8sBundle::TAG_HELM_RELEASE));
+        foreach ($releaseIds as $releaseId) {
+            $registryDefinition->addMethodCall('add', [new Reference($releaseId)]);
+        }
+    }
+}

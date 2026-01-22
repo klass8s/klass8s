@@ -6,9 +6,9 @@ namespace Klass8s\Renderer;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    final protected function withoutNullValues(\JsonSerializable|array $object): array
+    final protected function withoutNullValues(\JsonSerializable|array $resource): array
     {
-        $json = json_encode($object);
+        $json = json_encode($resource);
         $data = json_decode($json, true);
 
         $data = self::filterArray($data);

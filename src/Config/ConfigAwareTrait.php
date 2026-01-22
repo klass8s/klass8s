@@ -8,7 +8,7 @@ trait ConfigAwareTrait
 {
     protected bool $configHasBeenSet = false;
 
-    public protected(set) array $config = [] {
+    protected(set) array $config = [] {
         get {
             if (!$this->configHasBeenSet) {
                 throw new \RuntimeException('Config has not been set yet.');

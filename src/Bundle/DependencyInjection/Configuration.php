@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection;
 
-use Klass8s\Bundle\DependencyInjection\ContainerResources\ContainerResourcesConfiguration;
 use Klass8s\App\AppInterface;
-use Klass8s\Bridge\Helm\ValuesProviderInterface;
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
+use Klass8s\Bundle\DependencyInjection\ContainerResources\ContainerResourcesConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -79,7 +79,7 @@ readonly class Configuration implements ConfigurationInterface
                         ->cannotBeOverwritten()
                         ->beforeNormalization()
                             ->ifString()
-                            ->then(static::validClassName(...))
+                            ->then(static::validAppClassName(...))
                         ->end()
                     ->end()
                     ->arrayNode('manifests')
@@ -123,15 +123,18 @@ readonly class Configuration implements ConfigurationInterface
         $node = $treeBuilder->getRootNode();
 
         $node
+            ->addDefaultsIfNotSet()
             ->children()
                 ->arrayNode('repositories')
                     ->useAttributeAsKey('name')
-                    ->scalarPrototype()
+                    ->defaultValue([])
+                    ->stringPrototype()
                         ->cannotBeEmpty()
                     ->end()
                 ->end()
                 ->arrayNode('releases')
                     ->useAttributeAsKey('name')
+                    ->defaultValue([])
                     ->arrayPrototype()
                         ->children()
                             ->stringNode('chart')
@@ -150,15 +153,11 @@ readonly class Configuration implements ConfigurationInterface
                             ->end()
                             ->stringNode('valuesFrom')
                                 ->defaultNull()
-                                ->validate()
-                                    ->ifString()
-                                    ->then(static::validValuesProviderClass(...))
-                                ->end()
                             ->end()
                         ->end()
                         ->validate()
                             ->ifTrue(fn (array $v): bool => isset($v['values'], $v['valuesFrom']))
-                            ->thenInvalid('Cannot use both "values" and "valuesFrom" in the same release configuration')
+                            ->thenInvalid('Cannot use both "values" and "valuesFrom" in the same release configuration.')
                         ->end()
                     ->end()
                 ->end()
@@ -167,7 +166,7 @@ readonly class Configuration implements ConfigurationInterface
         return $node;
     }
 
-    private static function validClassName(string $class): string
+    private static function validAppClassName(string $class): string
     {
         if (!class_exists($class)) {
             throw new InvalidConfigurationException(sprintf('Class "%s" does not exist', $class));
@@ -181,38 +180,15 @@ readonly class Configuration implements ConfigurationInterface
         return $class;
     }
 
-    private static function validValuesProviderClass(string $class): string
+    private static function validChartReference(string $value): string
     {
-        if (!class_exists($class)) {
-            throw new InvalidConfigurationException(sprintf('Class "%s" does not exist', $class));
+        try {
+            $reference = new ChartReference($value);
+        } catch (\InvalidArgumentException $e) {
+            throw new InvalidConfigurationException($e->getMessage());
         }
 
-        $reflection = new \ReflectionClass($class);
-        if (!$reflection->implementsInterface(ValuesProviderInterface::class)) {
-            throw new InvalidConfigurationException(sprintf('Values provider class "%s" must implement ValuesProviderInterface', $class));
-        }
-
-        return $class;
-    }
-
-    private static function validChartReference(string $chart): string
-    {
-        // Local path (starts with `.` or `/`)
-        if (str_starts_with($chart, '.') || str_starts_with($chart, '/')) {
-            return $chart;
-        }
-
-        // OCI registry (starts with `oci://`) or full URL (starts with `https://`)
-        if (str_starts_with($chart, 'oci://') || str_starts_with($chart, 'https://')) {
-            return $chart;
-        }
-
-        // Repository-based chart reference (e.g., stable/my-chart or bitnami/nginx)
-        if (preg_match('#^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$#', $chart)) {
-            return $chart;
-        }
-
-        throw new InvalidConfigurationException(sprintf('Invalid chart reference "%s". Expected one of: "repository/chart", "https://...", "oci://...", or "./local/path".', $chart));
+        return $reference->value;
     }
 
     private function validResourcesNodeValue(array $nodeValue): array
