@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Filesystem;
 
-class AbstractDumpCommand extends Command
+abstract class AbstractDumpCommand extends Command
 {
     public const string OPTION_OUTPUT_DIR = 'output-dir';
     public const string OPTION_RECREATE_DIR = 'recreate-output-dir';
