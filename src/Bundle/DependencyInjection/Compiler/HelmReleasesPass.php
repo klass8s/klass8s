@@ -22,7 +22,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
             $values = $releaseConfig['values'] ?? null;
             $valuesProviderId = $releaseConfig['valuesFrom'] ?? null;
             $valuesProvider = null;
-            if ($values) {
+            if (null !== $values) {
                 $values = $container->resolveEnvPlaceholders($values);
             } elseif ($valuesProviderId) {
                 if (!$container->hasDefinition($valuesProviderId)) {
@@ -34,10 +34,11 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
             }
 
             $definition = new Definition(HelmRelease::class, [
-                'name' => $releaseName,
-                'chart' => new ChartReference($releaseConfig['chart'], $releaseConfig['version'] ?? null),
-                'values' => $values,
-                'valuesProvider' => $valuesProvider,
+                '$name' => $releaseName,
+                '$chartReference' => $releaseConfig['chart'],
+                '$chartVersion' => $releaseConfig['version'] ?? null,
+                '$values' => $values,
+                '$valuesProvider' => $valuesProvider,
             ]);
 
             $releaseId = sprintf('klass8s.helm.release.%s', $releaseName);

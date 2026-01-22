@@ -149,7 +149,7 @@ readonly class Configuration implements ConfigurationInterface
                                 ->defaultNull()
                             ->end()
                             ->variableNode('values')
-                                ->defaultValue([])
+                                ->defaultNull()
                             ->end()
                             ->stringNode('valuesFrom')
                                 ->defaultNull()

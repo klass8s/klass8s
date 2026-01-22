@@ -9,9 +9,12 @@ use Klass8s\Bridge\Helm\ValuesProviderInterface;
 
 final readonly class HelmRelease implements HelmReleaseInterface
 {
+    public ChartReference $chart;
+
     public function __construct(
         public string $name,
-        public ChartReference $chart,
+        string $chartReference,
+        string $chartVersion,
         ?array $values = null,
         private ?ValuesProviderInterface $valuesProvider = null,
     ) {
@@ -22,6 +25,8 @@ final readonly class HelmRelease implements HelmReleaseInterface
         if (null === $values && null === $valuesProvider) {
             throw new \InvalidArgumentException('Either $values or $valuesProvider must be set.');
         }
+
+        $this->chart = new ChartReference($chartReference, $chartVersion);
     }
 
     /**
