@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class DumpHelmCommand extends AbstractDumpCommand
 {
+    use AddHelmReposTrait;
+
     public const string ARGUMENT_HELM_RELEASES = 'helm-releases';
 
     public function __construct(
@@ -53,6 +55,7 @@ class DumpHelmCommand extends AbstractDumpCommand
             $releaseNames = $this->registry->releaseNames;
         }
 
+        $this->addHelmRepos();
         $outputDir = $this->releaseManager->generateManifests(...$releaseNames);
         $outputDir->dumpTo($outputDirPath);
 

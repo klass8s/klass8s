@@ -20,6 +20,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class RenderAllCommand extends Command
 {
+    use AddHelmReposTrait;
+
     public function __construct(
         private readonly AppManager $appManager,
         private readonly AppRegistry $appRegistry,
@@ -34,6 +36,8 @@ class RenderAllCommand extends Command
         $io = new ModernStyle($input, $output);
 
         $appsDir = $this->appManager->generateManifests(...$this->appRegistry->aliases());
+
+        $this->addHelmRepos();
         $helmDir = $this->helmReleaseManager->generateManifests(...$this->helmReleaseRegistry->releaseNames);
 
         if (!$appsDir->isEmpty()) {

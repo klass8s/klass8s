@@ -19,6 +19,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class RenderHelmCommand extends Command
 {
+    use AddHelmReposTrait;
+
     private const string ARGUMENT_HELM_RELEASES = 'helm-releases';
 
     public function __construct(
@@ -47,6 +49,7 @@ class RenderHelmCommand extends Command
             $releaseNames = $this->registry->releaseNames;
         }
 
+        $this->addHelmRepos();
         $outputDir = $this->releaseManager->generateManifests(...$releaseNames);
 
         if (!$outputDir->isEmpty()) {

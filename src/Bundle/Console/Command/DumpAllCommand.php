@@ -19,6 +19,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class DumpAllCommand extends AbstractDumpCommand
 {
+    use AddHelmReposTrait;
+
     public function __construct(
         string $manifestsDir,
         string $env,
@@ -37,7 +39,9 @@ class DumpAllCommand extends AbstractDumpCommand
         $outputDirPath = $this->getValidOutputDir($input, (bool)$input->getOption(self::OPTION_RECREATE_DIR));
 
         $appsDir = $this->appManager->generateManifests(...$this->appRegistry->aliases());
+
         $releaseNames = $this->helmReleaseRegistry->releaseNames;
+        $this->addHelmRepos();
         $helmDir = $this->helmReleaseManager->generateManifests(...$releaseNames);
 
         $appsDir->dumpTo($outputDirPath);

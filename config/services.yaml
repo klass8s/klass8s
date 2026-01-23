@@ -19,6 +19,7 @@ services:
             $containerResourcesPoliciesEnv: '%klass8s.container.resources.policies.env%'
             $deploymentReplicasPoliciesEnabled: '%klass8s.deployment.replicas.policies.enabled%'
             $deploymentReplicasPoliciesEnv: '%klass8s.deployment.replicas.policies.env%'
+            $helmRepos: '%klass8s.config.helm.repositories%'
 
     Klass8s\App\AppProcessor: ~
     Klass8s\App\AppManager: ~
