@@ -43,7 +43,11 @@ class DumpAllCommand extends AbstractDumpCommand
         $appsDir->dumpTo($outputDirPath);
         $helmDir->dumpTo($outputDirPath);
 
-        $io->success(sprintf('Manifests are dumped to "<comment>%s</comment>".', $outputDirPath));
+        if ($appsDir->isEmpty() && $helmDir->isEmpty()) {
+            $io->warning('No manifests were generated.');
+        } else {
+            $io->success(sprintf('Manifests are dumped to "<comment>%s</comment>".', $outputDirPath));
+        }
 
         return self::SUCCESS;
     }

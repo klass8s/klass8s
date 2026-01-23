@@ -50,18 +50,22 @@ class DumpAppsCommand extends AbstractDumpCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new ModernStyle($input, $output);
-        $outputDirName = $this->getValidOutputDir($input, (bool)$input->getOption(self::OPTION_RECREATE_DIR));
+        $outputDirPath = $this->getValidOutputDir($input, (bool)$input->getOption(self::OPTION_RECREATE_DIR));
         $aliases = $input->getArgument(self::ARGUMENT_APPS_ALIASES);
         if ([] === $aliases) {
             $aliases = $this->registry->aliases();
         }
 
         $outputDir = $this->appManager->generateManifests(...$aliases);
-        $outputDir->dumpTo($outputDirName);
+        $outputDir->dumpTo($outputDirPath);
 
         $this->dispatcher->dispatch(new ManifestsDumpedEvent(), ManifestsDumpedEvent::NAME);
 
-        $io->success(sprintf('Manifests are dumped to <comment>%s</comment>.', $outputDirName));
+        if ($outputDir->isEmpty()) {
+            $io->warning('No manifests were generated.');
+        } else {
+            $io->success(sprintf('Manifests are dumped to "<comment>%s</comment>".', $outputDirPath));
+        }
 
         return self::SUCCESS;
     }
