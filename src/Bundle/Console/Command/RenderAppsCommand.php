@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\Console\Command;
 
+use Klass8s\App\AppManager;
 use Klass8s\Bundle\Console\UI\ModernStyle;
-use Klass8s\Manifest\ManifestGenerator;
 use Klass8s\Registry\AppRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,8 +21,10 @@ class RenderAppsCommand extends Command
 {
     public const string ARGUMENT_APPS_ALIASES = 'apps-aliases';
 
-    public function __construct(private readonly ManifestGenerator $mg, private readonly AppRegistry $appRegistry)
-    {
+    public function __construct(
+        private readonly AppManager $appManager,
+        private readonly AppRegistry $appRegistry,
+    ) {
         parent::__construct();
     }
 
@@ -45,7 +47,7 @@ class RenderAppsCommand extends Command
             $aliases = $this->appRegistry->aliases();
         }
 
-        $outputDir = $this->mg->generate(...$aliases);
+        $outputDir = $this->appManager->generateManifests(...$aliases);
 
         $io->writeln($outputDir->render()->toString());
 

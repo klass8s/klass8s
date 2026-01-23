@@ -14,7 +14,7 @@ abstract class AbstractManifest implements ManifestInterface
 {
     use ConfigAwareTrait;
 
-    public protected(set) AppInterface|AbstractApp $app;
+    protected(set) AppInterface|AbstractApp $app;
 
     public string $manifestInstanceName {
         get => match (true) {

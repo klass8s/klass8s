@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection;
 
-use Klass8s\Bundle\DependencyInjection\ContainerResources\ContainerResourcesConfiguration;
 use Klass8s\App\AppInterface;
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
+use Klass8s\Bundle\DependencyInjection\ContainerResources\ContainerResourcesConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -35,6 +36,7 @@ readonly class Configuration implements ConfigurationInterface
         $root
             ->children()
                 ->append($this->appsNode())
+                ->append($this->helmNode())
                 ->stringNode('code_dir')->defaultNull()->end()
                 ->stringNode('namespace_prefix')->defaultValue('App\\K8S\\')->end()
                 ->stringNode('manifests_dir')->defaultNull()->end()
@@ -77,7 +79,7 @@ readonly class Configuration implements ConfigurationInterface
                         ->cannotBeOverwritten()
                         ->beforeNormalization()
                             ->ifString()
-                            ->then(static::validClassName(...))
+                            ->then(static::validAppClassName(...))
                         ->end()
                     ->end()
                     ->arrayNode('manifests')
@@ -115,7 +117,56 @@ readonly class Configuration implements ConfigurationInterface
         return $node;
     }
 
-    private static function validClassName(string $class): string
+    private function helmNode(): ArrayNodeDefinition
+    {
+        $treeBuilder = new TreeBuilder('helm');
+        $node = $treeBuilder->getRootNode();
+
+        $node
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->arrayNode('repositories')
+                    ->useAttributeAsKey('name')
+                    ->defaultValue([])
+                    ->stringPrototype()
+                        ->cannotBeEmpty()
+                    ->end()
+                ->end()
+                ->arrayNode('releases')
+                    ->useAttributeAsKey('name')
+                    ->defaultValue([])
+                    ->arrayPrototype()
+                        ->children()
+                            ->stringNode('chart')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                                ->validate()
+                                    ->ifString()
+                                    ->then(static::validChartReference(...))
+                                ->end()
+                            ->end()
+                            ->stringNode('version')
+                                ->defaultNull()
+                            ->end()
+                            ->variableNode('values')
+                                ->defaultNull()
+                            ->end()
+                            ->stringNode('valuesFrom')
+                                ->defaultNull()
+                            ->end()
+                        ->end()
+                        ->validate()
+                            ->ifTrue(fn (array $v): bool => isset($v['values'], $v['valuesFrom']))
+                            ->thenInvalid('Cannot use both "values" and "valuesFrom" in the same release configuration.')
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+
+        return $node;
+    }
+
+    private static function validAppClassName(string $class): string
     {
         if (!class_exists($class)) {
             throw new InvalidConfigurationException(sprintf('Class "%s" does not exist', $class));
@@ -127,6 +178,17 @@ readonly class Configuration implements ConfigurationInterface
         }
 
         return $class;
+    }
+
+    private static function validChartReference(string $value): string
+    {
+        try {
+            $reference = new ChartReference($value);
+        } catch (\InvalidArgumentException $e) {
+            throw new InvalidConfigurationException($e->getMessage());
+        }
+
+        return $reference->value;
     }
 
     private function validResourcesNodeValue(array $nodeValue): array

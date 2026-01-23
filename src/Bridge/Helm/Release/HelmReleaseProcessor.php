@@ -1,0 +1,96 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Bridge\Helm\Release;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartLocalCopyProvider;
+use Klass8s\Output\OutputDirectory;
+use Klass8s\Output\RenderableFile;
+use Klass8s\Renderer\RendererInterface;
+use Klass8s\Value\YamlString;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
+
+final readonly class HelmReleaseProcessor
+{
+    public function __construct(
+        private ChartLocalCopyProvider $localCopyProvider,
+        private RendererInterface $renderer,
+        private string $projectDir
+    ) {
+    }
+
+    public function process(HelmReleaseInterface $release): OutputDirectory
+    {
+        $yaml = $this->render($release);
+        $manifests = explode("\n---\n", $yaml->value) |> array_filter(...);
+        $manifests = array_filter(
+            $manifests,
+            function (string $manifest): bool {
+                $lines = explode(PHP_EOL, $manifest);
+                $lines = array_filter(
+                    $lines,
+                    fn (string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---')
+                );
+                $manifest = implode(PHP_EOL, $lines) |> trim(...);
+
+                return !empty($manifest);
+            }
+        );
+
+        $outputDir = new OutputDirectory($release->name, $this->renderer);
+        foreach ($manifests as $manifest) {
+            $manifest = Yaml::parse($manifest);
+            $name = $manifest['metadata']['name'];
+            $fileName = sprintf('%s.%s', $name, $manifest['kind']);
+            $file = new RenderableFile($fileName, $manifest);
+            $outputDir->addFile($file);
+        }
+
+        return $outputDir;
+    }
+
+    public function render(HelmReleaseInterface $release): YamlString
+    {
+        $chartDir = $this->localCopyProvider->createFrom($release->chart);
+        $command = [
+            'helm',
+            'template',
+            $release->name,
+            $chartDir->path,
+            '--dependency-update',
+            '--disable-openapi-validation',
+            '--include-crds',
+        ];
+
+        $values = $release->values();
+        if (!empty($values)) {
+            $valuesYaml = Yaml::dump($values);
+            $valuesFilename = self::valuesYamlTempFilename($release);
+            file_put_contents($valuesFilename, $valuesYaml);
+
+            $command[] = '--values';
+            $command[] = $valuesFilename;
+        }
+
+        $process = new Process($command, $this->projectDir);
+        $process->mustRun();
+
+        return new YamlString($process->getOutput());
+    }
+
+    private static function valuesYamlTempFilename(HelmReleaseInterface $release): string
+    {
+        $fileName = tempnam(sys_get_temp_dir(), sprintf('helm-%s-values', $release->name));
+        if (false === $fileName) {
+            throw new \RuntimeException('Failed to create temporary file for Helm release values.');
+        }
+        $filenameWithExtension = $fileName.'.yaml';
+        while (file_exists($filenameWithExtension)) {
+            $filenameWithExtension = $fileName.'-'.uniqid().'.yaml';
+        }
+
+        return $filenameWithExtension;
+    }
+}

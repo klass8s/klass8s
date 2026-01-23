@@ -15,7 +15,7 @@ final readonly class YamlString
     /**
      * @var string The YAML formatted string
      */
-    public private(set) string $value;
+    private(set) string $value;
 
     public function __construct(string $value)
     {

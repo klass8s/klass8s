@@ -17,6 +17,9 @@ return $config
             '@PHP82Migration' => true,
             '@PSR12' => true,
             'protected_to_private' => false,
+            'modifier_keywords' => [
+                'elements' => ['const', 'method'], // omitted 'property' to not have `public` before `protected(set)`
+            ],
         ]
     )
     ->setRiskyAllowed(true)

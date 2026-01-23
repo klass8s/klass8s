@@ -13,10 +13,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'k8s:generate:app',
+    name: 'k8s:make:app',
     description: 'Creates a new K8S app skeleton',
 )]
-class GenerateAppCommand extends Command
+class MakeAppCommand extends Command
 {
     private const string ARGUMENT_APP_NAME = 'app-name';
 

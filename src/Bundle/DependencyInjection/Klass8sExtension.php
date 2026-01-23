@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection;
 
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
 use Klass8s\Bundle\DependencyInjection\Compiler\DefaultMetadataLabelsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DefaultSelectorLabelsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DefaultServiceSelectorPass;
@@ -11,8 +12,8 @@ use Klass8s\Bundle\DependencyInjection\ContainerResources\ResourcesReferenceReso
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class Klass8sExtension extends Extension
 {
@@ -51,6 +52,18 @@ class Klass8sExtension extends Extension
 
         $config = $this->processConfiguration($this->getConfiguration($configs, $container), $configs);
         $config['apps'] = array_replace_recursive($config['apps'], $finalAppsConfig);
+
+        $projectDir = $container->getParameter('kernel.project_dir');
+        foreach ($config['helm']['releases'] ?? [] as $releaseConfig) {
+            $ref = new ChartReference($releaseConfig['chart']);
+            if ($ref->isRelativePath()) {
+                $path = $projectDir.'/'.ltrim($ref->value, './\\');
+                self::ensureChartDirExists($path);
+            } elseif ($ref->isAbsolutePath()) {
+                self::ensureChartDirExists($ref->value);
+            }
+        }
+
         $this->loadInternal($config, $container);
     }
 
@@ -80,19 +93,20 @@ class Klass8sExtension extends Extension
         $container->setParameter(DefaultServiceSelectorPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_SERVICE_SELECTOR]);
 
         foreach ($config['apps'] as $appAlias => $appConfig) {
-            foreach ($appConfig['manifests'] as $shortName => $manifestConfig) {
+            foreach ($appConfig['manifests'] as $manifestName => $manifestConfig) {
                 $resources = $manifestConfig['resources'] ?? [];
 
                 foreach (['requests', 'limits'] as $resourcesKey) {
                     $resourcesSection = $resources[$resourcesKey] ?? [];
                     if (is_string($resourcesSection)) {
-                        $config['apps'][$appAlias]['manifests'][$shortName]['resources'][$resourcesKey] = $this->referenceResolver->resolve($resourcesSection, $resourcesKey, $appAlias, $config['apps']);
+                        $config['apps'][$appAlias]['manifests'][$manifestName]['resources'][$resourcesKey] = $this->referenceResolver->resolve($resourcesSection, $resourcesKey, $appAlias, $config['apps']);
                     }
                 }
             }
         }
 
         $container->setParameter('klass8s.config.apps', $config['apps']);
+        $container->setParameter('klass8s.config.helm', $config['helm'] ?? []);
     }
 
     private function setupTemplatesDir(ContainerBuilder $container): static
@@ -167,5 +181,15 @@ class Klass8sExtension extends Extension
         $errMessage = str_replace(PHP_EOL, ' ', $errMessage);
 
         return new InvalidConfigurationException($errMessage);
+    }
+
+    private static function ensureChartDirExists(string $path): void
+    {
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" does not exist.', $path));
+        }
+        if (!is_dir($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" is a file.', $path));
+        }
     }
 }

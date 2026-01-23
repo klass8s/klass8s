@@ -6,12 +6,14 @@ namespace Klass8s\Bundle;
 
 use Klass8s\App\AppInterface;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuilderInterface;
+use Klass8s\Bridge\Helm\Release\HelmReleaseInterface;
 use Klass8s\Bundle\Checksum\Calculator\ChecksumCalculatorInterface;
 use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
 use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetReplicasPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetResourcesPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DisableChecksumGenerationPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\HelmReleasesPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\ManifestsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\RemoveAutowiredAppsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\SetAppConfigPass;
@@ -36,6 +38,7 @@ class Klass8sBundle extends AbstractBundle
     public const string TAG_CHECKSUM_CALCULATOR = 'klass8s.checksum_calculator';
     public const string TAG_MANIFEST_RUNTIME_STATUS_RESOLVER = 'klass8s.manifest.runtime_status_resolver.strategy';
     public const string TAG_KEDA_TRIGGER_BUILDER = 'klass8s.autoscaling.keda.trigger_builder';
+    public const string TAG_HELM_RELEASE = 'klass8s.helm.release';
 
     public function build(ContainerBuilder $container): void
     {
@@ -46,6 +49,7 @@ class Klass8sBundle extends AbstractBundle
         $container
             ->addCompilerPass(new AppsPass())
             ->addCompilerPass(new DisableChecksumGenerationPass())
+            ->addCompilerPass(new HelmReleasesPass())
             ->addCompilerPass(pass: new SetAppConfigPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -8)
             ->addCompilerPass(pass: new ManifestsPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -16)
             ->addCompilerPass(pass: new RemoveAutowiredAppsPass(), type: PassConfig::TYPE_REMOVE)
@@ -95,5 +99,9 @@ class Klass8sBundle extends AbstractBundle
         $container
             ->registerForAutoconfiguration(TriggerBuilderInterface::class)
             ->addTag(self::TAG_KEDA_TRIGGER_BUILDER);
+
+        $container
+            ->registerForAutoconfiguration(HelmReleaseInterface::class)
+            ->addTag(self::TAG_HELM_RELEASE);
     }
 }

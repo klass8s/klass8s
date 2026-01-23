@@ -34,7 +34,7 @@ final class OutputDirectory
     public function addFile(RenderableFile|RenderedFile $file): void
     {
         if ($file instanceof RenderableFile) {
-            $filename = $file->nameWithoutExtension.'.'.$this->renderer->fileExtension();
+            $filename = $file->nameWithoutExtension.$this->renderer->fileExtension();
             $contents = $this->renderer->render($file->resource);
             $file = new RenderedFile($filename, $contents);
         }
@@ -74,8 +74,16 @@ final class OutputDirectory
 
         $bucket = new \ArrayObject();
         $this->renderTo($bucket, '');
+        if (0 === $bucket->count()) {
+            throw new \LogicException('No files were added to the output directory.');
+        }
 
         return new YamlString(implode(self::YAML_DOCUMENT_SEPARATOR, $bucket->getArrayCopy()));
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->files);
     }
 
     private function renderTo(\ArrayObject $bucket, string $filenamePrefix): void

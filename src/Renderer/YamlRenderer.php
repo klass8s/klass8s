@@ -8,9 +8,9 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlRenderer extends AbstractRenderer
 {
-    public function render(\JsonSerializable|array $object): string
+    public function render(\JsonSerializable|array $resource): string
     {
-        $data = $this->withoutNullValues($object);
+        $data = $this->withoutNullValues($resource);
         $inline = $this->calcDumpInline($data);
 
         return Yaml::dump($data, $inline, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
