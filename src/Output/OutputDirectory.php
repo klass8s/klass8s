@@ -34,7 +34,7 @@ final class OutputDirectory
     public function addFile(RenderableFile|RenderedFile $file): void
     {
         if ($file instanceof RenderableFile) {
-            $filename = $file->nameWithoutExtension.'.'.$this->renderer->fileExtension();
+            $filename = $file->nameWithoutExtension.$this->renderer->fileExtension();
             $contents = $this->renderer->render($file->resource);
             $file = new RenderedFile($filename, $contents);
         }

@@ -13,10 +13,10 @@ final readonly class HelmRelease implements HelmReleaseInterface
 
     public function __construct(
         public string $name,
+        private(set) ?array $values,
+        private(set) ?ValuesProviderInterface $valuesProvider,
         string $chartReference,
-        string $chartVersion,
-        ?array $values = null,
-        private ?ValuesProviderInterface $valuesProvider = null,
+        ?string $chartVersion = null,
     ) {
         if (null !== $values && null !== $valuesProvider) {
             throw new \InvalidArgumentException('Cannot set both $values and $valuesProvider.');

@@ -40,6 +40,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
                 '$values' => $values,
                 '$valuesProvider' => $valuesProvider,
             ]);
+            $definition->addTag(Klass8sBundle::TAG_HELM_RELEASE);
 
             $releaseId = sprintf('klass8s.helm.release.%s', $releaseName);
             if ($container->hasDefinition($releaseId)) {

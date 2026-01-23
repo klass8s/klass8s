@@ -25,6 +25,20 @@ final readonly class HelmReleaseProcessor
     {
         $yaml = $this->render($release);
         $manifests = explode("\n---\n", $yaml->value) |> array_filter(...);
+        $manifests = array_filter(
+            $manifests,
+            function (string $manifest): bool {
+                $lines = $manifest->split(PHP_EOL);
+                $lines = array_filter(
+                    $lines,
+                    fn (string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---')
+                );
+                $manifest = implode(PHP_EOL, $lines) |> trim(...);
+
+                return !empty($manifest);
+            }
+        );
+
         $outputDir = new OutputDirectory($release->name, $this->renderer);
         foreach ($manifests as $manifest) {
             $manifest = Yaml::parse($manifest);
