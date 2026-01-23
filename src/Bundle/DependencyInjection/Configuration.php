@@ -117,7 +117,7 @@ readonly class Configuration implements ConfigurationInterface
         return $node;
     }
 
-    public function helmNode(): ArrayNodeDefinition
+    private function helmNode(): ArrayNodeDefinition
     {
         $treeBuilder = new TreeBuilder('helm');
         $node = $treeBuilder->getRootNode();
