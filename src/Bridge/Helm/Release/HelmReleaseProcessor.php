@@ -28,7 +28,7 @@ final readonly class HelmReleaseProcessor
         $manifests = array_filter(
             $manifests,
             function (string $manifest): bool {
-                $lines = $manifest->split(PHP_EOL);
+                $lines = explode(PHP_EOL, $manifest);
                 $lines = array_filter(
                     $lines,
                     fn (string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---')
