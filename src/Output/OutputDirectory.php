@@ -74,8 +74,16 @@ final class OutputDirectory
 
         $bucket = new \ArrayObject();
         $this->renderTo($bucket, '');
+        if (0 === $bucket->count()) {
+            throw new \LogicException('No files were added to the output directory.');
+        }
 
         return new YamlString(implode(self::YAML_DOCUMENT_SEPARATOR, $bucket->getArrayCopy()));
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->files);
     }
 
     private function renderTo(\ArrayObject $bucket, string $filenamePrefix): void

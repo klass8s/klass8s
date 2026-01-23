@@ -36,9 +36,13 @@ class RenderAllCommand extends Command
         $appsDir = $this->appManager->generateManifests(...$this->appRegistry->aliases());
         $helmDir = $this->helmReleaseManager->generateManifests(...$this->helmReleaseRegistry->releaseNames);
 
-        $io->writeln($appsDir->render()->toString());
-        echo "\n---\n";
-        $io->writeln($helmDir->render()->toString());
+        if (!$appsDir->isEmpty()) {
+            $io->writeln($appsDir->render()->toString());
+        }
+        if (!$helmDir->isEmpty()) {
+            echo "\n---\n";
+            $io->writeln($helmDir->render()->toString());
+        }
 
         return self::SUCCESS;
     }

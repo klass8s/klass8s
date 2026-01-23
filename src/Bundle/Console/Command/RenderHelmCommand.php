@@ -49,7 +49,9 @@ class RenderHelmCommand extends Command
 
         $outputDir = $this->releaseManager->generateManifests(...$releaseNames);
 
-        $io->writeln($outputDir->render()->toString());
+        if (!$outputDir->isEmpty()) {
+            $io->writeln($outputDir->render()->toString());
+        }
 
         return self::SUCCESS;
     }
