@@ -45,7 +45,7 @@ final class ModernStyle extends SymfonyStyle
     {
         $messages = is_array($message) ? array_values($message) : [$message];
         foreach ($messages as $message) {
-            $this->line('warn', $message, '⚠️');
+            $this->line('warning', $message, '⚠️');
         }
     }
 
