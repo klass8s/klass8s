@@ -12,6 +12,8 @@ use Klass8s\Value\YamlString;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
+use function Symfony\Component\String\u;
+
 final readonly class HelmReleaseProcessor
 {
     public function __construct(
@@ -43,7 +45,7 @@ final readonly class HelmReleaseProcessor
         foreach ($manifests as $manifest) {
             $manifest = Yaml::parse($manifest);
             $name = $manifest['metadata']['name'];
-            $fileName = sprintf('%s.%s', $name, $manifest['kind']);
+            $fileName = sprintf('%s.%s', $name, u($manifest['kind'])->kebab()->toString());
             $file = new RenderableFile($fileName, $manifest);
             $outputDir->addFile($file);
         }
