@@ -147,14 +147,16 @@ class Klass8sExtension extends Extension
                 continue;
             }
 
-            foreach ($envSuffixedMethodConfig['for'] as $proxyableType) {
+            foreach ($envSuffixedMethodConfig['for'] as $i => $proxyableType) {
                 $eventName = match ($proxyableType) {
                     'manifest' => ManifestMethodEvent::NAME,
                     'container' => ContainerMethodCalledEvent::NAME,
-                    default => throw new InvalidConfigurationException(sprintf('Invalid `for:` value "%s" for env-suffixed method "%s". Supported values are "manifest" and "container".', $proxyableType, $methodName)),
+                    default => throw new InvalidConfigurationException(sprintf('Invalid value "%s" under configuration key `for.%d` for env-suffixed method "%s". Supported values are "manifest" and "container".', $proxyableType, $i, $methodName)),
                 };
                 $eventMap[$eventName][] = $methodName;
             }
+
+            $eventMap = array_map('array_unique', $eventMap);
         }
 
         $container->setParameter('klass8s.env_management.env_suffixed_methods.event_map', $eventMap);
