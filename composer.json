@@ -33,9 +33,9 @@
     },
     "scripts": {
         "cs": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
-        "cs-check": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer check",
-        "tools-update": "composer update -d tools/php-cs-fixer --no-scripts",
-        "tests-bundle": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests/Bundle"
+        "cs:check": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer check",
+        "tools:update": "composer update -d tools/php-cs-fixer --no-scripts",
+        "test:bundle": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests/Bundle"
     },
     "repositories": [
         {

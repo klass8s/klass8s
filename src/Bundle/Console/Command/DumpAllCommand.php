@@ -16,6 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(
     name: 'k8s:dump:all',
     description: 'Dumps all apps and Helm releases to the output dir',
+    aliases: ['k8s:dump'],
 )]
 class DumpAllCommand extends AbstractDumpCommand
 {
@@ -23,13 +24,13 @@ class DumpAllCommand extends AbstractDumpCommand
 
     public function __construct(
         string $manifestsDir,
-        string $env,
+        string $currentEnv,
         private readonly AppManager $appManager,
         private readonly AppRegistry $appRegistry,
         private readonly HelmReleaseManager $helmReleaseManager,
         private readonly HelmReleaseRegistry $helmReleaseRegistry,
     ) {
-        parent::__construct($manifestsDir, $env);
+        parent::__construct($manifestsDir, $currentEnv);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

@@ -24,11 +24,11 @@ class DumpHelmCommand extends AbstractDumpCommand
 
     public function __construct(
         string $manifestsDir,
-        string $env,
+        string $currentEnv,
         private readonly HelmReleaseManager $releaseManager,
         private readonly HelmReleaseRegistry $registry,
     ) {
-        parent::__construct($manifestsDir, $env);
+        parent::__construct($manifestsDir, $currentEnv);
     }
 
     #[\Override]

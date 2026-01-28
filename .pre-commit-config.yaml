@@ -3,11 +3,11 @@ repos:
     hooks:
       - id: check-cs
         name: Check code style before commit
-        entry: bash -c 'composer cs-check'
+        entry: bash -c 'composer cs:check'
         language: system
         stages: [commit]
       - id: tests
         name: Run tests before commit
-        entry: bash -c 'composer tests-bundle'
+        entry: bash -c 'composer test:bundle'
         language: system
         stages: [commit]

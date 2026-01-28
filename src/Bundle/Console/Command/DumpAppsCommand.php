@@ -24,12 +24,12 @@ class DumpAppsCommand extends AbstractDumpCommand
 
     public function __construct(
         string $manifestsDir,
-        string $env,
+        string $currentEnv,
         private readonly AppManager $appManager,
         private readonly AppRegistry $registry,
         private readonly EventDispatcherInterface $dispatcher,
     ) {
-        parent::__construct($manifestsDir, $env);
+        parent::__construct($manifestsDir, $currentEnv);
     }
 
     #[\Override]

@@ -16,7 +16,7 @@ abstract class AbstractDumpCommand extends Command
 
     public function __construct(
         protected readonly string $manifestsDir,
-        protected readonly string $env,
+        protected readonly string $currentEnv,
     ) {
         parent::__construct();
     }
@@ -46,7 +46,7 @@ abstract class AbstractDumpCommand extends Command
             throw new \InvalidArgumentException('Option "--output-dir" must be specified.');
         }
 
-        $outputDir .= '/'.$this->env;
+        $outputDir .= '/'.$this->currentEnv;
 
         if (!file_exists($outputDir)) {
             try {
