@@ -10,17 +10,17 @@ use Klass8s\Proxy\ProxyableInterface;
 interface ManifestInterface extends AppAwareInterface, ConfigAwareInterface, MetadataAwareInterface, ProxyableInterface
 {
     /**
-     * @var string The name of the manifest instance.
-     * Covers both the static manifest name and dynamic name in the case of `ManifestTemplateInterface`
-     * @see manifestName()
-     * @see ManifestTemplateInterface::$manifestName
+     * @var string The short name of the manifest instance.
+     * Covers both the static short name and dynamic name in the case of `ManifestTemplateInterface`
+     * @see shortName()
+     * @see ManifestTemplateInterface::$dynamicShortName
      */
-    public string $manifestInstanceName { get; }
+    public string $computedShortName { get; }
 
     /**
      * @var string The full name of the Kubernetes resource that will be generated from this manifest.
      */
-    public string $resourceName { get; }
+    public string $computedFullName { get; }
 
     /**
      * @var string The file name (without extension like `.yaml`) generated manifest will be saved to.
@@ -34,7 +34,7 @@ interface ManifestInterface extends AppAwareInterface, ConfigAwareInterface, Met
      * @return string The name of the manifest, without the namespace / app prefix.
      * Example: for a manifest with the resource name `iam-main` the manifest name would be `main`.
      */
-    public static function manifestName(): string;
+    public static function shortName(): string;
 
     /**
      * @return string The fully qualified class name of the manifest, unwrapped from a proxy class

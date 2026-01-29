@@ -28,7 +28,7 @@ final class ManifestRegistry
         $appAlias = $manifest->app->alias();
         $this->manifests[$appAlias] ??= [];
 
-        $key = sprintf('%s_%s', $manifest::kind(), $manifest->manifestInstanceName);
+        $key = sprintf('%s_%s', $manifest::kind(), $manifest->computedShortName);
         if (array_key_exists($key, $this->manifests[$appAlias])) {
             $existingManifest = $this->manifests[$appAlias][$key];
             if ($existingManifest === $manifest) {

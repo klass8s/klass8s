@@ -16,7 +16,7 @@ final readonly class VersionedManifestClassReferenceConverter
     public function toCrossVersionObjectReference(VersionedManifestClassReference $reference): CrossVersionObjectReference
     {
         $app = $this->appRegistry->get($reference->appAlias);
-        $name = $app->resourceNameByManifestClass($reference->className);
+        $name = $app->resourceNameFromManifestClass($reference->className);
 
         $class = new \ReflectionClass($reference->className);
         $kind = $class->getMethod('kind')->invoke(null);

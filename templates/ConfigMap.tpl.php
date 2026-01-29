@@ -12,7 +12,7 @@ class <?php echo $className; ?> extends AbstractConfigMap
     {
     }
 
-    public static function shortName(): string
+    public static function manifestName(): string
     {
         return '<?php echo $manifestName; ?>';
     }

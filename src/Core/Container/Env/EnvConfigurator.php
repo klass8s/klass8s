@@ -76,7 +76,7 @@ readonly class EnvConfigurator
         }
 
         $this->ensureAppOwnsManifestClass($configMapClass);
-        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
+        $cmName = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
 
         $this->addConfigMap($cmName, $mustExist, $varNamesPrefix);
 
@@ -117,7 +117,7 @@ readonly class EnvConfigurator
         }
 
         $this->ensureAppOwnsManifestClass($secretClass);
-        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
 
         $this->addSecret($secretName, $mustExist);
 
@@ -159,7 +159,7 @@ readonly class EnvConfigurator
     public function varFromConfigMapClass(string $varName, string $configMapClass, string $configMapKey, bool $optional = false): static
     {
         $this->ensureAppOwnsManifestClass($configMapClass);
-        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
+        $cmName = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
 
         $keySelector = new ConfigMapKeySelector($configMapKey);
         $keySelector
@@ -179,7 +179,7 @@ readonly class EnvConfigurator
     public function varFromSecretClass(string $varName, string $secretClass, string $secretKey, bool $optional = false): static
     {
         $this->ensureAppOwnsManifestClass($secretClass);
-        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
 
         $keySelector = new SecretKeySelector($secretKey);
         $keySelector

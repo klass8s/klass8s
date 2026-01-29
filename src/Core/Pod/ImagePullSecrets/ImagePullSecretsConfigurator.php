@@ -22,7 +22,7 @@ final readonly class ImagePullSecretsConfigurator
      */
     public function addSecretClass(string $secretClass): self
     {
-        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
 
         return $this->addSecret($secretName);
     }

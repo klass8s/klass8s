@@ -40,7 +40,7 @@ readonly class IngressBackendConfigurator
      */
     public function fromServiceClassAndPort(string $serviceClass, int|string $servicePort): void
     {
-        $serviceName = $this->app->resourceNameByManifestClass($serviceClass, ServiceInterface::class);
+        $serviceName = $this->app->resourceNameFromManifestClass($serviceClass, ServiceInterface::class);
         $this->fromServiceNameAndPort($serviceName, $servicePort);
     }
 

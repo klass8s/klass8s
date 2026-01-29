@@ -35,10 +35,10 @@ abstract class AbstractApp implements AppInterface
 
     public function manifestConfig(ManifestInterface $manifest): array
     {
-        return $this->config['manifests'][$manifest->manifestInstanceName] ?? [];
+        return $this->config['manifests'][$manifest->computedShortName] ?? [];
     }
 
-    public function resourceNameByManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string
+    public function resourceNameFromManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string
     {
         $name = ManifestNameResolver::resourceNameFromManifestClass($manifestClass, $this->alias);
         if (null !== $classToValidateAgainst && !is_a($manifestClass, $classToValidateAgainst, true)) {
@@ -49,6 +49,11 @@ abstract class AbstractApp implements AppInterface
         }
 
         return $name;
+    }
+
+    public function resourceNameFromShortName(string $shortName): string
+    {
+        return ManifestNameResolver::resourceNameFromShortNameAndPrefix($shortName, $this->alias);
     }
 
     public function readFile(string $filePath): string
@@ -94,7 +99,7 @@ abstract class AbstractApp implements AppInterface
         $metadataAware->metadata($metaConfigurator);
 
         if ($metadataAware instanceof ManifestInterface) {
-            $meta->setName($metadataAware->resourceName);
+            $meta->setName($metadataAware->computedFullName);
         }
 
         return $meta;

@@ -18,7 +18,7 @@ class <?php echo $className; ?> extends AbstractContainerCronJob
         return '* * * * *'; // min hour day month dayOfWeek
     }
 
-    public static function shortName(): string
+    public static function manifestName(): string
     {
         return '<?php echo $manifestName; ?>';
     }

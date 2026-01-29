@@ -40,7 +40,7 @@ class StatefulSetMaker extends AbstractResourceMaker
     {
         $serviceReference = $manifest->serviceName();
         $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias());
-        $serviceName = $serviceOwningApp->resourceNameByManifestClass($serviceReference->className(), ServiceInterface::class);
+        $serviceName = $serviceOwningApp->resourceNameFromManifestClass($serviceReference->className(), ServiceInterface::class);
 
         if (K8SApi::versionIsHigherThanOrEqualTo('v1.33.1')) {
             $sts = new StatefulSet();
@@ -80,7 +80,7 @@ class StatefulSetMaker extends AbstractResourceMaker
             }
             /** @var PersistentVolumeClaim $pvc */
             $pvc = $this->pvcMaker->make($template);
-            $pvc->metadata()->setName($template::manifestName()); // Rewrite PVC full name to it's short name
+            $pvc->metadata()->setName($template::shortName()); // Rewrite PVC full name to it's short name
             $spec->volumeClaimTemplates()->add($pvc);
         }
 

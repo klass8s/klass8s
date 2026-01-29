@@ -13,7 +13,7 @@ class <?php echo $className; ?> extends AbstractContainerDeployment
         return Image::fromName('my-cool/image');
     }
 
-    public static function shortName(): string
+    public static function manifestName(): string
     {
         return '<?php echo $manifestName; ?>';
     }
