@@ -49,7 +49,7 @@ final readonly class EnvSuffixedMethodsSubscriber implements EventSubscriberInte
     public function onMethodCalled(ManifestMethodCalledEvent|ContainerMethodCalledEvent $event, string $eventName): void
     {
         $methodNames = $this->eventsMap[$eventName] ?? [];
-        if (!array_key_exists($event->methodName(), $methodNames)) {
+        if (!in_array($event->methodName(), $methodNames)) {
             return;
         }
 

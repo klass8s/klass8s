@@ -111,7 +111,7 @@ class Klass8sExtension extends Extension
         $eventMap = [];
         foreach ($config['env_management']['env_suffixed_methods'] ?? [] as $envSuffixedMethodConfig) {
             if (!is_array($envSuffixedMethodConfig)) {
-                throw new \LogicException('$envSuffixedMethodConfig must be an array.');
+                throw new \LogicException(sprintf('$envSuffixedMethodConfig must be an array, "%s" given.', is_string($envSuffixedMethodConfig) ? $envSuffixedMethodConfig : get_debug_type($envSuffixedMethodConfig)));
             }
 
             $methodName = $envSuffixedMethodConfig['name'];
@@ -135,9 +135,9 @@ class Klass8sExtension extends Extension
 
             if (count($conditions) > 1) {
                 throw new InvalidConfigurationException(sprintf('Both "if" and "if_not" keys are set for env-suffixed method "%s".', $methodName));
-            } elseif (null !== $conditions['if'] ?? null) {
+            } elseif (null !== ($conditions['if'] ?? null)) {
                 $methodEnabled = $conditions['if'];
-            } elseif (null !== $conditions['if_not'] ?? null) {
+            } elseif (null !== ($conditions['if_not'] ?? null)) {
                 $methodEnabled = !$conditions['if_not'];
             } else {
                 $methodEnabled = true;
@@ -149,15 +149,15 @@ class Klass8sExtension extends Extension
 
             foreach ($envSuffixedMethodConfig['for'] as $i => $proxyableType) {
                 $eventName = match ($proxyableType) {
-                    'manifest' => ManifestMethodEvent::NAME,
+                    'manifest' => ManifestMethodCalledEvent::NAME,
                     'container' => ContainerMethodCalledEvent::NAME,
                     default => throw new InvalidConfigurationException(sprintf('Invalid value "%s" under configuration key `for.%d` for env-suffixed method "%s". Supported values are "manifest" and "container".', $proxyableType, $i, $methodName)),
                 };
                 $eventMap[$eventName][] = $methodName;
             }
-
-            $eventMap = array_map('array_unique', $eventMap);
         }
+
+        $eventMap = array_map('array_unique', $eventMap);
 
         $container->setParameter('klass8s.env_management.env_suffixed_methods.event_map', $eventMap);
         $container->setParameter('klass8s.config.apps', $config['apps']);

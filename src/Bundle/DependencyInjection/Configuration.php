@@ -42,7 +42,14 @@ readonly class Configuration implements ConfigurationInterface
                     ->children()
                         ->arrayNode('env_suffixed_methods')
                             ->cannotBeOverwritten()
-                            ->defaultValue([])
+                            ->defaultValue([
+                                ['name' => 'replicas', 'for' => ['container', 'manifest']],
+                                ['name' => 'resources', 'for' => ['container', 'manifest']],
+                            ])
+                            ->beforeNormalization()
+                                ->ifArray()
+                                ->then(static fn (array $v) => array_map(static fn ($item) => is_string($item) ? ['name' => $item] : $item, $v))
+                            ->end()
                             ->arrayPrototype()
                                 ->addDefaultsIfNotSet()
                                 ->beforeNormalization()
@@ -55,10 +62,11 @@ readonly class Configuration implements ConfigurationInterface
                                         ->isRequired()
                                     ->end()
                                     ->arrayNode('for')
+                                        ->cannotBeEmpty()
+                                        ->defaultValue(['container', 'manifest'])
                                         ->enumPrototype()
                                             ->values(['container', 'manifest'])
                                         ->end()
-                                        ->defaultValue(['container', 'manifest'])
                                     ->end()
                                     ->booleanNode('if')
                                         ->defaultNull()
