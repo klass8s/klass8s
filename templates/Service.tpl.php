@@ -12,7 +12,7 @@ class <?php echo $className; ?> extends AbstractService
     {
     }
 
-    public static function manifestName(): string
+    public static function shortName(): string
     {
         return '<?php echo $manifestName; ?>';
     }
