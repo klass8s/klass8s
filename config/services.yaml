@@ -10,7 +10,7 @@ services:
         autowire: true
         autoconfigure: true
         bind:
-            $env: '%kernel.environment%'
+            $currentEnv: '%kernel.environment%'
             $annotationDomain: '%klass8s.annotation_domain%'
             $manifestsDir: '%klass8s.manifests_dir%'
             $projectDir: '%kernel.project_dir%'
@@ -110,3 +110,7 @@ services:
 
     Klass8s\Bundle\EnvManagement\Container\ReplicasPolicyConfiguratorInterface: '@Klass8s\Bundle\EnvManagement\Container\DummyReplicasPolicyConfigurator'
     Klass8s\Bundle\EnvManagement\Container\ResourcePolicyConfiguratorInterface: '@Klass8s\Bundle\EnvManagement\Container\DummyResourcePolicyConfigurator'
+
+    Klass8s\Bundle\EventListener\EnvSuffixedMethodsSubscriber:
+        arguments:
+            $eventsMap: '%klass8s.env_management.env_suffixed_methods.event_map%'# Defined in extension class

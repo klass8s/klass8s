@@ -14,9 +14,9 @@ class AfterMethodSubscriber extends AbstractMethodResultSubscriber
 {
     use ApplyWrappersTrait;
 
-    private const NO_RETURN_VALUE = 'AFTER-METHOD-SUBSCRIBER-NO-RETURN-VALUE';
+    private const string NO_RETURN_VALUE = '__after_method_no_return_value__';
 
-    public function __construct(private string $env)
+    public function __construct(private readonly string $currentEnv)
     {
     }
 

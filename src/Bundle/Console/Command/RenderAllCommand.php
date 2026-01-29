@@ -17,6 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(
     name: 'k8s:render:all',
     description: 'Renders manifests for all apps and Helm releases to stdout',
+    aliases: ['k8s:render'],
 )]
 class RenderAllCommand extends Command
 {
