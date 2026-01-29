@@ -43,7 +43,7 @@ final class ManifestsPass implements CompilerPassInterface
                 throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', ManifestInterface::class, Klass8sBundle::TAG_MANIFEST));
             }
 
-            $manifestName = $manifestClass->getMethod('manifestName')->invoke(null);
+            $manifestName = $manifestClass->getMethod('shortName')->invoke(null);
             $manifestKind = $manifestClass->getMethod('kind')->invoke(null);
 
             foreach ($classNameToAliasesMap as $className => $aliases) {
