@@ -31,7 +31,7 @@ final class ManifestsQuery
 
     public function instanceName(string $name): self
     {
-        return $this->addClosure(fn (ManifestInterface $manifest): bool => !$manifest instanceof FullNameAwareInterface && $name === $manifest->manifestInstanceName);
+        return $this->addClosure(fn (ManifestInterface $manifest): bool => !$manifest instanceof FullNameAwareInterface && $name === $manifest->computedShortName);
     }
 
     /**

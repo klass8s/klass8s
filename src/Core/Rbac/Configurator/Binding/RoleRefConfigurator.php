@@ -39,7 +39,7 @@ readonly class RoleRefConfigurator
     public function fromRoleClass(string $roleClass): void
     {
         $this->ensureAppOwnsManifestClass($roleClass);
-        $name = $this->app->resourceNameByManifestClass($roleClass, RoleInterface::class);
+        $name = $this->app->resourceNameFromManifestClass($roleClass, RoleInterface::class);
 
         $this->fromRoleName($name);
     }
@@ -50,7 +50,7 @@ readonly class RoleRefConfigurator
     public function fromClusterRoleClass(string $clusterRoleClass): void
     {
         $this->ensureAppOwnsManifestClass($clusterRoleClass);
-        $name = $this->app->resourceNameByManifestClass($clusterRoleClass, ClusterRoleInterface::class);
+        $name = $this->app->resourceNameFromManifestClass($clusterRoleClass, ClusterRoleInterface::class);
 
         $this->fromClusterRoleName($name);
     }

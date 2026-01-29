@@ -16,31 +16,35 @@ abstract class AbstractManifest implements ManifestInterface
 
     protected(set) AppInterface|AbstractApp $app;
 
-    public string $manifestInstanceName {
+    public string $computedShortName {
         get => match (true) {
-            $this instanceof FullNameAwareInterface => $this->manifestFullName(),
-            $this instanceof ManifestTemplateInterface => $this->manifestName,
-            default => $this::manifestName(),
+            $this instanceof FullNameAwareInterface => throw new \LogicException(sprintf('$computedShortName must not be accessed on a full-name aware manifest "%s".', $this::className())),
+            $this instanceof ManifestTemplateInterface => $this->dynamicShortName,
+            default => $this::shortName(),
         };
     }
 
-    public string $resourceName {
+    public string $computedFullName {
         get {
             if ($this instanceof FullNameAwareInterface) {
-                return $this->manifestFullName();
+                return $this->fullName();
             }
 
-            return ManifestNameResolver::resourceNameFromManifestNameAndPrefix($this->manifestInstanceName, $this->app->alias());
+            return $this->app->resourceNameFromShortName($this->computedShortName);
         }
     }
 
     public string $fileName {
         get {
-            if (!$this->manifestInstanceName) {
-                throw new \LogicException(sprintf('Manifest instance name cannot be empty in class "%s".', $this::className()));
+            if ($this instanceof FullNameAwareInterface) {
+                $name = $this->fullName();
+            } elseif (!$this->computedShortName) {
+                throw new \LogicException(sprintf('Short name cannot be empty in class "%s".', $this::className()));
+            } else {
+                $name = $this->computedShortName;
             }
 
-            return $this->manifestInstanceName.'.'.StringUtil::asDNSSubdomain($this::kind());
+            return $name.'.'.StringUtil::asDNSSubdomain($this::kind());
         }
     }
 
@@ -60,6 +64,6 @@ abstract class AbstractManifest implements ManifestInterface
             $class = $class->getParentClass();
         }
 
-        return $class->getName();
+        return $class->name;
     }
 }

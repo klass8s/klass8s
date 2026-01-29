@@ -19,7 +19,7 @@ final readonly class ManifestNameResolver
     {
         self::ensureStaticallyNamedManifestClass($className);
 
-        return $className::manifestName();
+        return $className::shortName();
     }
 
     /**
@@ -29,10 +29,10 @@ final readonly class ManifestNameResolver
     {
         self::ensureStaticallyNamedManifestClass($className);
 
-        return self::resourceNameFromManifestNameAndPrefix($className::manifestName(), $namePrefix);
+        return self::resourceNameFromShortNameAndPrefix($className::shortName(), $namePrefix);
     }
 
-    public static function resourceNameFromManifestNameAndPrefix(string $manifestName, string $namePrefix): string
+    public static function resourceNameFromShortNameAndPrefix(string $manifestName, string $namePrefix): string
     {
         if ($namePrefix) {
             $namePrefix .= '-';

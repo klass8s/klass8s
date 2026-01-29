@@ -23,7 +23,8 @@ interface AppInterface extends ConfigurableInterface
      * @param class-string<ManifestInterface> $manifestClass
      * @param class-string<ManifestInterface>|null $classToValidateAgainst If set, $manifestClass will be ensured to be a subclass of this
      */
-    public function resourceNameByManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string;
+    public function resourceNameFromManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string;
+    public function resourceNameFromShortName(string $shortName): string;
     public function manifestConfig(ManifestInterface $manifest): array;
     public function getManifestByClass(string $manifestClass): ?ManifestInterface;
     public function ownsManifestClass(string $manifestClass): bool;

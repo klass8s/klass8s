@@ -56,7 +56,7 @@ final class ServiceMaker extends AbstractResourceMaker
         if (count($ports) > 1) {
             foreach ($ports as $port) {
                 if (null === $port->getName()) {
-                    throw new \LogicException(sprintf('Multiple ports specified for service "%s", therefore all ports must have name', $manifest->resourceName));
+                    throw new \LogicException(sprintf('Multiple ports specified for service "%s", therefore all ports must have name.', $manifest->computedFullName));
                 }
             }
         }

@@ -58,7 +58,7 @@ readonly class SubjectsConfigurator
     public function addServiceAccountClass(string $serviceAccountClass, string $namespace): static
     {
         $this->ensureAppOwnsManifestClass($serviceAccountClass);
-        $name = $this->app->resourceNameByManifestClass($serviceAccountClass, ServiceAccountInterface::class);
+        $name = $this->app->resourceNameFromManifestClass($serviceAccountClass, ServiceAccountInterface::class);
         $this->addServiceAccount($name, $namespace);
 
         return $this;

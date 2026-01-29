@@ -9,28 +9,28 @@ trait ManifestTemplateTrait
     /**
      * @internal
      */
-    protected bool $manifestNameSet = false;
+    protected bool $dynamicShortNameSet = false;
 
-    protected(set) string $manifestName {
+    protected(set) string $dynamicShortName {
         get {
-            if (!$this->manifestNameSet) {
-                throw new \RuntimeException('Manifest name is not set yet.');
+            if (!$this->dynamicShortNameSet) {
+                throw new \RuntimeException('Dynamic short name is not set yet.');
             }
 
-            return $this->manifestName;
+            return $this->dynamicShortName;
         }
         set {
-            if ($this->manifestNameSet) {
-                throw new \RuntimeException('Manifest name is already set and cannot be changed.');
+            if ($this->dynamicShortNameSet) {
+                throw new \RuntimeException('Dynamic short name is already set and cannot be changed.');
             }
 
-            $this->manifestName = $value;
-            $this->manifestNameSet = true;
+            $this->dynamicShortName = $value;
+            $this->dynamicShortNameSet = true;
         }
     }
 
-    public static function manifestName(): string
+    public static function shortName(): string
     {
-        throw new \BadMethodCallException(sprintf('Class "%s" is a manifest template, therefore the name of the manifest cannot be retrieved statically. Use `$manifestName` property on the instance of the class to get instance\'s name.', static::class));
+        throw new \BadMethodCallException(sprintf('Class "%s" is a manifest template, therefore the short name of the manifest cannot be retrieved statically. Use `$dynamicShortName` property on the instance of the class to get instance\'s name.', static::className()));
     }
 }

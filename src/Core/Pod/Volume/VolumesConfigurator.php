@@ -33,7 +33,7 @@ readonly class VolumesConfigurator
      */
     public function fromConfigMapClass(string $volumeName, string $configMapClass): ConfigMapVolumeBuilder
     {
-        $cmName = $this->app->resourceNameByManifestClass($configMapClass, ConfigMapInterface::class);
+        $cmName = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
 
         return $this->fromConfigMap($volumeName, $cmName);
     }
@@ -62,7 +62,7 @@ readonly class VolumesConfigurator
      */
     public function fromPvcClass(string $volumeName, string $pvcClass): PVCVolumeBuilder
     {
-        $pvcName = $this->app->resourceNameByManifestClass($pvcClass, PersistentVolumeClaimInterface::class);
+        $pvcName = $this->app->resourceNameFromManifestClass($pvcClass, PersistentVolumeClaimInterface::class);
 
         return $this->fromPvc($volumeName, $pvcName);
     }
@@ -82,7 +82,7 @@ readonly class VolumesConfigurator
      */
     public function fromSecretClass(string $volumeName, string $secretClass): SecretVolumeBuilder
     {
-        $secretName = $this->app->resourceNameByManifestClass($secretClass, SecretInterface::class);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
 
         return $this->fromSecret($volumeName, $secretName);
     }

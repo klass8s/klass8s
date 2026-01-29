@@ -60,6 +60,6 @@ final readonly class ManifestClassReferenceConverter
     {
         $app = $this->appRegistry->get($manifestReference->appAlias());
 
-        return $app->resourceNameByManifestClass($manifestReference->className());
+        return $app->resourceNameFromManifestClass($manifestReference->className());
     }
 }

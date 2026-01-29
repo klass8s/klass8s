@@ -45,7 +45,7 @@ class PriorityClassConfigurator
             throw new \InvalidArgumentException(sprintf($msg, $this->app->alias(), $phpClassName, static::class));
         }
 
-        $priorityClassName = $this->app->resourceNameByManifestClass($phpClassName, PriorityClassInterface::class);
+        $priorityClassName = $this->app->resourceNameFromManifestClass($phpClassName, PriorityClassInterface::class);
         $this->spec->setPriorityClassName($priorityClassName);
     }
 

@@ -12,7 +12,7 @@ readonly class DefaultLabelsGenerator implements LabelsGeneratorInterface
     {
         return [
             K8sLabel::Name->value => $manifest->app->alias(),
-            K8sLabel::Component->value => $manifest->manifestInstanceName,
+            K8sLabel::Component->value => $manifest->computedShortName,
         ];
     }
 }
