@@ -15,6 +15,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -27,6 +28,7 @@ class MakeManifestCommand extends Command
 {
     private const string ARGUMENT_MANIFEST_KIND = 'manifest-type';
     private const string ARGUMENT_MANIFEST_NAME = 'manifest-name';
+    private const string OPTION_APP = 'app';
 
     public function __construct(
         private readonly AppRegistry $appRegistry,
@@ -50,6 +52,11 @@ class MakeManifestCommand extends Command
                 InputArgument::OPTIONAL,
                 'Manifest type (e.g. <fg=yellow>deployment</> or <fg=yellow>config-map</>)'
             )
+            ->addOption(
+                self::OPTION_APP,
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'App alias (e.g. <fg=yellow>users</>)'
+            )
         ;
     }
 
@@ -59,7 +66,7 @@ class MakeManifestCommand extends Command
 
         try {
             $context = $this->getContext($input, $io);
-            $appAlias = $this->getAppAlias($io);
+            $appAlias = $this->getAppAlias($input, $io);
             $app = $this->appRegistry->get($appAlias);
             $name = $this->getManifestName($input, $context, $appAlias);
         } catch (\InvalidArgumentException $e) {
@@ -90,8 +97,13 @@ class MakeManifestCommand extends Command
         return self::SUCCESS;
     }
 
-    private function getAppAlias(SymfonyStyle $io): string
+    private function getAppAlias(InputInterface $input, SymfonyStyle $io): string
     {
+        $appAlias = $input->getOption(self::OPTION_APP);
+        if ($appAlias) {
+            return $appAlias;
+        }
+
         $question = new ChoiceQuestion(
             'Please choose an app, for which you want to generate new manifest class',
             array_values($this->appRegistry->classes())

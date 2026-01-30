@@ -6,11 +6,14 @@ namespace Klass8s\Bundle\Console\Command;
 
 use Klass8s\Bundle\CodeGeneration\AppGenerator;
 use Klass8s\Bundle\Console\UI\ModernStyle;
+use Klass8s\Util\StringUtil;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function Symfony\Component\String\u;
 
 #[AsCommand(
     name: 'k8s:make:app',
@@ -40,9 +43,8 @@ class MakeAppCommand extends Command
     {
         $io = new ModernStyle($input, $output);
         $appName = $input->getArgument(self::ARGUMENT_APP_NAME);
-
         try {
-            $fileName = $this->generator->generate($appName);
+            $fileName = $this->generator->generate(StringUtil::asDNSSubdomain($appName));
         } catch (\Throwable $e) {
             $io->error($e->getMessage());
             $io->newLine();
