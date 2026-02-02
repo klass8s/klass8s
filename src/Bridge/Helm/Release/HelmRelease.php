@@ -7,7 +7,7 @@ namespace Klass8s\Bridge\Helm\Release;
 use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
 use Klass8s\Bridge\Helm\ValuesProviderInterface;
 
-final readonly class HelmRelease implements HelmReleaseInterface
+readonly class HelmRelease implements HelmReleaseInterface
 {
     public ChartReference $chart;
 
