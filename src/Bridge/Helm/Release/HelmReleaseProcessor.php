@@ -19,7 +19,7 @@ final readonly class HelmReleaseProcessor
     public function __construct(
         private ChartLocalCopyProvider $localCopyProvider,
         private RendererInterface $renderer,
-        private string $projectDir
+        private string $projectDir,
     ) {
     }
 
@@ -29,7 +29,7 @@ final readonly class HelmReleaseProcessor
         $manifests = explode("\n---\n", $yaml->value) |> array_filter(...);
         $manifests = array_filter(
             $manifests,
-            function (string $manifest): bool {
+            static function (string $manifest): bool {
                 $lines = explode(PHP_EOL, $manifest);
                 $lines = array_filter(
                     $lines,
@@ -43,9 +43,12 @@ final readonly class HelmReleaseProcessor
 
         $outputDir = new OutputDirectory($release->name, $this->renderer);
         foreach ($manifests as $manifest) {
-            $manifest = Yaml::parse($manifest);
-            $name = $manifest['metadata']['name'];
-            $fileName = sprintf('%s.%s', $name, u($manifest['kind'])->kebab()->toString());
+            $manifest = Yaml::parse($manifest, Yaml::PARSE_OBJECT_FOR_MAP);
+            if (!is_object($manifest)) {
+                throw new \RuntimeException(sprintf('Failed to parse manifest "%s".', $manifest));
+            }
+            $name = $manifest->metadata->name;
+            $fileName = sprintf('%s.%s', $name, u($manifest->kind)->kebab()->toString());
             $file = new RenderableFile($fileName, $manifest);
             $outputDir->addFile($file);
         }

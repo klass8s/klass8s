@@ -8,7 +8,7 @@ use Klass8s\Renderer\RendererInterface;
 
 final readonly class RenderableFile
 {
-    public function __construct(public string $nameWithoutExtension, public array|\JsonSerializable $resource)
+    public function __construct(public string $nameWithoutExtension, public array|\stdClass|\JsonSerializable $resource)
     {
     }
 
