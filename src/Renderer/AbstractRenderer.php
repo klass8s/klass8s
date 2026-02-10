@@ -15,7 +15,7 @@ abstract class AbstractRenderer implements RendererInterface
             array_walk($data, self::walkFunction(...));
 
             return self::filterArray($data);
-        } elseif ($data instanceof \stdClass) {
+        } elseif (is_object($data)) {
             foreach ($data as &$property) {
                 self::walkFunction($property);
             }
@@ -32,7 +32,7 @@ abstract class AbstractRenderer implements RendererInterface
             array_walk($value, self::walkFunction(...));
 
             $value = self::filterArray($value);
-        } elseif ($value instanceof \stdClass) {
+        } elseif (is_object($value)) {
             foreach ($value as &$property) {
                 self::walkFunction($property);
             }
