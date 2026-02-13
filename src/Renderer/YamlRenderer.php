@@ -10,7 +10,7 @@ class YamlRenderer extends AbstractRenderer
 {
     public function render(array|object $resource): string
     {
-        $data = $this->withoutNullValues($resource);
+        $data = $this->withoutEmptyValues($resource);
         //echo var_export($data), PHP_EOL; die();
 
         return Yaml::dump(

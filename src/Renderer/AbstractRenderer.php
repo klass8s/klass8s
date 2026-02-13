@@ -6,7 +6,7 @@ namespace Klass8s\Renderer;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    final protected function withoutNullValues(array|object $resource): array|object
+    final protected function withoutEmptyValues(array|object $resource): array|object
     {
         $json = json_encode($resource);
         $data = json_decode($json);
@@ -55,7 +55,7 @@ abstract class AbstractRenderer implements RendererInterface
 
     private static function filterArray(array $array): array
     {
-        return array_filter($array, static fn (mixed $value): bool => !is_null($value));
+        return array_filter($array, static fn (mixed $value): bool => !in_array($value, [null, []], true));
     }
 
     private static function filterObject(object $object): object
