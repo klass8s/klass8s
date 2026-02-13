@@ -6,7 +6,7 @@ namespace Klass8s\Renderer;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    final protected function withoutNullValues(\JsonSerializable|array $resource): array|object
+    final protected function withoutNullValues(array|object $resource): array|object
     {
         $json = json_encode($resource);
         $data = json_decode($json);
@@ -28,19 +28,29 @@ abstract class AbstractRenderer implements RendererInterface
 
     private static function walkFunction(&$value): void
     {
+        if (is_scalar($value) || null === $value) {
+            return;
+        }
+
         if (is_array($value)) {
             array_walk($value, self::walkFunction(...));
 
             $value = self::filterArray($value);
-        } elseif (is_object($value)) {
+
+            return;
+        }
+
+        if (is_object($value)) {
             foreach ($value as &$property) {
                 self::walkFunction($property);
             }
 
             $value = self::filterObject($value);
+
+            return;
         }
 
-        throw new \LogicException(sprintf('$value is neither array nor object, got "%s".', get_debug_type($value)));
+        throw new \LogicException(sprintf('$value has unsupported type "%s".', get_debug_type($value)));
     }
 
     private static function filterArray(array $array): array
@@ -48,7 +58,7 @@ abstract class AbstractRenderer implements RendererInterface
         return array_filter($array, static fn (mixed $value): bool => !is_null($value));
     }
 
-    private static function filterObject(\stdClass $object): object
+    private static function filterObject(object $object): object
     {
         return (object)self::filterArray((array)$object);
     }
