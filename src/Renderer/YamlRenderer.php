@@ -15,7 +15,7 @@ class YamlRenderer extends AbstractRenderer
 
         return Yaml::dump(
             $data,
-            5,
+            7,
             2,
             Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_OBJECT_AS_MAP | Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE,
         );
