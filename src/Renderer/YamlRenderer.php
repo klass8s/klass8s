@@ -8,38 +8,20 @@ use Symfony\Component\Yaml\Yaml;
 
 class YamlRenderer extends AbstractRenderer
 {
-    public function render(\JsonSerializable|array $resource): string
+    public function render(array|object $resource): string
     {
-        $data = $this->withoutNullValues($resource);
-        $inline = $this->calcDumpInline($data);
+        $data = $this->withoutEmptyValues($resource);
 
-        return Yaml::dump($data, $inline, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
+        return Yaml::dump(
+            $data,
+            7,
+            2,
+            Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_OBJECT_AS_MAP | Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE,
+        );
     }
 
     public function fileExtension(): string
     {
         return '.yaml';
-    }
-
-    private function calcDumpInline($array): int
-    {
-        $depth = $this->calcDepth($array);
-
-        return max(7, $depth - 1);
-    }
-
-    private function calcDepth(array $array): int
-    {
-        $maxDepth = 1;
-        foreach ($array as $value) {
-            if (is_array($value)) {
-                $depth = $this->calcDepth($value) + 1;
-                if ($depth > $maxDepth) {
-                    $maxDepth = $depth;
-                }
-            }
-        }
-
-        return $maxDepth;
     }
 }

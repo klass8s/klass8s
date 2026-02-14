@@ -31,10 +31,7 @@ final class StringMapProxy extends StringMap
         return $this;
     }
 
-    /**
-     * @return string[]
-     */
-    public function all(): array
+    public function all(): \ArrayObject
     {
         return $this->map->all();
     }
@@ -68,7 +65,7 @@ final class StringMapProxy extends StringMap
         return $this;
     }
 
-    public function jsonSerialize(): array
+    public function jsonSerialize(): \ArrayObject
     {
         return $this->map->jsonSerialize();
     }

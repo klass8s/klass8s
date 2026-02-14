@@ -6,9 +6,9 @@ namespace Klass8s\Renderer;
 
 class JsonRenderer extends AbstractRenderer
 {
-    public function render(\JsonSerializable|array $resource): string
+    public function render(array|object $resource): string
     {
-        return \json_encode($this->renderAsArray($resource));
+        return json_encode($this->renderAsArray($resource));
     }
 
     public function fileExtension(): string
@@ -16,8 +16,8 @@ class JsonRenderer extends AbstractRenderer
         return '.json';
     }
 
-    public function renderAsArray(\JsonSerializable|array $object): array
+    public function renderAsArray(array|object $object): array
     {
-        return $this->withoutNullValues($object);
+        return $this->withoutEmptyValues($object);
     }
 }

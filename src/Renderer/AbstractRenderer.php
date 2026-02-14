@@ -6,44 +6,60 @@ namespace Klass8s\Renderer;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    final protected function withoutNullValues(\JsonSerializable|array $resource): array
+    final protected function withoutEmptyValues(array|object $resource): array|object
     {
         $json = json_encode($resource);
-        $data = json_decode($json, true);
+        $data = json_decode($json);
 
-        $data = self::filterArray($data);
+        if (is_array($data)) {
+            array_walk($data, self::walkFunction(...));
 
-        array_walk($data, self::walkFunction(...));
+            return self::filterArray($data);
+        } elseif (is_object($data)) {
+            foreach ($data as &$property) {
+                self::walkFunction($property);
+            }
 
-        return self::filterArray($data);
+            return self::filterObject($data);
+        }
+
+        throw new \LogicException(sprintf('Decoded data is neither array nor object, got "%s".', get_debug_type($data)));
     }
 
     private static function walkFunction(&$value): void
     {
+        if (is_scalar($value) || null === $value) {
+            return;
+        }
+
         if (is_array($value)) {
             array_walk($value, self::walkFunction(...));
 
             $value = self::filterArray($value);
+
+            return;
         }
+
+        if (is_object($value)) {
+            foreach ($value as &$property) {
+                self::walkFunction($property);
+            }
+
+            $value = self::filterObject($value);
+
+            return;
+        }
+
+        throw new \LogicException(sprintf('$value has unsupported type "%s".', get_debug_type($value)));
     }
 
     private static function filterArray(array $array): array
     {
-        $parent = $array; // copy argument to a new array
-        return array_filter($array, static function (mixed $value, int|string $key) use ($parent): bool {
-            if ('emptyDir' === $key && [] === $value) {
-                $parentCopy = $parent;
-                unset($parentCopy['name']);
-                $parentCopy = array_filter(
-                    $parentCopy,
-                    static fn (mixed $value, int|string $key) => !in_array($value, [null, []], true),
-                    ARRAY_FILTER_USE_BOTH
-                );
+        return array_filter($array, static fn (mixed $value): bool => !in_array($value, [null, []], true));
+    }
 
-                return empty($parentCopy);
-            }
-
-            return !in_array($value, [null, []], true);
-        }, ARRAY_FILTER_USE_BOTH);
+    private static function filterObject(object $object): object
+    {
+        return (object)self::filterArray((array)$object);
     }
 }
