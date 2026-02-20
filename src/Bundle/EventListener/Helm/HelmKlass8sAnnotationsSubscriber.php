@@ -13,8 +13,10 @@ final readonly class HelmKlass8sAnnotationsSubscriber implements EventSubscriber
     public function onManifestProcessed(HelmManifestProcessedEvent $event): void
     {
         $manifest = $event->resource;
-        $manifest->metadata->annotations[Klass8sAnnotationsSubscriber::ANNOTATION_APP] = $event->release->name;
-        $manifest->metadata->annotations[Klass8sAnnotationsSubscriber::ANNOTATION_DEPLOY_PRIORITY] = strval($event->release->deployPriority);
+        static $appNameAnnotation = Klass8sAnnotationsSubscriber::ANNOTATION_APP;
+        static $deployPriorityAnnotation = Klass8sAnnotationsSubscriber::ANNOTATION_DEPLOY_PRIORITY;
+        $manifest->metadata->annotations->$appNameAnnotation = $event->release->name;
+        $manifest->metadata->annotations->$deployPriorityAnnotation = strval($event->release->deployPriority);
     }
 
     public static function getSubscribedEvents(): array
