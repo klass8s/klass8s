@@ -13,8 +13,9 @@ readonly class HelmRelease implements HelmReleaseInterface
 
     public function __construct(
         public string $name,
-        private(set) ?array $values,
-        private(set) ?ValuesProviderInterface $valuesProvider,
+        public ?array $values,
+        public ?ValuesProviderInterface $valuesProvider,
+        public int $deployPriority,
         string $chartReference,
         ?string $chartVersion = null,
     ) {

@@ -19,6 +19,8 @@ interface AppInterface extends ConfigurableInterface
      */
     public function alias(): string;
 
+    public function deployPriority(): int;
+
     /**
      * @param class-string<ManifestInterface> $manifestClass
      * @param class-string<ManifestInterface>|null $classToValidateAgainst If set, $manifestClass will be ensured to be a subclass of this

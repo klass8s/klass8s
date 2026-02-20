@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace Klass8s\Bridge\Helm\Release;
 
 use Klass8s\Bridge\Helm\Chart\Reference\ChartLocalCopyProvider;
+use Klass8s\Event\Helm\HelmManifestProcessedEvent;
 use Klass8s\Output\OutputDirectory;
 use Klass8s\Output\RenderableFile;
 use Klass8s\Renderer\RendererInterface;
+use Klass8s\Util\StringUtil;
 use Klass8s\Value\YamlString;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
-
-use function Symfony\Component\String\u;
 
 final readonly class HelmReleaseProcessor
 {
     public function __construct(
         private ChartLocalCopyProvider $localCopyProvider,
         private RendererInterface $renderer,
+        private EventDispatcherInterface $dispatcher,
         private string $projectDir,
     ) {
     }
@@ -48,7 +50,11 @@ final readonly class HelmReleaseProcessor
                 throw new \RuntimeException(sprintf('Failed to parse manifest "%s".', $manifest));
             }
             $name = $manifest->metadata->name;
-            $fileName = sprintf('%s.%s', $name, u($manifest->kind)->kebab()->toString());
+
+            $event = new HelmManifestProcessedEvent($manifest->kind, $name, $manifest, $release);
+            $this->dispatcher->dispatch($event, HelmManifestProcessedEvent::NAME);
+
+            $fileName = sprintf('%s.%s', $name, StringUtil::asDNSSubdomain($manifest->kind));
             $file = new RenderableFile($fileName, $manifest);
             $outputDir->addFile($file);
         }

@@ -10,6 +10,7 @@ interface HelmReleaseInterface
 {
     public string $name { get; }
     public ChartReference $chart { get; }
+    public int $deployPriority { get; }
 
     /**
      * @return array<string, mixed>

@@ -39,6 +39,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
                 '$chartVersion' => $releaseConfig['version'] ?? null,
                 '$values' => $values,
                 '$valuesProvider' => $valuesProvider,
+                '$deployPriority' => $releaseConfig['deployPriority'] ?? 0,
             ]);
             $definition->addTag(Klass8sBundle::TAG_HELM_RELEASE);
 

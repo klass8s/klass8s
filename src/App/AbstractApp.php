@@ -18,6 +18,7 @@ abstract class AbstractApp implements AppInterface
     use ConfigAwareTrait;
 
     protected string $alias;
+    protected int $deployPriority = 0;
 
     public function __construct(protected ManifestRegistry $manifestRegistry)
     {
@@ -31,6 +32,16 @@ abstract class AbstractApp implements AppInterface
     public function setAlias(string $alias): void
     {
         $this->alias = $alias;
+    }
+
+    public function deployPriority(): int
+    {
+        return 0;
+    }
+
+    public function setDeployPriority(int $deployPriority): void
+    {
+        $this->deployPriority = $deployPriority;
     }
 
     public function manifestConfig(ManifestInterface $manifest): array
