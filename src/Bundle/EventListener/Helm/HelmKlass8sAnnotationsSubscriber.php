@@ -15,6 +15,9 @@ final readonly class HelmKlass8sAnnotationsSubscriber implements EventSubscriber
         $manifest = $event->resource;
         static $appNameAnnotation = Klass8sAnnotationsSubscriber::ANNOTATION_APP;
         static $deployPriorityAnnotation = Klass8sAnnotationsSubscriber::ANNOTATION_DEPLOY_PRIORITY;
+        if (!isset($manifest->metadata->annotations)) {
+            $manifest->metadata->annotations = new \stdClass();
+        }
         $manifest->metadata->annotations->$appNameAnnotation = $event->release->name;
         $manifest->metadata->annotations->$deployPriorityAnnotation = strval($event->release->deployPriority);
     }
