@@ -18,14 +18,14 @@ final readonly class Klass8sAnnotationsSubscriber implements EventSubscriberInte
         $annotations = $event->apiResource()->metadata()->annotations();
         $annotations
             ->add(self::ANNOTATION_APP, $app->alias())
-            ->add(self::ANNOTATION_DEPLOY_PRIORITY, $app->deployPriority())
+            ->add(self::ANNOTATION_DEPLOY_PRIORITY, (string)$app->deployPriority())
         ;
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            ManifestGeneratedEvent::class => 'onManifestGenerated',
+            ManifestGeneratedEvent::NAME => 'onManifestGenerated',
         ];
     }
 }
