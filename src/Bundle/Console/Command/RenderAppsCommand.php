@@ -48,8 +48,9 @@ class RenderAppsCommand extends Command
         }
 
         $outputDir = $this->appManager->generateManifests(...$aliases);
-
-        $io->writeln($outputDir->render()->toString());
+        if (!$outputDir->isEmpty()) {
+            $io->writeln($outputDir->render()->toString());
+        }
 
         return self::SUCCESS;
     }

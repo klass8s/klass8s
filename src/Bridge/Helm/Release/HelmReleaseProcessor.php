@@ -35,7 +35,7 @@ final readonly class HelmReleaseProcessor
                 $lines = explode(PHP_EOL, $manifest);
                 $lines = array_filter(
                     $lines,
-                    fn (string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---')
+                    static fn (string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---')
                 );
                 $manifest = implode(PHP_EOL, $lines) |> trim(...);
 

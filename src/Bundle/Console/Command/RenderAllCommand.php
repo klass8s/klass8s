@@ -41,11 +41,15 @@ class RenderAllCommand extends Command
         $this->addHelmRepos();
         $helmDir = $this->helmReleaseManager->generateManifests(...$this->helmReleaseRegistry->releaseNames);
 
+        $outputWasWritten = false;
         if (!$appsDir->isEmpty()) {
             $io->writeln($appsDir->render()->toString());
+            $outputWasWritten = true;
         }
         if (!$helmDir->isEmpty()) {
-            echo "\n---\n";
+            if ($outputWasWritten) {
+                echo "\n---\n";
+            }
             $io->writeln($helmDir->render()->toString());
         }
 

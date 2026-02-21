@@ -12,9 +12,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class ModernStyle extends SymfonyStyle
 {
+    private InputInterface $input;
+
     public function __construct(InputInterface $input, OutputInterface $output)
     {
         parent::__construct($input, $output);
+
+        $this->input = $input;
 
         self::applyTheme($output);
     }
@@ -89,5 +93,10 @@ final class ModernStyle extends SymfonyStyle
         $f->setStyle('muted', new OutputFormatterStyle('gray'));
         $f->setStyle('title', new OutputFormatterStyle('magenta', null));
         $f->setStyle('k', new OutputFormatterStyle('white', null));
+    }
+
+    public function getErrorStyle(): self
+    {
+        return new self($this->input, $this->getErrorOutput());
     }
 }
