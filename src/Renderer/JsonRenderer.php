@@ -18,6 +18,6 @@ class JsonRenderer extends AbstractRenderer
 
     public function renderAsArray(array|object $object): array
     {
-        return $this->withoutEmptyValues($object);
+        return json_decode(json_encode($this->withoutEmptyValues($object)), true, flags: JSON_THROW_ON_ERROR);
     }
 }
