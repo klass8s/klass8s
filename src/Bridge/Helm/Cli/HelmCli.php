@@ -9,6 +9,33 @@ use Symfony\Component\Process\Process;
 
 final readonly class HelmCli
 {
+    /**
+     * @return array<string, string> Map of repo name => URL for all currently added Helm repos.
+     */
+    public function repoList(): array
+    {
+        $process = new Process(['helm', 'repo', 'list', '-o', 'json'], timeout: 60);
+        try {
+            $process->mustRun();
+        } catch (ProcessFailedException $e) {
+            if (str_contains($e->getMessage(), 'no repositories')) {
+                return [];
+            }
+
+            throw $e;
+        }
+
+        /** @var list<array{name: string, url: string}> $repos */
+        $repos = json_decode($process->getOutput(), true, flags: \JSON_THROW_ON_ERROR);
+
+        $result = [];
+        foreach ($repos as $repo) {
+            $result[$repo['name']] = rtrim($repo['url'], '/');
+        }
+
+        return $result;
+    }
+
     public function repoAdd(string $name, string $url): void
     {
         $process = new Process(['helm', 'repo', 'add', $name, $url], timeout: 60);

@@ -26,7 +26,17 @@ trait AddHelmReposTrait
 
     protected function addHelmRepos(): void
     {
+        if ([] === $this->helmRepos) {
+            return;
+        }
+
+        $existing = $this->helmCli->repoList();
+
         foreach ($this->helmRepos as $name => $url) {
+            if (isset($existing[$name]) && $existing[$name] === rtrim($url, '/')) {
+                continue;
+            }
+
             $this->helmCli->repoAdd($name, $url);
         }
     }
