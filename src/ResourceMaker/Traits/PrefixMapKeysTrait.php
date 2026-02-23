@@ -10,10 +10,18 @@ trait PrefixMapKeysTrait
 {
     private function prefixMapKeys(string $prefix, StringMap $map): void
     {
+        $keysToRemove = [];
+        $dataToAdd = [];
         foreach ($map->all() as $key => $value) {
             $newKey = $prefix.$key;
-            $map->remove($key);
-            $map->add($newKey, $value);
+            $dataToAdd[$newKey] = $value;
+            $keysToRemove[] = $key;
         }
+
+        foreach ($keysToRemove as $key) {
+            $map->remove($key);
+        }
+
+        $map->addAll($dataToAdd);
     }
 }
