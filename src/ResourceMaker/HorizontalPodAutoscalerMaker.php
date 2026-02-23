@@ -6,6 +6,7 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
 use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscaler;
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerBehavior;
 use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerSpec;
 use K8Schema\APIResourceInterface;
 use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
@@ -36,8 +37,12 @@ final class HorizontalPodAutoscalerMaker extends AbstractResourceMaker
         $metricsConfigurator = new MetricsConfigurator($hpaSpec->metrics(), $this->refConverter);
         $manifest->metrics($metricsConfigurator);
 
-        $behaviorConfigurator = new BehaviorConfigurator($hpaSpec->behavior());
+        $hpaSpecBehavior = $hpaSpec->getBehavior() ?? new HorizontalPodAutoscalerBehavior();
+        $behaviorConfigurator = new BehaviorConfigurator($hpaSpecBehavior);
         $manifest->behavior($behaviorConfigurator);
+        if ([] !== array_filter($hpaSpecBehavior->jsonSerialize()->getArrayCopy())) {
+            $hpaSpec->setBehavior($hpaSpecBehavior);
+        }
 
         $hpa = new HorizontalPodAutoscaler($hpaSpec);
 

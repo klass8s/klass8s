@@ -80,7 +80,7 @@ final class CronJobMaker extends AbstractResourceMaker
     {
         $jobSpec = $templateSpec->spec();
 
-        // Populate selector to the resource only if manifest actually fills it with labels or expressions
+        // Set a selector to the resource only if manifest actually fills it with labels or expressions
         $jobSpecSelector = $jobSpec->getSelector() ?? new LabelSelector();
         $manifest->selector(new SelectorConfigurator($jobSpecSelector));
         if ($jobSpecSelector->matchExpressions()->count() > 0 || $jobSpecSelector->matchLabels()->count() > 0) {

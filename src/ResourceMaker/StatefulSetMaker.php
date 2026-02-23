@@ -6,6 +6,7 @@ namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Apps\V1\StatefulSet;
 use K8Schema\Api\Apps\V1\StatefulSetSpec;
+use K8Schema\Api\Apps\V1\StatefulSetUpdateStrategy;
 use K8Schema\Api\Core\V1\PersistentVolumeClaim;
 use K8Schema\APIResourceInterface;
 use K8Schema\K8SApi;
@@ -70,8 +71,12 @@ class StatefulSetMaker extends AbstractResourceMaker
             ->setReplicas($manifest->replicas())
             ->setRevisionHistoryLimit($manifest->revisionHistoryLimit());
 
-        $updateStrategy = new UpdateStrategyConfigurator($spec->updateStrategy());
+        $specUpdateStrategy = $spec->getUpdateStrategy() ?? new StatefulSetUpdateStrategy();
+        $updateStrategy = new UpdateStrategyConfigurator($specUpdateStrategy);
         $manifest->updateStrategy($updateStrategy);
+        if ([] !== array_filter($specUpdateStrategy->jsonSerialize()->getArrayCopy())) {
+            $spec->setUpdateStrategy($specUpdateStrategy);
+        }
 
         foreach ($manifest->volumeClaimTemplates() as $template) {
             $template->app = $app;

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Core\V1\PersistentVolumeClaim;
+use K8Schema\Api\Core\V1\VolumeResourceRequirements;
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
 use K8Schema\APIResourceInterface;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
 use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
@@ -33,11 +35,19 @@ final class PersistentVolumeClaimMaker extends AbstractResourceMaker
         $this->configureAccessModes($manifest, $pvc);
         $this->configureDataSource($manifest, $pvc);
 
-        $resources = new PvcResourcesConfigurator($spec->resources());
+        $specResources = $spec->getResources() ?? new VolumeResourceRequirements();
+        $resources = new PvcResourcesConfigurator($specResources);
         $manifest->resources($resources);
+        if ($specResources->limits()->count() > 0 || $specResources->requests()->count() > 0) {
+            $spec->setResources($specResources);
+        }
 
-        $selector = new SelectorConfigurator($spec->selector());
+        $specSelector = $spec->getSelector() ?? new LabelSelector();
+        $selector = new SelectorConfigurator($specSelector);
         $manifest->selector($selector);
+        if ($specSelector->matchLabels()->count() > 0 || $specSelector->matchExpressions()->count() > 0) {
+            $spec->setSelector($specSelector);
+        }
 
         $storageClassName = $manifest->storageClassName();
         if (null !== $storageClassName) {
@@ -55,9 +65,8 @@ final class PersistentVolumeClaimMaker extends AbstractResourceMaker
 
     private function configureAccessModes(PersistentVolumeClaimInterface $manifest, PersistentVolumeClaim $pvc): void
     {
-        $accessModes = $pvc->spec()->accessModes();
         foreach ($manifest->accessModes() as $mode) {
-            $accessModes->add($mode->toString());
+            $pvc->spec()->accessModes()->add($mode->toString());
         }
     }
 

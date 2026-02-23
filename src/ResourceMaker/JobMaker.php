@@ -37,7 +37,7 @@ final class JobMaker extends AbstractResourceMaker
         $app = $manifest->app;
         $app::configureMeta($manifest, $job);
         $this->jobSpecProcessor->process($manifest, $spec);
-        foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
+        foreach (($spec->getSelector()?->matchLabels()->all() ?? []) as $name => $value) {
             $job->metadata()->labels()->add($name, $value);
         }
 
