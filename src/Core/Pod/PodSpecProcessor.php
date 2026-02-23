@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Core\Pod;
 
+use K8Schema\Api\Core\V1\Affinity;
 use K8Schema\Api\Core\V1\PodSpec;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Container\ContainerInterface;
@@ -32,8 +33,7 @@ final readonly class PodSpecProcessor
 
     public function process(PodSpecInterface $builder, PodSpec $spec, AppInterface $app): void
     {
-        $affinity = new AffinityConfigurator($spec->affinity());
-        $builder->affinity($affinity);
+        $this->processAffinity($builder, $spec);
 
         $volumes = new VolumesConfigurator($spec->volumes(), $app, $this->appRegistry);
         $builder->volumes($volumes);
@@ -101,6 +101,28 @@ final readonly class PodSpecProcessor
         $builder->configurePodSpec($spec);
 
         $this->dispatcher->dispatch(new PodSpecGeneratedEvent($spec, $builder), PodSpecGeneratedEvent::NAME);
+    }
+
+    private function processAffinity(PodSpecInterface $builder, PodSpec $spec): void
+    {
+        $specAffinity = $spec->getAffinity() ?? new Affinity();
+
+        $affinity = new AffinityConfigurator($specAffinity);
+        $builder->affinity($affinity);
+
+        $nodeAffinity = $specAffinity->getNodeAffinity();
+        $podAffinity = $specAffinity->getPodAffinity();
+        $podAntiAffinity = $specAffinity->getPodAntiAffinity();
+        if (
+            ($nodeAffinity?->getPreferredDuringSchedulingIgnoredDuringExecution()->count() ?? 0) > 0
+            || ($nodeAffinity?->getRequiredDuringSchedulingIgnoredDuringExecution()?->nodeSelectorTerms()->count() ?? 0) > 0
+            || ($podAffinity?->preferredDuringSchedulingIgnoredDuringExecution()->count() ?? 0) > 0
+            || ($podAffinity?->requiredDuringSchedulingIgnoredDuringExecution()->count() ?? 0) > 0
+            || ($podAntiAffinity?->preferredDuringSchedulingIgnoredDuringExecution()->count() ?? 0) > 0
+            || ($podAntiAffinity?->requiredDuringSchedulingIgnoredDuringExecution()->count() ?? 0) > 0
+        ) {
+            $spec->setAffinity($specAffinity);
+        }
     }
 
     private function ensureValidContainerBuilder(mixed $builder): void

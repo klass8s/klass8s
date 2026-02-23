@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Networking\V1\Ingress;
+use K8Schema\Api\Networking\V1\IngressBackend;
 use K8Schema\APIResourceInterface;
 use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
 use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
@@ -28,13 +29,17 @@ final class IngressMaker extends AbstractResourceMaker
         $app = $manifest->app;
         $app::configureMeta($manifest, $ingress);
 
+        $specDefaultBackend = $ingress->spec()->getDefaultBackend() ?? new IngressBackend();
         $backendConfigurator = new IngressBackendConfigurator(
             app: $app,
             appRegistry: $this->appRegistry,
             referencesService: $this->referencesService,
-            backend: $ingress->spec()->defaultBackend()
+            backend: $specDefaultBackend
         );
         $manifest->defaultBackend($backendConfigurator);
+        if ([] !== array_filter($specDefaultBackend->jsonSerialize()->getArrayCopy())) {
+            $ingress->spec()->setDefaultBackend($specDefaultBackend);
+        }
 
         $rules = new IngressRulesConfigurator(
             rules: $ingress->spec()->rules(),

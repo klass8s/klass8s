@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Klass8s\Core\Container;
 
+use K8Schema\Api\Core\V1\Lifecycle;
+use K8Schema\Api\Core\V1\Probe;
+use K8Schema\Api\Core\V1\ResourceRequirements;
+use K8Schema\Api\Core\V1\SecurityContext;
 use Proximity\ProxyInterface;
 use K8Schema\Api\Core\V1\Container;
 use K8Schema\Api\Core\V1\VolumeList;
@@ -61,21 +65,13 @@ final readonly class ContainerMaker implements ContainerMakerInterface
         $mounts = new VolumeMountsConfigurator($volumes, $container->volumeMounts());
         $builder->volumeMounts($mounts);
 
-        $resources = new ResourcesConfigurator($container->resources());
-        $builder->resources($resources);
+        $this->processResources($container, $builder);
 
         $ports = new PortsConfigurator($container->ports());
         $builder->ports($ports);
 
-        $lifecycle = new LifecycleConfigurator($container->lifecycle());
-        $builder->lifecycle($lifecycle);
-
-        $probes = new ProbesConfigurator(
-            $container->livenessProbe(),
-            $container->readinessProbe(),
-            $container->startupProbe()
-        );
-        $builder->probes($probes);
+        $this->processLifecycle($container, $builder);
+        $this->processProbes($container, $builder);
 
         $image = $builder->image();
         $this->applyMiddlewares($image, $app);
@@ -90,14 +86,88 @@ final readonly class ContainerMaker implements ContainerMakerInterface
             $container->setWorkingDir($workingDir);
         }
 
-        $securityContext = new SecurityContextConfigurator($container->securityContext());
-        $builder->securityContext($securityContext);
+        $this->processSecurityContext($container, $builder);
 
         $builder->configureContainer($container);
 
         $this->dispatcher->dispatch(new ContainerGeneratedEvent($container, $builder), ContainerGeneratedEvent::NAME);
 
         return $container;
+    }
+
+    private function processResources(Container $container, ContainerInterface $builder): void
+    {
+        $containerResources = $container->getResources() ?? new ResourceRequirements();
+        $resources = new ResourcesConfigurator($containerResources);
+        $builder->resources($resources);
+        if (
+            $containerResources->claims()->count() > 0
+            || $containerResources->limits()->count() > 0
+            || $containerResources->requests()->count() > 0
+        ) {
+            $container->setResources($containerResources);
+        }
+    }
+
+    private function processLifecycle(Container $container, ContainerInterface $builder): void
+    {
+        $containerLifecycle = $container->getLifecycle() ?? new Lifecycle();
+        $lifecycle = new LifecycleConfigurator($containerLifecycle);
+        $builder->lifecycle($lifecycle);
+        $postStart = $containerLifecycle->getPostStart();
+        $preStop = $containerLifecycle->getPreStop();
+        $stopSignal = $containerLifecycle->getStopSignal();
+        if ($postStart || $preStop || $stopSignal) {
+            $container->setLifecycle($containerLifecycle);
+        }
+    }
+
+    private function processProbes(Container $container, ContainerInterface $builder): void
+    {
+        $containerLivenessProbe = $container->getLivenessProbe() ?? new Probe();
+        $containerReadinessProbe = $container->getReadinessProbe() ?? new Probe();
+        $containerStartupProbe = $container->getStartupProbe() ?? new Probe();
+
+        $probes = new ProbesConfigurator(
+            $containerLivenessProbe,
+            $containerReadinessProbe,
+            $containerStartupProbe,
+        );
+        $builder->probes($probes);
+
+        if (
+            $containerLivenessProbe->getHttpGet()
+            || $containerLivenessProbe->getTcpSocket()
+            || $containerLivenessProbe->getExec()
+        ) {
+            $container->setLivenessProbe($containerLivenessProbe);
+        }
+
+        if (
+            $containerReadinessProbe->getHttpGet()
+            || $containerReadinessProbe->getTcpSocket()
+            || $containerReadinessProbe->getExec()
+        ) {
+            $container->setReadinessProbe($containerReadinessProbe);
+        }
+
+        if (
+            $containerStartupProbe->getHttpGet()
+            || $containerStartupProbe->getTcpSocket()
+            || $containerStartupProbe->getExec()
+        ) {
+            $container->setStartupProbe($containerStartupProbe);
+        }
+    }
+
+    private function processSecurityContext(Container $container, ContainerInterface $builder): void
+    {
+        $containerSecurityContext = $container->getSecurityContext() ?? new SecurityContext();
+        $securityContext = new SecurityContextConfigurator($containerSecurityContext);
+        $builder->securityContext($securityContext);
+        if ([] !== array_filter($containerSecurityContext->jsonSerialize()->getArrayCopy())) {
+            $container->setSecurityContext($containerSecurityContext);
+        }
     }
 
     private function applyMiddlewares(Image $image, AppInterface $app): void

@@ -34,9 +34,9 @@ readonly class VolumesCalculator implements ChecksumCalculatorInterface
 
         $volumeSources = [];
         foreach ($volumes->all() as $volume) {
-            if (($configMapRef = $volume->configMap()) && $name = $configMapRef->getName()) {
+            if ($name = $volume->getConfigMap()?->getName()) {
                 $kind = ConfigMap::KIND;
-            } elseif (($secretRef = $volume->secret()) && $name = $secretRef->getSecretName()) {
+            } elseif ($name = $volume->getSecret()?->getSecretName()) {
                 $kind = Secret::KIND;
             } else {
                 continue;

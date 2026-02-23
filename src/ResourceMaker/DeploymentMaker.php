@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\DeploymentSpec;
 use K8Schema\Api\Apps\V1\DeploymentStrategy;
 use Klass8s\Core\Deployment\DeploymentInterface;
 use Klass8s\Core\Deployment\StrategyConfigurator;
@@ -26,7 +27,8 @@ final class DeploymentMaker extends AbstractResourceMaker
         $deployment = new Deployment();
 
         $this->configureSelector($manifest, $deployment->spec()->selector());
-        $this->configureStrategy($manifest, $deployment->spec()->strategy());
+
+        $this->processStrategy($manifest, $deployment->spec());
 
         $app = $manifest->app;
         $app::configureMeta($manifest, $deployment);
@@ -59,6 +61,15 @@ final class DeploymentMaker extends AbstractResourceMaker
     protected function supportedClass(): string
     {
         return DeploymentInterface::class;
+    }
+
+    private function processStrategy(DeploymentInterface $manifest, DeploymentSpec $spec): void
+    {
+        $specStrategy = $spec->getStrategy() ?? new DeploymentStrategy();
+        $this->configureStrategy($manifest, $specStrategy);
+        if ([] !== array_filter($specStrategy->jsonSerialize()->getArrayCopy())) {
+            $spec->setStrategy($specStrategy);
+        }
     }
 
     private function configureStrategy(DeploymentInterface|ManifestInterface $manifest, DeploymentStrategy $strategy): void

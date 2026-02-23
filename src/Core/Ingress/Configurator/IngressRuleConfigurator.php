@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\Core\Ingress\Configurator;
 
 use K8Schema\Api\Networking\V1\HTTPIngressPath;
+use K8Schema\Api\Networking\V1\HTTPIngressRuleValue;
 use K8Schema\Api\Networking\V1\IngressRule;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Ingress\Http\PathType;

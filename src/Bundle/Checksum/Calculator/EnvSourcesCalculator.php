@@ -48,9 +48,9 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
     {
         $sources = [];
         foreach ($container->envFrom()->all() as $envSource) {
-            if (($configMapRef = $envSource->configMapRef()) && $name = $configMapRef->getName()) {
+            if ($name = $envSource->getConfigMapRef()?->getName()) {
                 $kind = ConfigMap::KIND;
-            } elseif (($secretRef = $envSource->secretRef()) && $name = $secretRef->getName()) {
+            } elseif ($name = $envSource->getSecretRef()?->getName()) {
                 $kind = Secret::KIND;
             } else {
                 throw new \LogicException('EnvFromSource instance must contain either "configMapRef" or "secretRef" field');
@@ -77,11 +77,11 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
     {
         $sources = [];
         foreach ($container->env()->all() as $envVar) {
-            $envVarSource = $envVar->valueFrom();
-            if ($configMapRef = $envVarSource->getConfigMapKeyRef()) {
+            $envVarSource = $envVar->getValueFrom();
+            if ($configMapRef = $envVarSource?->getConfigMapKeyRef()) {
                 $name = $configMapRef->getName();
                 $kind = ConfigMap::KIND;
-            } elseif ($secretRef = $envVarSource->getSecretKeyRef()) {
+            } elseif ($secretRef = $envVarSource?->getSecretKeyRef()) {
                 $name = $secretRef->getName();
                 $kind = Secret::KIND;
             } else {

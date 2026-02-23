@@ -6,6 +6,7 @@ namespace Klass8s\Core\Ingress\Configurator;
 
 use K8Schema\Api\Networking\V1\IngressBackend;
 use K8Schema\Api\Networking\V1\IngressServiceBackend;
+use K8Schema\Api\Networking\V1\ServiceBackendPort;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Service\ServiceInterface;
 use Klass8s\Manifest\Reference\ManifestClassReference;
@@ -25,6 +26,7 @@ readonly class IngressBackendConfigurator
     public function fromServiceNameAndPort(string $serviceName, int|string $servicePort): void
     {
         $serviceBackend = new IngressServiceBackend($serviceName);
+
 
         if (is_numeric($servicePort)) {
             $serviceBackend->port()->setNumber($servicePort);

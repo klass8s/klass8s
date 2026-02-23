@@ -21,7 +21,7 @@ class EmptyDirVolumeBuilder extends AbstractVolumeBuilder
 
     public function init(Volume $volume): void
     {
-        $this->source = $volume->emptyDir();
+        $volume->setEmptyDir($this->source);
     }
 
     public function useRAM(): self

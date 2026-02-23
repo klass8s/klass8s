@@ -15,13 +15,14 @@ class ConfigMapVolumeBuilder extends AbstractVolumeBuilder
 
     public function __construct(string $configMapName)
     {
+        $this->source = new ConfigMapVolumeSource();
         $this->configMapName = $configMapName;
     }
 
     public function init(Volume $volume): void
     {
-        $this->source = $volume->configMap();
         $this->source->setName($this->configMapName);
+        $volume->setConfigMap($this->source);
     }
 
     public function mapKeyToPath(string $key, string $path): self

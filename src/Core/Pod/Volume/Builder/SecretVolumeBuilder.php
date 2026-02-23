@@ -14,12 +14,13 @@ class SecretVolumeBuilder extends AbstractVolumeBuilder
 
     public function __construct(private readonly string $secretName)
     {
+        $this->source = new SecretVolumeSource();
     }
 
     public function init(Volume $volume): void
     {
-        $this->source = $volume->secret();
         $this->source->setSecretName($this->secretName);
+        $volume->setSecret($this->source);
     }
 
     public function mapKeyToPath(string $key, string $path): self

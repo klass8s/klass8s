@@ -9,6 +9,7 @@ use K8Schema\Api\Core\V1\EnvFromSource;
 use K8Schema\Api\Core\V1\EnvFromSourceList;
 use K8Schema\Api\Core\V1\EnvVar;
 use K8Schema\Api\Core\V1\EnvVarList;
+use K8Schema\Api\Core\V1\SecretEnvSource;
 use K8Schema\Api\Core\V1\SecretKeySelector;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\ConfigMap\ConfigMapInterface;

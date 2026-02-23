@@ -14,9 +14,14 @@ class DownwardAPIVolumeBuilder extends AbstractVolumeBuilder
 {
     private DownwardAPIVolumeSource $source;
 
+    public function __construct()
+    {
+        $this->source = new DownwardAPIVolumeSource();
+    }
+
     public function init(Volume $volume): void
     {
-        $this->source = $volume->downwardAPI();
+        $volume->setDownwardAPI($this->source);
     }
 
     public function setDefaultMode(int $mode): self

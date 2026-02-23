@@ -13,11 +13,11 @@ class PVCVolumeBuilder extends AbstractVolumeBuilder
 
     public function __construct(private readonly string $pvcName)
     {
+        $this->source = new PersistentVolumeClaimVolumeSource($this->pvcName);
     }
 
     public function init(Volume $volume): void
     {
-        $this->source = new PersistentVolumeClaimVolumeSource($this->pvcName);
         $volume->setPersistentVolumeClaim($this->source);
     }
 

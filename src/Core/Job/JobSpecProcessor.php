@@ -22,7 +22,7 @@ final readonly class JobSpecProcessor
         $app = $manifest->app;
         $this->podSpecProcessor->process($manifest, $spec->template(), $app);
 
-        foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
+        foreach (($spec->getSelector()?->matchLabels()->all() ?? []) as $name => $value) {
             $spec->template()->metadata()->labels()->add($name, $value);
         }
 
