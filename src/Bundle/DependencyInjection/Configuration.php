@@ -102,6 +102,10 @@ readonly class Configuration implements ConfigurationInterface
                 ->booleanNode(self::PARAM_SET_DEFAULT_SERVICE_SELECTOR)
                     ->defaultTrue()
                 ->end()
+                ->booleanNode('strip_namespace')
+                    ->defaultTrue()
+                    ->info('When true, strips the "namespace" field from metadata of all generated manifests (both Klass8s apps and Helm releases).')
+                ->end()
             ->end();
 
         return $treeBuilder;

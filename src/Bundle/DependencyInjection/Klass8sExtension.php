@@ -90,6 +90,7 @@ class Klass8sExtension extends Extension
         $container->setParameter('klass8s.auto_set_resources', $config['auto_set_resources']);
         $container->setParameter('klass8s.auto_set_replicas', $config['auto_set_replicas']);
         $container->setParameter('klass8s.auto_generate_checksums', $config['auto_generate_checksums']);
+        $container->setParameter('klass8s.strip_namespace', $config['strip_namespace']);
 
         $container->setParameter(DefaultMetadataLabelsPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_METADATA_LABELS]);
         $container->setParameter(DefaultSelectorLabelsPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_SELECTOR_LABELS]);

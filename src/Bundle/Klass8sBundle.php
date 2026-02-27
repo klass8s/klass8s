@@ -13,6 +13,7 @@ use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetReplicasPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetResourcesPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DisableChecksumGenerationPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DisableStripNamespacePass;
 use Klass8s\Bundle\DependencyInjection\Compiler\HelmReleasesPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\ManifestsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\RemoveAutowiredAppsPass;
@@ -49,6 +50,7 @@ class Klass8sBundle extends AbstractBundle
         $container
             ->addCompilerPass(new AppsPass())
             ->addCompilerPass(new DisableChecksumGenerationPass())
+            ->addCompilerPass(new DisableStripNamespacePass())
             ->addCompilerPass(new HelmReleasesPass())
             ->addCompilerPass(pass: new SetAppConfigPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -8)
             ->addCompilerPass(pass: new ManifestsPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -16)
