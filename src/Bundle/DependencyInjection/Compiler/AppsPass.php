@@ -146,7 +146,7 @@ final class AppsPass implements CompilerPassInterface
         $id = self::appDefinitionId($alias);
         if (is_subclass_of($newDefinition->getClass(), AbstractApp::class)) {
             $newDefinition->addMethodCall('setAlias', [$alias]);
-            $newDefinition->addMethodCall('setDeployPriority', [$config['deployPriority'] ?? 0]);
+            $newDefinition->addMethodCall('setDeployPriority', [$config['deploy_priority'] ?? 0]);
         }
         $container->setDefinition($id, $newDefinition);
 

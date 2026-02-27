@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\DependencyInjection\Compiler;
 
-use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
 use Klass8s\Bridge\Helm\Release\HelmRelease;
 use Klass8s\Bridge\Helm\Release\HelmReleaseRegistry;
 use Klass8s\Bundle\Klass8sBundle;
@@ -20,7 +19,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
         $config = $container->getParameter('klass8s.config.helm');
         foreach ($config['releases'] as $releaseName => $releaseConfig) {
             $values = $releaseConfig['values'] ?? null;
-            $valuesProviderId = $releaseConfig['valuesFrom'] ?? null;
+            $valuesProviderId = $releaseConfig['values_from'] ?? null;
             $valuesProvider = null;
             if (null !== $values) {
                 $values = $container->resolveEnvPlaceholders($values);
@@ -30,7 +29,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
                 }
                 $valuesProvider = new Reference($valuesProviderId);
             } else {
-                throw new \LogicException(sprintf('Helm release "%s" must have either "values" or "valuesFrom" property set.', $releaseName));
+                throw new \LogicException(sprintf('Helm release "%s" must have either "values" or "values_from" property set.', $releaseName));
             }
 
             $definition = new Definition(HelmRelease::class, [
@@ -39,7 +38,7 @@ final readonly class HelmReleasesPass implements CompilerPassInterface
                 '$chartVersion' => $releaseConfig['version'] ?? null,
                 '$values' => $values,
                 '$valuesProvider' => $valuesProvider,
-                '$deployPriority' => $releaseConfig['deployPriority'] ?? 0,
+                '$deployPriority' => $releaseConfig['deploy_priority'] ?? 0,
             ]);
             $definition->addTag(Klass8sBundle::TAG_HELM_RELEASE);
 
