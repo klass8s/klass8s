@@ -6,7 +6,6 @@ namespace Klass8s\Bundle\Console\Command;
 
 use Klass8s\Bridge\Helm\HelmReleaseManager;
 use Klass8s\Bridge\Helm\Release\HelmReleaseRegistry;
-use Klass8s\Bundle\Console\UI\ModernStyle;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -42,8 +41,6 @@ class RenderHelmCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new ModernStyle($input, $output);
-
         $releaseNames = $input->getArgument(self::ARGUMENT_HELM_RELEASES);
         if ([] === $releaseNames) {
             $releaseNames = $this->registry->releaseNames;
@@ -53,7 +50,7 @@ class RenderHelmCommand extends Command
         $outputDir = $this->releaseManager->generateManifests(...$releaseNames);
 
         if (!$outputDir->isEmpty()) {
-            $io->writeln($outputDir->render()->toString());
+            echo $outputDir->render()->toString(), "\n";
         }
 
         return self::SUCCESS;

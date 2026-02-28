@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Klass8s\Bundle\Console\Command;
 
 use Klass8s\App\AppManager;
-use Klass8s\Bundle\Console\UI\ModernStyle;
 use Klass8s\Registry\AppRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -40,8 +39,6 @@ class RenderAppsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new ModernStyle($input, $output);
-
         $aliases = $input->getArgument(self::ARGUMENT_APPS_ALIASES);
         if ([] === $aliases) {
             $aliases = $this->appRegistry->aliases();
@@ -49,7 +46,7 @@ class RenderAppsCommand extends Command
 
         $outputDir = $this->appManager->generateManifests(...$aliases);
         if (!$outputDir->isEmpty()) {
-            $io->writeln($outputDir->render()->toString());
+            echo $outputDir->render()->toString(), "\n";
         }
 
         return self::SUCCESS;
