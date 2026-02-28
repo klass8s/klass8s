@@ -31,16 +31,19 @@ final readonly class ChartLocalCopyProvider
     {
         $fs = new Filesystem();
 
-        $chartHash = md5($ref->value.'@'.($ref->version ?? 'latest').'_'.date('Y-m-d'));
+        $chartVersion = $ref->version ?? 'latest';
+        $chartHash = md5($ref->value.'@'.$chartVersion.'_'.date('Y-m-d H'));
         $cachedPath = $this->cacheDir.'/helm/'.$chartHash;
 
-        if ($fs->exists($cachedPath)) {
+        if (!$fs->exists($this->cacheDir)) {
+            $fs->mkdir($this->cacheDir);
+        }
+
+        if ($fs->exists($cachedPath.'/Chart.yaml')) {
             return new UnpackedChartDirectory($cachedPath);
         }
 
-        $fs->mkdir($cachedPath);
-
-        $command = ['helm', 'pull', $ref->value, '--untar', '--untardir', $cachedPath];
+        $command = ['helm', 'pull', $ref->value, '--untar', '--untardir', $cachedPath, '--version', $chartVersion];
         $process = new Process($command, cwd: $this->projectDir, timeout: 300);
         $process->mustRun();
 

@@ -70,7 +70,6 @@ final readonly class HelmReleaseProcessor
             'template',
             $release->name,
             $chartDir->path,
-            '--disable-openapi-validation',
             '--include-crds',
         ];
 
