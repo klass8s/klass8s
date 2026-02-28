@@ -7,7 +7,6 @@ namespace Klass8s\Bundle\Console\Command;
 use Klass8s\App\AppManager;
 use Klass8s\Bridge\Helm\HelmReleaseManager;
 use Klass8s\Bridge\Helm\Release\HelmReleaseRegistry;
-use Klass8s\Bundle\Console\UI\ModernStyle;
 use Klass8s\Registry\AppRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -34,8 +33,6 @@ class RenderAllCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new ModernStyle($input, $output);
-
         $appsDir = $this->appManager->generateManifests(...$this->appRegistry->aliases());
 
         $this->addHelmRepos();
@@ -43,14 +40,14 @@ class RenderAllCommand extends Command
 
         $outputWasWritten = false;
         if (!$appsDir->isEmpty()) {
-            $io->writeln($appsDir->render()->toString());
+            echo $appsDir->render()->toString(), "\n";
             $outputWasWritten = true;
         }
         if (!$helmDir->isEmpty()) {
             if ($outputWasWritten) {
                 echo "\n---\n";
             }
-            $io->writeln($helmDir->render()->toString());
+            echo $helmDir->render()->toString(), "\n";
         }
 
         return self::SUCCESS;
