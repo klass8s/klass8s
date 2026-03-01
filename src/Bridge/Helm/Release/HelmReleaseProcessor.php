@@ -45,6 +45,7 @@ final readonly class HelmReleaseProcessor
 
         $outputDir = new OutputDirectory($release->name, $this->renderer);
         foreach ($manifests as $manifest) {
+            $manifest = self::normalizeYaml11Octals($manifest);
             $manifest = Yaml::parse($manifest, Yaml::PARSE_OBJECT_FOR_MAP);
             if (!is_object($manifest)) {
                 throw new \RuntimeException(sprintf('Failed to parse manifest "%s".', $manifest));
@@ -87,6 +88,18 @@ final readonly class HelmReleaseProcessor
         $process->mustRun();
 
         return new YamlString($process->getOutput());
+    }
+
+    /**
+     * Converts YAML 1.1 octal literals (0NNN) to YAML 1.2 notation (0oNNN).
+     *
+     * Helm uses Go's YAML 1.1 parser where 0555 is an octal integer (decimal 365).
+     * Symfony Yaml follows YAML 1.2 where bare 0555 is a string, causing type corruption
+     * on the parse→dump round-trip.
+     */
+    private static function normalizeYaml11Octals(string $yaml): string
+    {
+        return preg_replace('/(?<=: )0([0-7]+)$/m', '0o$1', $yaml);
     }
 
     private static function valuesYamlTempFilename(HelmReleaseInterface $release): string
