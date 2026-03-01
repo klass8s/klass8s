@@ -103,7 +103,7 @@ readonly class Configuration implements ConfigurationInterface
                     ->defaultTrue()
                 ->end()
                 ->booleanNode('strip_namespace')
-                    ->defaultTrue()
+                    ->defaultFalse()
                     ->info('When true, strips the "namespace" field from metadata of all generated manifests (both Klass8s apps and Helm releases).')
                 ->end()
             ->end();
