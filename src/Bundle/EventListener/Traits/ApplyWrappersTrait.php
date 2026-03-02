@@ -36,7 +36,7 @@ trait ApplyWrappersTrait
             foreach ($attributes as $attribute) {
                 /** @var BeforeMethod|AfterMethod $attr */
                 $attr = $attribute->newInstance();
-                if (!in_array($this->env, $attr->envs())) {
+                if (!in_array($this->currentEnv, $attr->envs())) {
                     continue;
                 }
                 if ($methodName === $attr->methodName()) {
