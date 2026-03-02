@@ -18,6 +18,7 @@ readonly class HelmRelease implements HelmReleaseInterface
         public int $deployPriority,
         string $chartReference,
         ?string $chartVersion = null,
+        public ?string $namespace = null,
     ) {
         if (null !== $values && null !== $valuesProvider) {
             throw new \InvalidArgumentException('Cannot set both $values and $valuesProvider.');

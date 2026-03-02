@@ -74,6 +74,11 @@ final readonly class HelmReleaseProcessor
             '--include-crds',
         ];
 
+        if (null !== $release->namespace) {
+            $command[] = '--namespace';
+            $command[] = $release->namespace;
+        }
+
         $values = $release->values();
         if (!empty($values)) {
             $valuesYaml = Yaml::dump($values);
