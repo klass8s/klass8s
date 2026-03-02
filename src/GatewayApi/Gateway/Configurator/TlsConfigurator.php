@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\Gateway\Configurator;
 
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Secret\SecretInterface;
 use Klass8s\GatewayApi\Enum\TlsMode;
 
 final class TlsConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function mode(TlsMode $mode): static
@@ -45,6 +49,16 @@ final class TlsConfigurator
         $this->data['certificateRefs'][] = $ref;
 
         return $this;
+    }
+
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function certificateRefFromClass(string $secretClass, ?string $namespace = null): static
+    {
+        $name = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
+
+        return $this->certificateRef($name, $namespace);
     }
 
     /**

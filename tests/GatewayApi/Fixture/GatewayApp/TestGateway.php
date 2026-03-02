@@ -6,7 +6,9 @@ namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
 
 use Klass8s\GatewayApi\Enum\ProtocolType;
 use Klass8s\GatewayApi\Gateway\AbstractGateway;
+use Klass8s\GatewayApi\Gateway\Configurator\AddressesConfigurator;
 use Klass8s\GatewayApi\Gateway\Configurator\ListenersConfigurator;
+use Klass8s\Manifest\Reference\ManifestClassReference;
 
 class TestGateway extends AbstractGateway
 {
@@ -15,9 +17,9 @@ class TestGateway extends AbstractGateway
         return 'main';
     }
 
-    public function gatewayClassName(): string
+    public function gatewayClass(): string|ManifestClassReference
     {
-        return 'gateway-main';
+        return new ManifestClassReference('gateway', TestGatewayClass::class);
     }
 
     public function listeners(ListenersConfigurator $listeners): void
@@ -39,10 +41,8 @@ class TestGateway extends AbstractGateway
                 ->certificateRef('wildcard-cert');
     }
 
-    public function addresses(): array
+    public function addresses(AddressesConfigurator $addresses): void
     {
-        return [
-            ['type' => 'IPAddress', 'value' => '10.0.0.1'],
-        ];
+        $addresses->addIPAddress('10.0.0.1');
     }
 }

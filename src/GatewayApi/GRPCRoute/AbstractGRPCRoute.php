@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\GRPCRoute;
 
+use K8Schema\Collection\StringList;
 use Klass8s\GatewayApi\AbstractGatewayApiResource;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\GRPCRoute\Configurator\GRPCRouteRulesConfigurator;
@@ -25,9 +26,8 @@ abstract class AbstractGRPCRoute extends AbstractManifest implements GRPCRouteIn
     {
     }
 
-    public function hostnames(): array
+    public function hostnames(StringList $hostnames): void
     {
-        return [];
     }
 
     public function rules(GRPCRouteRulesConfigurator $rules): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
 
+use K8Schema\Collection\StringList;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\GRPCRoute\AbstractGRPCRoute;
 use Klass8s\GatewayApi\GRPCRoute\Configurator\GRPCRouteRulesConfigurator;
@@ -21,9 +22,9 @@ class TestGRPCRoute extends AbstractGRPCRoute
             ->sectionName('https');
     }
 
-    public function hostnames(): array
+    public function hostnames(StringList $hostnames): void
     {
-        return ['grpc.example.com'];
+        $hostnames->add('grpc.example.com');
     }
 
     public function rules(GRPCRouteRulesConfigurator $rules): void

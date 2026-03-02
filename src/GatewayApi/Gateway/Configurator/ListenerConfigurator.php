@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\Gateway\Configurator;
 
+use Klass8s\App\AppInterface;
 use Klass8s\GatewayApi\Enum\ProtocolType;
 
 final class ListenerConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function port(int $port): static
@@ -39,7 +42,7 @@ final class ListenerConfigurator
             $this->data['tls'] = new \ArrayObject();
         }
 
-        return new TlsConfigurator($this->data['tls']);
+        return new TlsConfigurator($this->data['tls'], $this->app);
     }
 
     public function allowedRoutes(): AllowedRoutesConfigurator

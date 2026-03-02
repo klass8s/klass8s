@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\BackendTLSPolicy\Configurator;
 
+use Klass8s\App\AppInterface;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Secret\SecretInterface;
+
 final class TLSValidationConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function hostname(string $hostname): static
@@ -32,6 +38,16 @@ final class TLSValidationConfigurator
         return $this;
     }
 
+    /**
+     * @param class-string<ConfigMapInterface> $configMapClass
+     */
+    public function caCertificateFromConfigMapClass(string $configMapClass): static
+    {
+        $name = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
+
+        return $this->caCertificateFromConfigMap($name);
+    }
+
     public function caCertificateFromSecret(string $name, string $group = '', string $kind = 'Secret'): static
     {
         if (!isset($this->data['caCertificateRefs'])) {
@@ -45,6 +61,16 @@ final class TLSValidationConfigurator
         ];
 
         return $this;
+    }
+
+    /**
+     * @param class-string<SecretInterface> $secretClass
+     */
+    public function caCertificateFromSecretClass(string $secretClass): static
+    {
+        $name = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
+
+        return $this->caCertificateFromSecret($name);
     }
 
     public function wellKnownCACertificates(string $type = 'System'): static

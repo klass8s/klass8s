@@ -16,8 +16,5 @@ interface GatewayClassInterface extends ManifestInterface
 
     public function description(): ?string;
 
-    /**
-     * @return array{group: string, kind: string, name: string, namespace?: string}|null
-     */
-    public function parametersRef(): ?array;
+    public function parametersRef(): ?ParametersRef;
 }

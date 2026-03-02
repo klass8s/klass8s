@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\GatewayApi\BackendTLSPolicy;
 
 use Klass8s\GatewayApi\AbstractGatewayApiResource;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\OptionsConfigurator;
 use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TargetRefsConfigurator;
 use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TLSValidationConfigurator;
 use Klass8s\Manifest\AbstractManifest;
@@ -29,8 +30,7 @@ abstract class AbstractBackendTLSPolicy extends AbstractManifest implements Back
     {
     }
 
-    public function options(): array
+    public function options(OptionsConfigurator $options): void
     {
-        return [];
     }
 }

@@ -6,6 +6,7 @@ namespace Klass8s\ResourceMaker\GatewayApi;
 
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
+use K8Schema\Collection\StringList;
 use Klass8s\Event\HTTPRouteGeneratedEvent;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteRulesConfigurator;
@@ -29,21 +30,23 @@ final class HTTPRouteMaker extends AbstractResourceMaker
         $data['metadata'] = new ObjectMeta();
         $data['spec'] = new \ArrayObject();
 
+        $app = $manifest->app;
+
         $data['spec']['parentRefs'] = new \ArrayObject();
-        $parentRefs = new ParentRefsConfigurator($data['spec']['parentRefs']);
+        $parentRefs = new ParentRefsConfigurator($data['spec']['parentRefs'], $app);
         $manifest->parentRefs($parentRefs);
 
-        $hostnames = $manifest->hostnames();
-        if ([] !== $hostnames) {
+        $hostnames = new StringList();
+        $manifest->hostnames($hostnames);
+        if ($hostnames->count() > 0) {
             $data['spec']['hostnames'] = $hostnames;
         }
 
         $data['spec']['rules'] = new \ArrayObject();
-        $rules = new HTTPRouteRulesConfigurator($data['spec']['rules']);
+        $rules = new HTTPRouteRulesConfigurator($data['spec']['rules'], $app);
         $manifest->rules($rules);
 
         $resource = new HTTPRouteApiResource($data);
-        $app = $manifest->app;
         $app::configureMeta($manifest, $resource);
 
         $this->dispatcher->dispatch(

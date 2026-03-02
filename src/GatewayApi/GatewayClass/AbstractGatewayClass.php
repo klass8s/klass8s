@@ -24,7 +24,7 @@ abstract class AbstractGatewayClass extends AbstractManifest implements GatewayC
         return null;
     }
 
-    public function parametersRef(): ?array
+    public function parametersRef(): ?ParametersRef
     {
         return null;
     }

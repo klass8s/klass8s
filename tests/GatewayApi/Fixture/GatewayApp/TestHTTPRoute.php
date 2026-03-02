@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
 
+use K8Schema\Collection\StringList;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\Enum\HTTPMethod;
 use Klass8s\GatewayApi\Enum\HTTPPathModifierType;
@@ -23,9 +24,9 @@ class TestHTTPRoute extends AbstractHTTPRoute
             ->sectionName('https');
     }
 
-    public function hostnames(): array
+    public function hostnames(StringList $hostnames): void
     {
-        return ['api.example.com'];
+        $hostnames->add('api.example.com');
     }
 
     public function rules(HTTPRouteRulesConfigurator $rules): void

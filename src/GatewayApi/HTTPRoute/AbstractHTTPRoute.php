@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\HTTPRoute;
 
+use K8Schema\Collection\StringList;
 use Klass8s\GatewayApi\AbstractGatewayApiResource;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteRulesConfigurator;
@@ -25,9 +26,8 @@ abstract class AbstractHTTPRoute extends AbstractManifest implements HTTPRouteIn
     {
     }
 
-    public function hostnames(): array
+    public function hostnames(StringList $hostnames): void
     {
-        return [];
     }
 
     public function rules(HTTPRouteRulesConfigurator $rules): void

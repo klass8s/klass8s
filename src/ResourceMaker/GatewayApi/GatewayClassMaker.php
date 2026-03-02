@@ -34,7 +34,7 @@ final class GatewayClassMaker extends AbstractResourceMaker
         }
 
         if (null !== $parametersRef = $manifest->parametersRef()) {
-            $data['spec']['parametersRef'] = $parametersRef;
+            $data['spec']['parametersRef'] = $parametersRef->toArray();
         }
 
         $resource = new GatewayClassApiResource($data);

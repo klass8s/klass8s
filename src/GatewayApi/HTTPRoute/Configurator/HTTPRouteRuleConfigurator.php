@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
 
+use Klass8s\App\AppInterface;
+
 final class HTTPRouteRuleConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function name(string $name): static
@@ -50,7 +54,7 @@ final class HTTPRouteRuleConfigurator
         $refData = new \ArrayObject();
         $this->data['backendRefs'][] = $refData;
 
-        return new HTTPBackendRefConfigurator($refData);
+        return new HTTPBackendRefConfigurator($refData, $this->app);
     }
 
     public function timeout(string $duration): static

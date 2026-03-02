@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
 
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Service\ServiceInterface;
+
 final class HTTPBackendRefConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function service(string $name, int $port): static
@@ -16,6 +21,16 @@ final class HTTPBackendRefConfigurator
         $this->data['port'] = $port;
 
         return $this;
+    }
+
+    /**
+     * @param class-string<ServiceInterface> $serviceClass
+     */
+    public function serviceClass(string $serviceClass, int $port): static
+    {
+        $name = $this->app->resourceNameFromManifestClass($serviceClass, ServiceInterface::class);
+
+        return $this->service($name, $port);
     }
 
     public function group(string $group): static

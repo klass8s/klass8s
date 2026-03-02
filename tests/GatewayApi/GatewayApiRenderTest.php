@@ -84,6 +84,7 @@ class GatewayApiRenderTest extends KernelTestCase
 
         // Addresses
         self::assertCount(1, $gateway['spec']['addresses']);
+        self::assertSame('IPAddress', $gateway['spec']['addresses'][0]['type']);
         self::assertSame('10.0.0.1', $gateway['spec']['addresses'][0]['value']);
 
         $this->assertDefaultLabels($gateway, 'gateway', 'main');

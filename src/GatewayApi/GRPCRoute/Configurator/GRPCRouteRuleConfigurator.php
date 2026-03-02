@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\GRPCRoute\Configurator;
 
+use Klass8s\App\AppInterface;
 use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPBackendRefConfigurator;
 use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteFilterConfigurator;
 
 final class GRPCRouteRuleConfigurator
 {
-    public function __construct(private \ArrayObject $data)
-    {
+    public function __construct(
+        private \ArrayObject $data,
+        private AppInterface $app,
+    ) {
     }
 
     public function name(string $name): static
@@ -53,6 +56,6 @@ final class GRPCRouteRuleConfigurator
         $refData = new \ArrayObject();
         $this->data['backendRefs'][] = $refData;
 
-        return new HTTPBackendRefConfigurator($refData);
+        return new HTTPBackendRefConfigurator($refData, $this->app);
     }
 }
