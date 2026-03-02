@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Klass8s\GatewayApi\Gateway\Configurator;
 
 use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
 
-final class ListenersConfigurator
+final readonly class ListenersConfigurator
 {
     public function __construct(
-        private \ArrayObject $data,
+        private GenericList $data,
         private AppInterface $app,
     ) {
     }
@@ -18,7 +19,7 @@ final class ListenersConfigurator
     {
         $listenerData = new \ArrayObject();
         $listenerData['name'] = $name;
-        $this->data[] = $listenerData;
+        $this->data->add($listenerData);
 
         return new ListenerConfigurator($listenerData, $this->app);
     }

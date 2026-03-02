@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Klass8s\Monitoring\Prometheus\Configurator;
 
-final class GroupRulesConfigurator
+use Klass8s\Collection\GenericList;
+
+final readonly class GroupRulesConfigurator
 {
-    public function __construct(private \ArrayObject $rules)
+    public function __construct(private GenericList $rules)
     {
     }
 
@@ -14,7 +16,7 @@ final class GroupRulesConfigurator
     {
         $ruleData = new \ArrayObject();
         $ruleData['expr'] = $expr;
-        $this->rules[] = $ruleData;
+        $this->rules->add($ruleData);
 
         return new GroupRuleConfigurator($ruleData);
     }

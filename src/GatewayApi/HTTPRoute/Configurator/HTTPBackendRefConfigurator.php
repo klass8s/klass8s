@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
 
 use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
 use Klass8s\Core\Service\ServiceInterface;
 
 final class HTTPBackendRefConfigurator
@@ -64,11 +65,11 @@ final class HTTPBackendRefConfigurator
     public function filter(): HTTPRouteFilterConfigurator
     {
         if (!isset($this->data['filters'])) {
-            $this->data['filters'] = new \ArrayObject();
+            $this->data['filters'] = new GenericList();
         }
 
         $filterData = new \ArrayObject();
-        $this->data['filters'][] = $filterData;
+        $this->data['filters']->add($filterData);
 
         return new HTTPRouteFilterConfigurator($filterData);
     }

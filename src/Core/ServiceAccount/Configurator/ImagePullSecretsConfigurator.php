@@ -19,7 +19,7 @@ readonly class ImagePullSecretsConfigurator
 
     public function add(ManifestClassReference $secretReference): static
     {
-        $secretClass = $secretReference->className();
+        $secretClass = $secretReference->className;
         if (!is_subclass_of($secretClass, SecretInterface::class, true)) {
             throw new \InvalidArgumentException(
                 sprintf(

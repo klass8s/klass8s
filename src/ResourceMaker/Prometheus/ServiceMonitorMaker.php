@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker\Prometheus;
 
 use K8Schema\Collection\StringList;
+use Klass8s\Collection\GenericList;
 use Klass8s\Monitoring\Prometheus\Configurator\EndpointsConfigurator;
 use Klass8s\Monitoring\Prometheus\MonitorInterface;
 use Klass8s\Monitoring\Prometheus\ServiceMonitor\ServiceMonitorInterface;
@@ -25,7 +26,7 @@ class ServiceMonitorMaker extends AbstractMonitorMaker
             $data['spec']['targetLabels'] = $targetLabels;
         }
 
-        $data['spec']['endpoints'] = new \ArrayObject();
+        $data['spec']['endpoints'] = new GenericList();
 
         $endpoints = new EndpointsConfigurator($data['spec']['endpoints']);
         $manifest->endpoints($endpoints);

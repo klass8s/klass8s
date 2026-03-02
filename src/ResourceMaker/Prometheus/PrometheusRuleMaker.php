@@ -6,6 +6,7 @@ namespace Klass8s\ResourceMaker\Prometheus;
 
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
+use Klass8s\Collection\GenericList;
 use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Monitoring\Prometheus\Configurator\RuleGroupsConfigurator;
 use Klass8s\Monitoring\Prometheus\PrometheusRuleApiResource;
@@ -31,7 +32,7 @@ class PrometheusRuleMaker extends AbstractResourceMaker
         $app::configureMeta($manifest, $prometheusRule);
 
         $data['spec'] = new \ArrayObject();
-        $data['spec']['groups'] = new \ArrayObject();
+        $data['spec']['groups'] = new GenericList();
 
         $groupsConfigurator = new RuleGroupsConfigurator($data['spec']['groups']);
         $manifest->groups($groupsConfigurator);

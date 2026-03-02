@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Klass8s\GatewayApi\Configurator;
 
 use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
 use Klass8s\GatewayApi\Gateway\GatewayInterface;
 
-final class ParentRefsConfigurator
+final readonly class ParentRefsConfigurator
 {
     public function __construct(
-        private \ArrayObject $data,
+        private GenericList $data,
         private AppInterface $app,
     ) {
     }
@@ -19,7 +20,7 @@ final class ParentRefsConfigurator
     {
         $refData = new \ArrayObject();
         $refData['name'] = $name;
-        $this->data[] = $refData;
+        $this->data->add($refData);
 
         return new ParentRefConfigurator($refData);
     }

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\ReferenceGrant\Configurator;
 
-final class ReferenceGrantToConfigurator
+use Klass8s\Collection\GenericList;
+
+final readonly class ReferenceGrantToConfigurator
 {
-    public function __construct(private \ArrayObject $data)
+    public function __construct(private GenericList $data)
     {
     }
 
-    public function add(string $group, string $kind, ?string $name = null): static
+    public function add(string $group, string $kind, ?string $name = null): self
     {
         $entry = [
             'group' => $group,
@@ -21,22 +23,22 @@ final class ReferenceGrantToConfigurator
             $entry['name'] = $name;
         }
 
-        $this->data[] = $entry;
+        $this->data->add($entry);
 
         return $this;
     }
 
-    public function allowServices(?string $name = null): static
+    public function allowServices(?string $name = null): self
     {
         return $this->add('', 'Service', $name);
     }
 
-    public function allowSecrets(?string $name = null): static
+    public function allowSecrets(?string $name = null): self
     {
         return $this->add('', 'Secret', $name);
     }
 
-    public function allowConfigMaps(?string $name = null): static
+    public function allowConfigMaps(?string $name = null): self
     {
         return $this->add('', 'ConfigMap', $name);
     }

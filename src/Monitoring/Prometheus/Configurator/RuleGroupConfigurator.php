@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Klass8s\Monitoring\Prometheus\Configurator;
 
+use Klass8s\Collection\GenericList;
+
 final class RuleGroupConfigurator
 {
     public function __construct(private \ArrayObject $data)
     {
-        $this->data['rules'] = new \ArrayObject();
+        $this->data['rules'] = new GenericList();
     }
 
     public function partialResponseStrategy(string $strategy): static

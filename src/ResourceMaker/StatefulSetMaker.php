@@ -40,8 +40,8 @@ class StatefulSetMaker extends AbstractResourceMaker
     protected function makeResource(ManifestInterface|StatefulSetInterface $manifest): APIResourceInterface
     {
         $serviceReference = $manifest->serviceName();
-        $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias());
-        $serviceName = $serviceOwningApp->resourceNameFromManifestClass($serviceReference->className(), ServiceInterface::class);
+        $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias);
+        $serviceName = $serviceOwningApp->resourceNameFromManifestClass($serviceReference->className, ServiceInterface::class);
 
         if (K8SApi::versionIsHigherThanOrEqualTo('v1.33.1')) {
             $sts = new StatefulSet();

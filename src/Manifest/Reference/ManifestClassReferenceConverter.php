@@ -19,7 +19,7 @@ final readonly class ManifestClassReferenceConverter
     {
         $name = $this->toResourceName($manifestReference);
 
-        $class = new \ReflectionClass($manifestReference->className());
+        $class = new \ReflectionClass($manifestReference->className);
         $kind = $class->getMethod('kind')->invoke(null);
 
         $objectReference = new TypedLocalObjectReference($kind, $name);
@@ -44,7 +44,7 @@ final readonly class ManifestClassReferenceConverter
     {
         $name = $this->toResourceName($manifestReference);
 
-        $class = new \ReflectionClass($manifestReference->className());
+        $class = new \ReflectionClass($manifestReference->className);
         $kind = $class->getMethod('kind')->invoke(null);
 
         $objectReference = new ObjectReference();
@@ -58,8 +58,8 @@ final readonly class ManifestClassReferenceConverter
 
     public function toResourceName(ManifestClassReference $manifestReference): string
     {
-        $app = $this->appRegistry->get($manifestReference->appAlias());
+        $app = $this->appRegistry->get($manifestReference->appAlias);
 
-        return $app->resourceNameFromManifestClass($manifestReference->className());
+        return $app->resourceNameFromManifestClass($manifestReference->className);
     }
 }

@@ -7,6 +7,7 @@ namespace Klass8s\ResourceMaker\GatewayApi;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use K8Schema\Collection\StringList;
+use Klass8s\Collection\GenericList;
 use Klass8s\Event\HTTPRouteGeneratedEvent;
 use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
 use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteRulesConfigurator;
@@ -32,7 +33,7 @@ final class HTTPRouteMaker extends AbstractResourceMaker
 
         $app = $manifest->app;
 
-        $data['spec']['parentRefs'] = new \ArrayObject();
+        $data['spec']['parentRefs'] = new GenericList();
         $parentRefs = new ParentRefsConfigurator($data['spec']['parentRefs'], $app);
         $manifest->parentRefs($parentRefs);
 
@@ -42,7 +43,7 @@ final class HTTPRouteMaker extends AbstractResourceMaker
             $data['spec']['hostnames'] = $hostnames;
         }
 
-        $data['spec']['rules'] = new \ArrayObject();
+        $data['spec']['rules'] = new GenericList();
         $rules = new HTTPRouteRulesConfigurator($data['spec']['rules'], $app);
         $manifest->rules($rules);
 

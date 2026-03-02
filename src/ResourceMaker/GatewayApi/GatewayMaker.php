@@ -10,6 +10,7 @@ use Klass8s\Registry\AppRegistry;
 use Klass8s\Event\GatewayGeneratedEvent;
 use Klass8s\GatewayApi\Gateway\Configurator\AddressesConfigurator;
 use Klass8s\GatewayApi\Gateway\Configurator\InfrastructureConfigurator;
+use Klass8s\Collection\GenericList;
 use Klass8s\GatewayApi\Gateway\Configurator\ListenersConfigurator;
 use Klass8s\GatewayApi\Gateway\GatewayApiResource;
 use Klass8s\GatewayApi\Gateway\GatewayInterface;
@@ -39,9 +40,9 @@ final class GatewayMaker extends AbstractResourceMaker
 
         $gatewayClass = $manifest->gatewayClass();
         if ($gatewayClass instanceof ManifestClassReference) {
-            $owningApp = $this->appRegistry->get($gatewayClass->appAlias());
+            $owningApp = $this->appRegistry->get($gatewayClass->appAlias);
             $data['spec']['gatewayClassName'] = $owningApp->resourceNameFromManifestClass(
-                $gatewayClass->className(),
+                $gatewayClass->className,
                 GatewayClassInterface::class,
             );
         } else {
@@ -50,11 +51,11 @@ final class GatewayMaker extends AbstractResourceMaker
 
         $app = $manifest->app;
 
-        $data['spec']['listeners'] = new \ArrayObject();
+        $data['spec']['listeners'] = new GenericList();
         $listeners = new ListenersConfigurator($data['spec']['listeners'], $app);
         $manifest->listeners($listeners);
 
-        $addresses = new \ArrayObject();
+        $addresses = new GenericList();
         $manifest->addresses(new AddressesConfigurator($addresses));
         if ($addresses->count() > 0) {
             $data['spec']['addresses'] = $addresses;

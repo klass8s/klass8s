@@ -4,35 +4,36 @@ declare(strict_types=1);
 
 namespace Klass8s\GatewayApi\Gateway\Configurator;
 
+use Klass8s\Collection\GenericList;
 use Klass8s\GatewayApi\Enum\AddressType;
 
-final class AddressesConfigurator
+final readonly class AddressesConfigurator
 {
-    public function __construct(private \ArrayObject $data)
+    public function __construct(private GenericList $data)
     {
     }
 
-    public function add(AddressType $type, string $value): static
+    public function add(AddressType $type, string $value): self
     {
-        $this->data[] = [
+        $this->data->add([
             'type' => $type->value,
             'value' => $value,
-        ];
+        ]);
 
         return $this;
     }
 
-    public function addIPAddress(string $value): static
+    public function addIPAddress(string $value): self
     {
         return $this->add(AddressType::IPAddress, $value);
     }
 
-    public function addHostname(string $value): static
+    public function addHostname(string $value): self
     {
         return $this->add(AddressType::Hostname, $value);
     }
 
-    public function addNamedAddress(string $value): static
+    public function addNamedAddress(string $value): self
     {
         return $this->add(AddressType::NamedAddress, $value);
     }

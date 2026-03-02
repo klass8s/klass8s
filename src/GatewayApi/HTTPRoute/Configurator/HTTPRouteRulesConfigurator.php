@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
 
 use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
 
-final class HTTPRouteRulesConfigurator
+final readonly class HTTPRouteRulesConfigurator
 {
     public function __construct(
-        private \ArrayObject $data,
+        private GenericList $data,
         private AppInterface $app,
     ) {
     }
@@ -17,7 +18,7 @@ final class HTTPRouteRulesConfigurator
     public function add(): HTTPRouteRuleConfigurator
     {
         $ruleData = new \ArrayObject();
-        $this->data[] = $ruleData;
+        $this->data->add($ruleData);
 
         return new HTTPRouteRuleConfigurator($ruleData, $this->app);
     }

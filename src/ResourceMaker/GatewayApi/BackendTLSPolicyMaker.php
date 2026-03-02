@@ -7,6 +7,7 @@ namespace Klass8s\ResourceMaker\GatewayApi;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Event\BackendTLSPolicyGeneratedEvent;
+use Klass8s\Collection\GenericList;
 use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyApiResource;
 use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyInterface;
 use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\OptionsConfigurator;
@@ -32,7 +33,7 @@ final class BackendTLSPolicyMaker extends AbstractResourceMaker
 
         $app = $manifest->app;
 
-        $data['spec']['targetRefs'] = new \ArrayObject();
+        $data['spec']['targetRefs'] = new GenericList();
         $targetRefs = new TargetRefsConfigurator($data['spec']['targetRefs'], $app);
         $manifest->targetRefs($targetRefs);
 

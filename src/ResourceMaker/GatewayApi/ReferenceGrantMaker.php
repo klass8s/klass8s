@@ -7,6 +7,7 @@ namespace Klass8s\ResourceMaker\GatewayApi;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Event\ReferenceGrantGeneratedEvent;
+use Klass8s\Collection\GenericList;
 use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantFromConfigurator;
 use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantToConfigurator;
 use Klass8s\GatewayApi\ReferenceGrant\ReferenceGrantApiResource;
@@ -30,11 +31,11 @@ final class ReferenceGrantMaker extends AbstractResourceMaker
 
         $data['spec'] = new \ArrayObject();
 
-        $data['spec']['from'] = new \ArrayObject();
+        $data['spec']['from'] = new GenericList();
         $from = new ReferenceGrantFromConfigurator($data['spec']['from']);
         $manifest->from($from);
 
-        $data['spec']['to'] = new \ArrayObject();
+        $data['spec']['to'] = new GenericList();
         $to = new ReferenceGrantToConfigurator($data['spec']['to']);
         $manifest->to($to);
 
