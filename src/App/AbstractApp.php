@@ -7,6 +7,7 @@ namespace Klass8s\App;
 use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
 use K8Schema\APIResourceInterface;
 use Klass8s\Config\ConfigAwareTrait;
+use Klass8s\Manifest\FullNameAwareInterface;
 use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Manifest\ManifestNameResolver;
 use Klass8s\Manifest\MetadataAwareInterface;
@@ -46,7 +47,11 @@ abstract class AbstractApp implements AppInterface
 
     public function manifestConfig(ManifestInterface $manifest): array
     {
-        return $this->config['manifests'][$manifest->computedShortName] ?? [];
+        $configKey = $manifest instanceof FullNameAwareInterface
+            ? $manifest->fullName()
+            : $manifest->computedShortName;
+
+        return $this->config['manifests'][$configKey] ?? [];
     }
 
     public function resourceNameFromManifestClass(string $manifestClass, ?string $classToValidateAgainst = null): string

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Registry;
 
+use Klass8s\Manifest\FullNameAwareInterface;
 use Klass8s\Manifest\ManifestInterface;
 use Klass8s\Proxy\ProxyFactory;
 use Klass8s\Registry\Query\ManifestsQuery;
@@ -28,7 +29,10 @@ final class ManifestRegistry
         $appAlias = $manifest->app->alias();
         $this->manifests[$appAlias] ??= [];
 
-        $key = sprintf('%s_%s', $manifest::kind(), $manifest->computedShortName);
+        $identifier = $manifest instanceof FullNameAwareInterface
+            ? $manifest->fullName()
+            : $manifest->computedShortName;
+        $key = sprintf('%s_%s', $manifest::kind(), $identifier);
         if (array_key_exists($key, $this->manifests[$appAlias])) {
             $existingManifest = $this->manifests[$appAlias][$key];
             if ($existingManifest === $manifest) {
