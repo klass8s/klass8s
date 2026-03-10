@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Klass8s\ResourceMaker;
 
 use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
 use Klass8s\Core\CronJob\CronJobInterface;
 use Klass8s\Core\Job\JobInterface;
 use Klass8s\Core\Job\JobSpecProcessor;
@@ -32,7 +33,11 @@ final class JobMaker extends AbstractResourceMaker
         $job = new Job();
         $spec = $job->spec();
 
-        $manifest->selector(new SelectorConfigurator($spec->selector()));
+        $selector = new LabelSelector();
+        $manifest->selector(new SelectorConfigurator($selector));
+        if ($selector->matchExpressions()->count() > 0 || $selector->matchLabels()->count() > 0) {
+            $spec->setSelector($selector);
+        }
 
         $app = $manifest->app;
         $app::configureMeta($manifest, $job);
