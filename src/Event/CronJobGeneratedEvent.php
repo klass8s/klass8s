@@ -11,7 +11,7 @@ use Klass8s\Core\CronJob\CronJobInterface;
 
 readonly class CronJobGeneratedEvent implements ManifestGeneratedEventInterface
 {
-    public const string NAME = 'klass8s.manifest_generated.cronJob';
+    public const string NAME = 'klass8s.manifest_generated.cron_job';
 
     public function __construct(private CronJobInterface $manifest, private CronJob $cronJob, private AppInterface $app)
     {
