@@ -11,6 +11,7 @@ use Klass8s\Bundle\Klass8sBundle;
 use Klass8s\Bundle\Util\AttributesUtil;
 use Klass8s\Core\Container\ContainerInterface;
 use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\ManifestTemplateInterface;
 use Klass8s\Registry\ManifestRegistry;
 use Klass8s\Util\StringUtil;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -41,6 +42,10 @@ final class ManifestsPass implements CompilerPassInterface
             $manifestClass = new \ReflectionClass($manifestDefinition->getClass());
             if (!$manifestClass->implementsInterface(ManifestInterface::class)) {
                 throw new \LogicException(sprintf('Only %s instances must be tagged with tag "%s"', ManifestInterface::class, Klass8sBundle::TAG_MANIFEST));
+            }
+
+            if ($manifestClass->implementsInterface(ManifestTemplateInterface::class)) {
+                throw new \LogicException(sprintf('Manifest template class "%s" must not be registered as a service: templates are constructed manually (e.g. in event listeners) and added to the build there. Exclude the class from service discovery in services.yaml.', $manifestDefinition->getClass()));
             }
 
             $manifestName = $manifestClass->getMethod('shortName')->invoke(null);
