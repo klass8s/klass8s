@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final readonly class DefaultMetadataLabelsPass implements CompilerPassInterface
 {
-    public const string PARAM = 'klass8s.default_metadata_labels';
+    public const string PARAM = 'klass8s.set_default_metadata_labels';
 
     public function process(ContainerBuilder $container): void
     {

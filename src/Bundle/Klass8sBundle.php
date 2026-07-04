@@ -12,6 +12,9 @@ use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
 use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetReplicasPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetResourcesPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultMetadataLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultSelectorLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultServiceSelectorPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DisableChecksumGenerationPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DisableStripNamespacePass;
 use Klass8s\Bundle\DependencyInjection\Compiler\HelmReleasesPass;
@@ -49,6 +52,9 @@ class Klass8sBundle extends AbstractBundle
 
         $container
             ->addCompilerPass(new AppsPass())
+            ->addCompilerPass(new DefaultMetadataLabelsPass())
+            ->addCompilerPass(new DefaultSelectorLabelsPass())
+            ->addCompilerPass(new DefaultServiceSelectorPass())
             ->addCompilerPass(new DisableChecksumGenerationPass())
             ->addCompilerPass(new DisableStripNamespacePass())
             ->addCompilerPass(new HelmReleasesPass())
