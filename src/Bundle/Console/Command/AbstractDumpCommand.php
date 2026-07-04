@@ -4,21 +4,37 @@ declare(strict_types=1);
 
 namespace Klass8s\Bundle\Console\Command;
 
+use Klass8s\Event\ManifestsDumpedEvent;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractDumpCommand extends Command
 {
     public const string OPTION_OUTPUT_DIR = 'output-dir';
     public const string OPTION_RECREATE_DIR = 'recreate-output-dir';
 
+    private EventDispatcherInterface $dispatcher;
+
     public function __construct(
         protected readonly string $manifestsDir,
         protected readonly string $currentEnv,
     ) {
         parent::__construct();
+    }
+
+    #[Required]
+    public function setEventDispatcher(EventDispatcherInterface $dispatcher): void
+    {
+        $this->dispatcher = $dispatcher;
+    }
+
+    protected function notifyManifestsDumped(): void
+    {
+        $this->dispatcher->dispatch(new ManifestsDumpedEvent(), ManifestsDumpedEvent::NAME);
     }
 
     public function configure(): void

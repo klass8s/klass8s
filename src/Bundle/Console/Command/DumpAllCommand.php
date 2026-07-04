@@ -48,6 +48,8 @@ class DumpAllCommand extends AbstractDumpCommand
         $appsDir->dumpTo($outputDirPath);
         $helmDir->dumpTo($outputDirPath);
 
+        $this->notifyManifestsDumped();
+
         if ($appsDir->isEmpty() && $helmDir->isEmpty()) {
             $io->warning('No manifests were generated.');
         } else {

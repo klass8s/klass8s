@@ -59,6 +59,8 @@ class DumpHelmCommand extends AbstractDumpCommand
         $outputDir = $this->releaseManager->generateManifests(...$releaseNames);
         $outputDir->dumpTo($outputDirPath);
 
+        $this->notifyManifestsDumped();
+
         if ($outputDir->isEmpty()) {
             $io->warning('No manifests were generated.');
         } else {
