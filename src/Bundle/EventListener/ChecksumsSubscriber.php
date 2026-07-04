@@ -13,7 +13,7 @@ use K8Schema\Api\Batch\V1\Job;
 use Klass8s\Event\ManifestsProcessedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class CheksumsSubscriber implements EventSubscriberInterface
+class ChecksumsSubscriber implements EventSubscriberInterface
 {
     private const WORKLOAD_KINDS = [
         Deployment::KIND,

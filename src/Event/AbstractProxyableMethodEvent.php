@@ -6,7 +6,7 @@ namespace Klass8s\Event;
 
 use Klass8s\Proxy\ProxyableInterface;
 
-class AbstractProxyableMethodEvent implements ProxyableMethodEventInterface
+abstract class AbstractProxyableMethodEvent implements ProxyableMethodEventInterface
 {
     protected mixed $returnValue = null;
     protected bool $returnValueHasChanged = false;

@@ -9,7 +9,7 @@ use Proximity\ProxyInterface;
 
 class ManifestMethodEvent extends AbstractProxyableMethodEvent
 {
-    public const NAME = 'klass8s.manifest.before_method';
+    public const string NAME = 'klass8s.manifest.before_method';
 
     public function __construct(ManifestInterface&ProxyInterface $proxyable, string $methodName, array $methodParams)
     {

@@ -10,7 +10,7 @@ use Proximity\ProxyInterface;
 
 class ContainerMethodEvent extends AbstractProxyableMethodEvent
 {
-    public const NAME = 'klass8s.container.before_method';
+    public const string NAME = 'klass8s.container.before_method';
 
     protected readonly ProxyableInterface $proxyable;
 
