@@ -13,7 +13,11 @@ final class OutputDirectory
     private const string YAML_DOCUMENT_SEPARATOR = "\n---\n";
 
     /**
-     * @var array<string, RenderedFile|OutputDirectory>
+     * Files are kept unrendered (RenderableFile holds the live resource object) until
+     * render()/dumpTo(), so listeners on ManifestsProcessedEvent can still mutate
+     * resources (e.g. checksum annotations) or add files before anything is serialized.
+     *
+     * @var array<string, RenderableFile|RenderedFile|OutputDirectory>
      */
     private array $files = [];
 
@@ -33,17 +37,15 @@ final class OutputDirectory
 
     public function addFile(RenderableFile|RenderedFile $file): void
     {
-        if ($file instanceof RenderableFile) {
-            $filename = $file->nameWithoutExtension.$this->renderer->fileExtension();
-            $contents = $this->renderer->render($file->resource);
-            $file = new RenderedFile($filename, $contents);
+        $filename = $file instanceof RenderableFile
+            ? $file->nameWithoutExtension.$this->renderer->fileExtension()
+            : $file->filename;
+
+        if (array_key_exists($filename, $this->files)) {
+            throw new \LogicException(sprintf('File "%s" already exists in the output directory "%s" .', $filename, $this->name));
         }
 
-        if (array_key_exists($file->filename, $this->files)) {
-            throw new \LogicException(sprintf('File "%s" already exists in the output directory "%s" .', $file->filename, $this->name));
-        }
-
-        $this->files[$file->filename] = $file;
+        $this->files[$filename] = $file;
     }
 
     public function dumpTo(string $directoryPath): void
@@ -57,11 +59,11 @@ final class OutputDirectory
             mkdir($path, 0o777, true);
         }
 
-        foreach ($this->files as $file) {
+        foreach ($this->files as $filename => $file) {
             if ($file instanceof OutputDirectory) {
                 $file->dumpTo($path);
             } else {
-                file_put_contents($path.'/'.$file->filename, $file->contents);
+                file_put_contents($path.'/'.$filename, $this->contentsOf($file));
             }
         }
     }
@@ -94,8 +96,13 @@ final class OutputDirectory
                 $file->renderTo($bucket, $fullName);
             } else {
                 $headline = "# File: {$fullName}\n";
-                $bucket[$fullName] = $headline.$file->contents;
+                $bucket[$fullName] = $headline.$this->contentsOf($file);
             }
         }
+    }
+
+    private function contentsOf(RenderableFile|RenderedFile $file): string
+    {
+        return $file instanceof RenderableFile ? $file->render($this->renderer) : $file->contents;
     }
 }
