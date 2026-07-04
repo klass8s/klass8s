@@ -13,4 +13,6 @@ enum Verb: string
     case Update = 'update';
     case Patch = 'patch';
     case Delete = 'delete';
+    case DeleteCollection = 'deletecollection';
+    case All = '*';
 }
