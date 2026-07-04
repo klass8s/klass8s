@@ -36,7 +36,7 @@ class ServiceAccountMaker extends AbstractResourceMaker
         $manifest->imagePullSecrets($imagePullSecrets);
         $manifest->secrets($secrets);
 
-        if ($automount = $manifest->automountServiceAccountToken()) {
+        if (null !== ($automount = $manifest->automountServiceAccountToken())) {
             $serviceAccount->setAutomountServiceAccountToken($automount);
         }
 

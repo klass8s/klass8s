@@ -11,7 +11,7 @@ use Klass8s\Manifest\AbstractManifest;
 
 abstract class AbstractServiceAccount extends AbstractManifest implements ServiceAccountInterface
 {
-    public function automountServiceAccountToken(): bool
+    public function automountServiceAccountToken(): ?bool
     {
         return false;
     }
