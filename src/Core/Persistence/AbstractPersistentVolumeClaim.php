@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Klass8s\Core\Persistence;
 
-use K8Schema\Api\Core\V1\PersistentVolume;
+use K8Schema\Api\Core\V1\PersistentVolumeClaim;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
 use Klass8s\Manifest\AbstractManifest;
 use Klass8s\Manifest\Reference\ManifestClassReference;
@@ -41,11 +41,11 @@ abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements
 
     public static function kind(): string
     {
-        return PersistentVolume::KIND;
+        return PersistentVolumeClaim::KIND;
     }
 
     public static function apiVersion(): string
     {
-        return PersistentVolume::API_VERSION;
+        return PersistentVolumeClaim::API_VERSION;
     }
 }
