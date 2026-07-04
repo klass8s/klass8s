@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\GatewayApi\HTTPRoute;
+
+use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
+use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteRulesConfigurator;
+
+/**
+ * Opinionated HTTPRoute that redirects all plain-HTTP traffic on a Gateway's
+ * HTTP listener to HTTPS.
+ *
+ * Convention: content routes attach to the Gateway's HTTPS listeners (parentRef
+ * sectionName), and this route alone owns the HTTP listener. ACME HTTP-01 solver
+ * routes are unaffected — their more specific path matches take precedence over
+ * this catch-all prefix under Gateway API route-matching rules.
+ */
+abstract class AbstractHttpsRedirectRoute extends AbstractHTTPRoute
+{
+    abstract public function gatewayName(): string;
+
+    /**
+     * Namespace of the target Gateway; null when the route lives in the same namespace.
+     */
+    public function gatewayNamespace(): ?string
+    {
+        return null;
+    }
+
+    public function httpListenerName(): string
+    {
+        return 'http';
+    }
+
+    public function redirectStatusCode(): int
+    {
+        return 301;
+    }
+
+    public static function shortName(): string
+    {
+        return 'https-redirect';
+    }
+
+    final public function parentRefs(ParentRefsConfigurator $parentRefs): void
+    {
+        $parentRef = $parentRefs->add($this->gatewayName())
+            ->sectionName($this->httpListenerName());
+
+        $namespace = $this->gatewayNamespace();
+        if (null !== $namespace) {
+            $parentRef->namespace($namespace);
+        }
+    }
+
+    final public function rules(HTTPRouteRulesConfigurator $rules): void
+    {
+        $rule = $rules->add();
+        $rule->match()->pathPrefix('/');
+        $rule->filter()->requestRedirect(scheme: 'https', statusCode: $this->redirectStatusCode());
+    }
+}

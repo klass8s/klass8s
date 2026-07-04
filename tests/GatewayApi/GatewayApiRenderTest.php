@@ -146,6 +146,39 @@ class GatewayApiRenderTest extends KernelTestCase
         $this->assertKlass8sAnnotations($route, 'gateway');
     }
 
+    public function testHttpsRedirectRouteRendering(): void
+    {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+        $documents = $this->parseYamlDocuments($yaml);
+
+        $route = $this->findDocumentByName($documents, 'HTTPRoute', 'gateway-https-redirect');
+        self::assertNotNull($route, 'https-redirect HTTPRoute document not found in rendered output');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $route['apiVersion']);
+
+        // Attaches only to the Gateway's HTTP listener, cross-namespace
+        self::assertCount(1, $route['spec']['parentRefs']);
+        self::assertSame('gateway-main', $route['spec']['parentRefs'][0]['name']);
+        self::assertSame('edge', $route['spec']['parentRefs'][0]['namespace']);
+        self::assertSame('http', $route['spec']['parentRefs'][0]['sectionName']);
+
+        // Catch-all: no hostnames restriction
+        self::assertArrayNotHasKey('hostnames', $route['spec']);
+
+        // Single rule: match everything, 301 to https
+        self::assertCount(1, $route['spec']['rules']);
+        $rule = $route['spec']['rules'][0];
+        self::assertSame('PathPrefix', $rule['matches'][0]['path']['type']);
+        self::assertSame('/', $rule['matches'][0]['path']['value']);
+        self::assertSame('RequestRedirect', $rule['filters'][0]['type']);
+        self::assertSame('https', $rule['filters'][0]['requestRedirect']['scheme']);
+        self::assertSame(301, $rule['filters'][0]['requestRedirect']['statusCode']);
+
+        $this->assertDefaultLabels($route, 'gateway', 'https-redirect');
+        $this->assertKlass8sAnnotations($route, 'gateway');
+    }
+
     public function testGRPCRouteRendering(): void
     {
         $output = $this->appProcessor->process('gateway');
@@ -279,6 +312,17 @@ class GatewayApiRenderTest extends KernelTestCase
     {
         foreach ($documents as $doc) {
             if (($doc['kind'] ?? null) === $kind) {
+                return $doc;
+            }
+        }
+
+        return null;
+    }
+
+    private function findDocumentByName(array $documents, string $kind, string $name): ?array
+    {
+        foreach ($documents as $doc) {
+            if (($doc['kind'] ?? null) === $kind && ($doc['metadata']['name'] ?? null) === $name) {
                 return $doc;
             }
         }

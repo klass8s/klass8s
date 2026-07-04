@@ -78,6 +78,10 @@ class GatewayApiTestKernel extends Kernel
                 ->setAutowired(true)
                 ->setAutoconfigured(true);
 
+            $container->register(Fixture\GatewayApp\TestHttpsRedirectRoute::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
             $container->register(Fixture\GatewayApp\TestGRPCRoute::class)
                 ->setAutowired(true)
                 ->setAutoconfigured(true);
