@@ -12,6 +12,7 @@ interface HelmReleaseInterface
     public ChartReference $chart { get; }
     public int $deployPriority { get; }
     public ?string $namespace { get; }
+    public bool $enabled { get; }
 
     /**
      * @return array<string, mixed>

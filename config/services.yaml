@@ -79,13 +79,17 @@ services:
 
     Klass8s\Runtime\DelegatingRuntimeStatusResolver:
         arguments:
-            $strategies: !tagged_iterator { tag: 'klass8s.runtime_status_resolver.strategy' }
+            $strategies: !tagged_iterator !php/const Klass8s\Bundle\Klass8sBundle::TAG_MANIFEST_RUNTIME_STATUS_RESOLVER
     Klass8s\Runtime\ManifestRuntimeStatusResolverInterface: '@Klass8s\Runtime\DelegatingRuntimeStatusResolver'
 
     Klass8s\Bundle\:
         resource: '../src/Bundle/'
         exclude:
           - '../src/Bundle/DependencyInjection/*'
+
+    Klass8s\Bundle\Runtime\StatusResolver\Strategy\EnabledForEnvStrategy:
+        arguments:
+            $env: '%kernel.environment%'
 
     Klass8s\Bundle\CodeGeneration\TemplateRenderer:
         arguments:
