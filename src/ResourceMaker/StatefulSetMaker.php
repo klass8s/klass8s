@@ -9,7 +9,6 @@ use K8Schema\Api\Apps\V1\StatefulSetSpec;
 use K8Schema\Api\Apps\V1\StatefulSetUpdateStrategy;
 use K8Schema\Api\Core\V1\PersistentVolumeClaim;
 use K8Schema\APIResourceInterface;
-use K8Schema\K8SApi;
 use Klass8s\Core\Pod\PodTemplateSpecProcessor;
 use Klass8s\Core\Service\ServiceInterface;
 use Klass8s\Core\StatefulSet\StatefulSetInterface;
@@ -43,8 +42,11 @@ class StatefulSetMaker extends AbstractResourceMaker
         $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias);
         $serviceName = $serviceOwningApp->resourceNameFromManifestClass($serviceReference->className, ServiceInterface::class);
 
-        if (K8SApi::versionIsHigherThanOrEqualTo('v1.33.1')) {
-            $sts = new StatefulSet();
+        // k8schema >= 1.33.1 builds the spec lazily (spec()); older generations take
+        // it in the constructor. Probe the object: K8SApi::versionIsHigherThanOrEqualTo()
+        // compares the un-normalized 'v1.34' constant and answers false.
+        $sts = new StatefulSet();
+        if (method_exists($sts, 'spec')) {
             $spec = $sts->spec();
             $spec->setServiceName($serviceName);
         } else {
