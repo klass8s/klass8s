@@ -79,7 +79,7 @@ class StatefulSetMaker extends AbstractResourceMaker
         }
 
         foreach ($manifest->volumeClaimTemplates() as $template) {
-            $template->app = $app;
+            $template->setApp($app);
             if (!str_contains($template::class, '@anonymous')) {
                 $template = $this->proxyFactory->makeProxy($template);
             }
