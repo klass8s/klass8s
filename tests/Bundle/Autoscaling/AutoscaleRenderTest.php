@@ -91,6 +91,17 @@ class AutoscaleRenderTest extends KernelTestCase
         self::assertSame('worker-queue', $spec['triggers'][0]['metadata']['queue']);
     }
 
+    public function testOneAttributeMayFanOutIntoSeveralTriggers(): void
+    {
+        $scaler = $this->findDocument('ScaledObject', 'autoscale-fanout-worker-scaler');
+        self::assertNotNull($scaler, 'ScaledObject for the fan-out workload not found');
+
+        $triggers = $scaler['spec']['triggers'];
+        self::assertCount(2, $triggers);
+        self::assertSame('queue-one', $triggers[0]['metadata']['queue']);
+        self::assertSame('queue-two', $triggers[1]['metadata']['queue']);
+    }
+
     public function testUnattributedDeploymentIsUntouched(): void
     {
         $deployment = $this->findDocument('Deployment', 'autoscale-plain');

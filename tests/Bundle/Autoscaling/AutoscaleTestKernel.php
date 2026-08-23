@@ -78,7 +78,15 @@ class AutoscaleTestKernel extends Kernel
                 ->setAutowired(true)
                 ->setAutoconfigured(true);
 
+            $container->register(Fixture\AutoscaleApp\FanOutWorkerDeployment::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
             $container->register(Fixture\TestLagTriggerResolver::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\TestFanOutTriggerResolver::class)
                 ->setAutowired(true)
                 ->setAutoconfigured(true);
         });

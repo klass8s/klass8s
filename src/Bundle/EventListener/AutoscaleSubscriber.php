@@ -100,7 +100,7 @@ final class AutoscaleSubscriber implements EventSubscriberInterface
             $context = new AutoscaleContext($manifest, $deployment, $app, $this->currentEnv);
             $triggers = [];
             foreach ($triggerAttributes as $triggerAttribute) {
-                $triggers[] = $this->triggerResolvers->resolve($triggerAttribute, $context);
+                $triggers = [...$triggers, ...$this->triggerResolvers->resolve($triggerAttribute, $context)];
             }
 
             $scaler = new AutoscaleScaledObject(
