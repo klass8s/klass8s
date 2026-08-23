@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Nats;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+
+/**
+ * KEDA `nats-jetstream` scaler: scales on the lag (`num_pending`) of one durable JetStream
+ * consumer, read from the NATS server's HTTP monitoring endpoint (port 8222 by default).
+ * The endpoint itself is unauthenticated — reachability is controlled at the network level.
+ */
+class NatsJetStreamTrigger extends AbstractTriggerBuilder
+{
+    private const string NATS_SERVER_MONITORING_ENDPOINT = 'natsServerMonitoringEndpoint';
+    private const string ACCOUNT = 'account';
+    private const string STREAM = 'stream';
+    private const string CONSUMER = 'consumer';
+    private const string LAG_THRESHOLD = 'lagThreshold';
+    private const string ACTIVATION_LAG_THRESHOLD = 'activationLagThreshold';
+    private const string USE_HTTPS = 'useHttps';
+
+    public function monitoringEndpoint(string $endpoint): static
+    {
+        return $this->set(self::NATS_SERVER_MONITORING_ENDPOINT, $endpoint);
+    }
+
+    /**
+     * NATS account name; KEDA defaults to '$G' when not set.
+     */
+    public function account(string $account): static
+    {
+        return $this->set(self::ACCOUNT, $account);
+    }
+
+    public function stream(string $stream): static
+    {
+        return $this->set(self::STREAM, $stream);
+    }
+
+    public function consumer(string $consumer): static
+    {
+        return $this->set(self::CONSUMER, $consumer);
+    }
+
+    public function lagThreshold(int $lagThreshold): static
+    {
+        return $this->set(self::LAG_THRESHOLD, $lagThreshold);
+    }
+
+    public function activationLagThreshold(int $activationLagThreshold): static
+    {
+        return $this->set(self::ACTIVATION_LAG_THRESHOLD, $activationLagThreshold);
+    }
+
+    public function useHttps(bool $value = true): static
+    {
+        return $this->set(self::USE_HTTPS, $value ? 'true' : 'false');
+    }
+
+    public static function forConsumer(string $stream, string $consumer): static
+    {
+        $instance = new static();
+        $instance->stream($stream)->consumer($consumer);
+
+        return $instance;
+    }
+
+    protected static function type(): string
+    {
+        return 'nats-jetstream';
+    }
+
+    protected function requiredKeys(): array
+    {
+        return [
+            self::NATS_SERVER_MONITORING_ENDPOINT,
+            self::STREAM,
+            self::CONSUMER,
+            self::LAG_THRESHOLD,
+        ];
+    }
+}

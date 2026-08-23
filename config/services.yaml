@@ -53,6 +53,14 @@ services:
     Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry:
         $builders: !tagged_iterator !php/const Klass8s\Bundle\Klass8sBundle::TAG_KEDA_TRIGGER_BUILDER
 
+    Klass8s\Autoscaling\AttributeAutoscalePolicy: ~
+    Klass8s\Autoscaling\AutoscalePolicyInterface: '@Klass8s\Autoscaling\AttributeAutoscalePolicy'
+
+    Klass8s\Autoscaling\ScalingTriggerResolversRegistry:
+        $resolvers: !tagged_iterator !php/const Klass8s\Bundle\Klass8sBundle::TAG_AUTOSCALING_TRIGGER_RESOLVER
+
+    Klass8s\Manifest\ManifestSpawner: ~
+
     Klass8s\Registry\AppRegistry: ~
     Klass8s\Registry\ManifestRegistry:
         public: true

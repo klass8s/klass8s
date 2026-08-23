@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture\Unit;
+
+use Klass8s\Autoscaling\Attribute\Autoscale;
+use Klass8s\Autoscaling\NonScalableWorkloadInterface;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Tests\Bundle\Autoscaling\Fixture\TestLagTrigger;
+
+/**
+ * Invalid on purpose (autoscale attribute on a non-scalable workload) — used by unit tests
+ * only, never registered in a kernel.
+ */
+#[Autoscale(maxReplicas: 4)]
+#[TestLagTrigger(queue: 'singleton-queue', lagThreshold: 8)]
+class NonScalableWorkerDeployment extends AbstractContainerDeployment implements NonScalableWorkloadInterface
+{
+    public static function shortName(): string
+    {
+        return 'non-scalable';
+    }
+
+    public function image(): Image
+    {
+        return Image::fromName('nginx')->setTag('1.29');
+    }
+}

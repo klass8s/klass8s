@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Autoscaling;
+
+use Klass8s\Autoscaling\Attribute\Autoscale;
+use Klass8s\Core\Deployment\DeploymentInterface;
+
+/**
+ * Decides the effective autoscaling of one attributed workload at render time.
+ *
+ * The default implementation ({@see AttributeAutoscalePolicy}) passes the attribute's values
+ * through unchanged. An opinionated bundle can alias this interface to its own policy to layer
+ * deployment-time concerns on top of the attribute defaults — e.g. "is the autoscaler installed
+ * in this environment at all" or per-environment replica-bound overrides from configuration.
+ */
+interface AutoscalePolicyInterface
+{
+    public function decide(Autoscale $attribute, DeploymentInterface $manifest): AutoscaleDecision;
+}

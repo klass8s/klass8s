@@ -35,6 +35,13 @@ final class OutputDirectory
         $this->files[$directory->name] = $directory;
     }
 
+    public function directory(string $name): ?self
+    {
+        $entry = $this->files[$name] ?? null;
+
+        return $entry instanceof self ? $entry : null;
+    }
+
     public function addFile(RenderableFile|RenderedFile $file): void
     {
         $filename = $file instanceof RenderableFile

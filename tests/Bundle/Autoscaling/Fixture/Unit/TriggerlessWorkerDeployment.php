@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture\Unit;
+
+use Klass8s\Autoscaling\Attribute\Autoscale;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+/**
+ * Invalid on purpose (autoscale attribute without any trigger attribute) — used by unit tests
+ * only, never registered in a kernel.
+ */
+#[Autoscale(maxReplicas: 4)]
+class TriggerlessWorkerDeployment extends AbstractContainerDeployment
+{
+    public static function shortName(): string
+    {
+        return 'triggerless';
+    }
+
+    public function image(): Image
+    {
+        return Image::fromName('nginx')->setTag('1.29');
+    }
+}

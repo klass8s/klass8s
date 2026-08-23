@@ -6,6 +6,7 @@ namespace Klass8s\Bundle;
 
 use Klass8s\App\AppInterface;
 use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuilderInterface;
+use Klass8s\Autoscaling\ScalingTriggerResolverInterface;
 use Klass8s\Bridge\Helm\Release\HelmReleaseInterface;
 use Klass8s\Bundle\Checksum\Calculator\ChecksumCalculatorInterface;
 use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
@@ -42,6 +43,7 @@ class Klass8sBundle extends AbstractBundle
     public const string TAG_CHECKSUM_CALCULATOR = 'klass8s.checksum_calculator';
     public const string TAG_MANIFEST_RUNTIME_STATUS_RESOLVER = 'klass8s.manifest.runtime_status_resolver.strategy';
     public const string TAG_KEDA_TRIGGER_BUILDER = 'klass8s.autoscaling.keda.trigger_builder';
+    public const string TAG_AUTOSCALING_TRIGGER_RESOLVER = 'klass8s.autoscaling.trigger_resolver';
     public const string TAG_HELM_RELEASE = 'klass8s.helm.release';
 
     public function build(ContainerBuilder $container): void
@@ -107,6 +109,10 @@ class Klass8sBundle extends AbstractBundle
         $container
             ->registerForAutoconfiguration(TriggerBuilderInterface::class)
             ->addTag(self::TAG_KEDA_TRIGGER_BUILDER);
+
+        $container
+            ->registerForAutoconfiguration(ScalingTriggerResolverInterface::class)
+            ->addTag(self::TAG_AUTOSCALING_TRIGGER_RESOLVER);
 
         $container
             ->registerForAutoconfiguration(HelmReleaseInterface::class)
