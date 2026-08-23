@@ -9,6 +9,16 @@ use PHPUnit\Framework\TestCase;
 
 class NatsJetStreamTriggerTest extends TestCase
 {
+    public function testSchemeInMonitoringEndpointFailsTheBuild(): void
+    {
+        // KEDA prepends http(s):// itself — a scheme here means a runtime
+        // parse error in every scaling cycle (found live on the dev estate).
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessageMatches('/without a scheme/');
+        NatsJetStreamTrigger::forConsumer('S', 'c')
+            ->monitoringEndpoint('http://nats.operations.svc.cluster.local:8222');
+    }
+
     public function testBuildsTheKedaTrigger(): void
     {
         $trigger = NatsJetStreamTrigger::forConsumer('MEDIA_CONVERSION', 'conversion_video')

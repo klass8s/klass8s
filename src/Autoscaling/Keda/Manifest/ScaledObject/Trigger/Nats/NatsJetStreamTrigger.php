@@ -21,8 +21,18 @@ class NatsJetStreamTrigger extends AbstractTriggerBuilder
     private const string ACTIVATION_LAG_THRESHOLD = 'activationLagThreshold';
     private const string USE_HTTPS = 'useHttps';
 
+    /**
+     * host:port of the NATS HTTP monitoring endpoint — WITHOUT a scheme: KEDA
+     * builds the URL itself and prepends http:// (or https:// per useHttps),
+     * so a scheme here produces "http://http://…" and a runtime parse error
+     * in every scaling cycle.
+     */
     public function monitoringEndpoint(string $endpoint): static
     {
+        if (str_contains($endpoint, '://')) {
+            throw new \LogicException(sprintf('NATS monitoring endpoint must be host:port without a scheme — KEDA prepends http(s):// itself (see useHttps). Got "%s".', $endpoint));
+        }
+
         return $this->set(self::NATS_SERVER_MONITORING_ENDPOINT, $endpoint);
     }
 
