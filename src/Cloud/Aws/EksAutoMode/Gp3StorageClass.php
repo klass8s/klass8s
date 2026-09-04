@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Cloud\Aws\EksAutoMode;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Persistence\AbstractStorageClass;
+use Klass8s\Core\Persistence\AllowedTopologiesConfigurator;
+use Klass8s\Core\Persistence\VolumeBindingMode;
+use Klass8s\Manifest\FullNameAwareInterface;
+
+/**
+ * The cluster's default StorageClass on EKS Auto Mode: gp3, encrypted with the
+ * account's EBS key, bound at first consumer so the volume lands in the AZ of
+ * the pod that claims it (docs.aws.amazon.com/eks/latest/userguide/create-storage-class.html).
+ * Auto Mode ships the EBS CSI capability but creates NO StorageClass — without
+ * one every PersistentVolumeClaim that relies on the cluster default stays Pending.
+ *
+ * `allowedTopologies` pins the class to Auto Mode nodes: a pod that needs a
+ * volume of this class is never scheduled onto a node the Auto Mode CSI cannot
+ * reach (the AWS-documented guard for mixed clusters).
+ *
+ * Ready to use: subclass it inside the app that should own the object (manifest
+ * discovery is per app namespace) and override nothing. The resource is named
+ * `gp3` — the conventional name operators and every EBS guide expect
+ * (`kubectl get sc gp3`) — regardless of the app prefix.
+ */
+class Gp3StorageClass extends AbstractStorageClass implements FullNameAwareInterface
+{
+    /** The Auto Mode block-storage capability — not the self-managed `ebs.csi.aws.com` driver. */
+    public const string PROVISIONER = 'ebs.csi.eks.amazonaws.com';
+
+    /** The node label Auto Mode puts on every node it manages. */
+    public const string COMPUTE_TYPE_LABEL = 'eks.amazonaws.com/compute-type';
+
+    public static function shortName(): string
+    {
+        return 'gp3';
+    }
+
+    public function fullName(): string
+    {
+        return 'gp3';
+    }
+
+    public function provisioner(): string
+    {
+        return self::PROVISIONER;
+    }
+
+    public function parameters(StringMap $parameters): void
+    {
+        $parameters
+            ->add('type', 'gp3')
+            ->add('encrypted', 'true');
+    }
+
+    public function volumeBindingMode(): VolumeBindingMode
+    {
+        return VolumeBindingMode::WaitForFirstConsumer;
+    }
+
+    public function allowVolumeExpansion(): bool
+    {
+        return true;
+    }
+
+    public function allowedTopologies(AllowedTopologiesConfigurator $topologies): void
+    {
+        $topologies->addTerm()->matchLabel(self::COMPUTE_TYPE_LABEL, 'auto');
+    }
+
+    public function isDefaultClass(): bool
+    {
+        return true;
+    }
+}

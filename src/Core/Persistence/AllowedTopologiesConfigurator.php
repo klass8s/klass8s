@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Klass8s\Core\Persistence;
+
+use K8Schema\Api\Core\V1\TopologySelectorTerm;
+use K8Schema\Api\Core\V1\TopologySelectorTermList;
+
+/**
+ * `allowedTopologies` of a StorageClass — restricts where volumes of the class
+ * may be provisioned. Each term is a set of node-label requirements; a volume
+ * lands only in a topology matching at least one term.
+ */
+readonly class AllowedTopologiesConfigurator
+{
+    public function __construct(private TopologySelectorTermList $terms)
+    {
+    }
+
+    public function addTerm(): AllowedTopologyTermConfigurator
+    {
+        $term = new TopologySelectorTerm();
+        $this->terms->add($term);
+
+        return new AllowedTopologyTermConfigurator($term);
+    }
+}
