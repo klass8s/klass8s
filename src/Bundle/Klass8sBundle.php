@@ -11,6 +11,7 @@ use Klass8s\Bridge\Helm\Release\HelmReleaseInterface;
 use Klass8s\Bundle\Checksum\Calculator\ChecksumCalculatorInterface;
 use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
 use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\ContainerImageMiddlewarePriorityPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetReplicasPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetResourcesPass;
 use Klass8s\Bundle\DependencyInjection\Compiler\DefaultMetadataLabelsPass;
@@ -54,6 +55,7 @@ class Klass8sBundle extends AbstractBundle
 
         $container
             ->addCompilerPass(new AppsPass())
+            ->addCompilerPass(new ContainerImageMiddlewarePriorityPass())
             ->addCompilerPass(new DefaultMetadataLabelsPass())
             ->addCompilerPass(new DefaultSelectorLabelsPass())
             ->addCompilerPass(new DefaultServiceSelectorPass())

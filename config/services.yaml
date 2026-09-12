@@ -78,7 +78,8 @@ services:
 
     Klass8s\Core\Container\ContainerMaker:
         arguments:
-            $middlewares: !tagged_iterator { tag: 'klass8s.middleware.container_image', default_priority_method: 'priority' }
+            # Ordered by the tag's priority attribute; ContainerImageMiddlewarePriorityPass writes it from each middleware's priority().
+            $middlewares: !tagged_iterator { tag: 'klass8s.middleware.container_image' }
 
     Klass8s\Proxy\ProxyFactory:
         arguments:
