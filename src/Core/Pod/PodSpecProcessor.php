@@ -9,6 +9,7 @@ use K8Schema\Api\Core\V1\PodSpec;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\Container\ContainerInterface;
 use Klass8s\Core\Container\ContainerMakerInterface;
+use Klass8s\Core\Container\Env\ExternalConfigurationRegistry;
 use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
 use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
 use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
@@ -28,6 +29,7 @@ final readonly class PodSpecProcessor
         private AppRegistry $appRegistry,
         private EventDispatcherInterface $dispatcher,
         private ManifestClassReferenceConverter $referencesService,
+        private ExternalConfigurationRegistry $externalConfigurations,
     ) {
     }
 
@@ -35,7 +37,7 @@ final readonly class PodSpecProcessor
     {
         $this->processAffinity($builder, $spec);
 
-        $volumes = new VolumesConfigurator($spec->volumes(), $app, $this->appRegistry);
+        $volumes = new VolumesConfigurator($spec->volumes(), $app, $this->appRegistry, $this->externalConfigurations);
         $builder->volumes($volumes);
 
         foreach ($builder->containers() as $containerBuilder) {

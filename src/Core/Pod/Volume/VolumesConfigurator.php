@@ -8,6 +8,7 @@ use K8Schema\Api\Core\V1\Volume;
 use K8Schema\Api\Core\V1\VolumeList;
 use Klass8s\App\AppInterface;
 use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Container\Env\ExternalConfigurationRegistry;
 use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
 use Klass8s\Core\Pod\Volume\Builder\ConfigMapVolumeBuilder;
 use Klass8s\Core\Pod\Volume\Builder\DownwardAPIVolumeBuilder;
@@ -24,7 +25,8 @@ readonly class VolumesConfigurator
     public function __construct(
         private VolumeList $volumes,
         private AppInterface $app,
-        private AppRegistry $registry
+        private AppRegistry $registry,
+        private ExternalConfigurationRegistry $externalConfigurations,
     ) {
     }
 
@@ -38,8 +40,19 @@ readonly class VolumesConfigurator
         return $this->fromConfigMap($volumeName, $cmName);
     }
 
-    public function fromConfigMap(string $volumeName, string $configMapName): ConfigMapVolumeBuilder
+    /**
+     * @param bool $external The ConfigMap is not rendered by this project — it is created by an
+     *                       operator, another chart or a cluster administrator. Klass8s then knows
+     *                       the name but never the content: the render stops validating that a
+     *                       manifest of that name exists, and the volume-sources checksum leaves
+     *                       it out (it cannot fingerprint bytes it does not produce).
+     */
+    public function fromConfigMap(string $volumeName, string $configMapName, bool $external = false): ConfigMapVolumeBuilder
     {
+        if ($external) {
+            $this->externalConfigurations->addConfigMap($configMapName);
+        }
+
         return $this->initBuilder(new ConfigMapVolumeBuilder($configMapName), $volumeName);
     }
 
@@ -87,8 +100,20 @@ readonly class VolumesConfigurator
         return $this->fromSecret($volumeName, $secretName);
     }
 
-    public function fromSecret(string $volumeName, string $secretName): SecretVolumeBuilder
+    /**
+     * @param bool $external The Secret is not rendered by this project — the canonical case is a
+     *                       Secret materialised by the External Secrets Operator from an
+     *                       `ExternalSecret` pointer. Klass8s knows the name and never the content,
+     *                       so the volume-sources checksum leaves it out: a rotation in the secret
+     *                       store changes no manifest and rolls no pod (that is ESO's job, not the
+     *                       renderer's).
+     */
+    public function fromSecret(string $volumeName, string $secretName, bool $external = false): SecretVolumeBuilder
     {
+        if ($external) {
+            $this->externalConfigurations->addSecret($secretName);
+        }
+
         return $this->initBuilder(new SecretVolumeBuilder($secretName), $volumeName);
     }
 
@@ -102,7 +127,7 @@ readonly class VolumesConfigurator
 
     public function withExternalApp(string $appAlias): VolumesConfigurator
     {
-        return new static($this->volumes, $this->registry->get($appAlias), $this->registry);
+        return new static($this->volumes, $this->registry->get($appAlias), $this->registry, $this->externalConfigurations);
     }
 
     private function createVolume(string $name): Volume

@@ -33,10 +33,13 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
 
     public function calculate(Job|CronJob|Deployment|StatefulSet $workload): ChecksumAnnotation
     {
-        $containers = $this->podTemplateGetter->get($workload)->spec()->containers();
+        $podSpec = $this->podTemplateGetter->get($workload)->spec();
 
         $envSources = [];
-        foreach ($containers->all() as $container) {
+        // Init containers count: a setup step that reads a rendered ConfigMap is as stale after a
+        // config change as the main container is, and it is the pod template it rides in that has
+        // to change for Kubernetes to roll anything at all.
+        foreach ([...$podSpec->containers()->all(), ...$podSpec->initContainers()->all()] as $container) {
             $envSources += $this->envVarSources($container);
             $envSources += $this->envFromSources($container);
         }
@@ -56,13 +59,7 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
                 throw new \LogicException('EnvFromSource instance must contain either "configMapRef" or "secretRef" field');
             }
 
-            $isExternal = match ($kind) {
-                ConfigMap::KIND => $this->externalConfigurations->hasConfigMap($name),
-                Secret::KIND => $this->externalConfigurations->hasSecret($name),
-                default => throw new \LogicException(sprintf('Env source must be either ConfigMap or Secret, but got env source with kind "%s".', $kind)),
-            };
-
-            if ($isExternal) {
+            if ($this->isExternal($name, $kind)) {
                 continue;
             }
 
@@ -88,6 +85,10 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
                 continue;
             }
 
+            if ($this->isExternal($name, $kind)) {
+                continue;
+            }
+
             $source = $this->getSource($name, $kind);
             $sources[spl_object_hash($source)] = $source;
         }
@@ -95,13 +96,37 @@ readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
         return $sources;
     }
 
+    /**
+     * A source declared `external: true` is a name without bytes: the object is created outside
+     * this project (an ExternalSecret target, an operator, another chart), so the render has
+     * nothing to fingerprint and the checksum leaves it out.
+     */
+    private function isExternal(string $name, string $kind): bool
+    {
+        return match ($kind) {
+            ConfigMap::KIND => $this->externalConfigurations->hasConfigMap($name),
+            Secret::KIND => $this->externalConfigurations->hasSecret($name),
+            default => throw new \LogicException(sprintf('Env source must be either ConfigMap or Secret, but got env source with kind "%s".', $kind)),
+        };
+    }
+
     private function getSource(string $name, string $kind): ConfigMap|Secret
     {
         if (!$this->registry->has($name, $kind)) {
-            throw new \LogicException(sprintf('One of manifests uses "%s" as an env source, but no %s with such name was found', $name, $kind));
+            throw new \LogicException(sprintf(
+                'One of manifests uses "%s" as an env source, but no %s with such name is rendered by this project. '
+                .'If the %s is created outside the project (an ExternalSecret target, an operator, another chart), declare '
+                .'it as external — $env->%s("%s", external: true) — so the render stops looking for it and the '
+                .'env-sources checksum leaves it out.',
+                $name,
+                $kind,
+                $kind,
+                ConfigMap::KIND === $kind ? 'addConfigMap' : 'addSecret',
+                $name,
+            ));
         }
 
-        $apiResource =  $this->registry->get($name, $kind);
+        $apiResource = $this->registry->get($name, $kind);
         assert($apiResource instanceof ConfigMap || $apiResource instanceof Secret, new \TypeError('$apiResource must be ConfigMap or Secret instance'));
 
         return $apiResource;

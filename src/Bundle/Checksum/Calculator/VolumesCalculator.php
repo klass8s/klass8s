@@ -13,6 +13,7 @@ use K8Schema\Api\Batch\V1\CronJob;
 use K8Schema\Api\Batch\V1\Job;
 use K8Schema\Api\Core\V1\ConfigMap;
 use K8Schema\Api\Core\V1\Secret;
+use Klass8s\Core\Container\Env\ExternalConfigurationRegistry;
 use Klass8s\Renderer\JsonRenderer;
 
 readonly class VolumesCalculator implements ChecksumCalculatorInterface
@@ -25,6 +26,7 @@ readonly class VolumesCalculator implements ChecksumCalculatorInterface
         private PodTemplateGetter $podTemplateGetter,
         private APIResourceRegistry $registry,
         private JsonRenderer $renderer,
+        private ExternalConfigurationRegistry $externalConfigurations,
     ) {
     }
 
@@ -42,6 +44,10 @@ readonly class VolumesCalculator implements ChecksumCalculatorInterface
                 continue;
             }
 
+            if ($this->isExternal($name, $kind)) {
+                continue;
+            }
+
             $source = $this->getSource($name, $kind);
             $volumeSources[spl_object_hash($source)] = $source;
         }
@@ -49,10 +55,35 @@ readonly class VolumesCalculator implements ChecksumCalculatorInterface
         return new ChecksumAnnotation(self::ANNOTATION_NAME, $this->checksum($volumeSources));
     }
 
+    /**
+     * A source declared `external: true` is a name without bytes: the object is created outside
+     * this project (an operator, another chart, a cluster administrator), so the render has nothing
+     * to fingerprint and the checksum leaves it out — exactly as {@see EnvSourcesCalculator} does
+     * for external env sources.
+     */
+    private function isExternal(string $name, string $kind): bool
+    {
+        return match ($kind) {
+            ConfigMap::KIND => $this->externalConfigurations->hasConfigMap($name),
+            Secret::KIND => $this->externalConfigurations->hasSecret($name),
+            default => throw new \LogicException(sprintf('Volume source must be either ConfigMap or Secret, but got volume source with kind "%s".', $kind)),
+        };
+    }
+
     private function getSource(string $name, string $kind): ConfigMap|Secret
     {
         if (!$this->registry->has($name, $kind)) {
-            throw new \LogicException(sprintf('One of manifests uses "%s" as a volume source, but no %s with such name was found', $name, $kind));
+            throw new \LogicException(sprintf(
+                'One of manifests mounts "%s" as a volume source, but no %s with such name is rendered by this project. '
+                .'If the %s is created outside the project (an ExternalSecret target, an operator, another chart), declare '
+                .'it as external — $volumes->%s($volumeName, "%s", external: true) — so the render stops looking for it and '
+                .'the volume-sources checksum leaves it out.',
+                $name,
+                $kind,
+                $kind,
+                ConfigMap::KIND === $kind ? 'fromConfigMap' : 'fromSecret',
+                $name,
+            ));
         }
 
         return $this->registry->get($name, $kind);

@@ -36,6 +36,7 @@
         "cs": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
         "cs:check": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer check",
         "tools:update": "composer update -d tools/php-cs-fixer --no-scripts",
+        "test": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests",
         "test:bundle": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests/Bundle"
     },
     "repositories": [
