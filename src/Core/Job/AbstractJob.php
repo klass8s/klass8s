@@ -7,6 +7,7 @@ namespace Klass8s\Core\Job;
 use K8Schema\Api\Batch\V1\Job;
 use K8Schema\Api\Core\V1\PodSpec;
 use K8Schema\Collection\StringMap;
+use Klass8s\Core\Job\FailurePolicy\PodFailurePolicyConfigurator;
 use Klass8s\Core\LabelSelector\SelectorConfigurator;
 use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
 use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
@@ -91,6 +92,10 @@ abstract class AbstractJob extends AbstractManifest implements JobInterface
     public function suspend(): bool
     {
         return false;
+    }
+
+    public function podFailurePolicy(PodFailurePolicyConfigurator $policy): void
+    {
     }
 
     public function serviceAccountName(): ?string

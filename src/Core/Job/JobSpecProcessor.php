@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Klass8s\Core\Job;
 
 use K8Schema\Api\Batch\V1\JobSpec;
+use K8Schema\Api\Batch\V1\PodFailurePolicy;
 use Klass8s\App\AppInterface;
+use Klass8s\Core\Job\FailurePolicy\PodFailurePolicyConfigurator;
 use Klass8s\Core\Pod\PodTemplateSpecProcessor;
 
 final readonly class JobSpecProcessor
@@ -52,5 +54,12 @@ final readonly class JobSpecProcessor
         }
 
         $spec->setSuspend($manifest->suspend());
+
+        $policy = new PodFailurePolicy();
+        $configurator = new PodFailurePolicyConfigurator($policy);
+        $manifest->podFailurePolicy($configurator);
+        if (!$configurator->isEmpty()) {
+            $spec->setPodFailurePolicy($policy);
+        }
     }
 }
