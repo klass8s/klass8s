@@ -164,6 +164,7 @@ class Klass8sExtension extends Extension
         $container->setParameter('klass8s.config.apps', $config['apps']);
         $container->setParameter('klass8s.config.helm', $config['helm'] ?? []);
         $container->setParameter('klass8s.config.helm.repositories', $config['helm']['repositories'] ?? []);
+        $container->setParameter('klass8s.config.helm.chart_cache_dir', $config['helm']['chart_cache_dir'] ?? null);
     }
 
     private function setupTemplatesDir(ContainerBuilder $container): static

@@ -20,6 +20,7 @@ services:
             $deploymentReplicasPoliciesEnabled: '%klass8s.deployment.replicas.policies.enabled%'
             $deploymentReplicasPoliciesEnv: '%klass8s.deployment.replicas.policies.env%'
             $helmRepos: '%klass8s.config.helm.repositories%'
+            $chartCacheDir: '%klass8s.config.helm.chart_cache_dir%'
 
     Klass8s\App\AppProcessor: ~
     Klass8s\App\AppManager: ~

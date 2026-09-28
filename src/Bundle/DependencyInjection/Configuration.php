@@ -176,6 +176,10 @@ readonly class Configuration implements ConfigurationInterface
         $node
             ->addDefaultsIfNotSet()
             ->children()
+                ->stringNode('chart_cache_dir')
+                    ->defaultNull()
+                    ->info('Where pulled charts are kept between renders. Null: KLASS8S_CHART_CACHE_DIR, else $XDG_CACHE_HOME/klass8s/charts, else ~/.cache/klass8s/charts, else the kernel cache dir (see ChartCacheDir).')
+                ->end()
                 ->arrayNode('repositories')
                     ->useAttributeAsKey('name')
                     ->defaultValue([])
