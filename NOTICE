@@ -1,0 +1,35 @@
+# Third-party notices
+
+Klass8s continues three open-source projects published under the MIT License:
+
+- `dealroadshow/k8s-framework` — https://github.com/petr-buchin/k8s-framework
+- `dealroadshow/k8s-bundle` — https://github.com/petr-buchin/k8s-bundle
+- `dealroadshow/keda-bundle` — the KEDA autoscaling integration
+
+Klass8s merged the framework, its Symfony bundle and the KEDA bundle into one package, renamed it
+and extended it. The portions that come from those projects remain under the MIT License. Its
+notice follows exactly as `k8s-framework` and `k8s-bundle` publish it; `keda-bundle` declared the
+MIT License in its `composer.json` and shipped no license file of its own, and the same publisher's
+notice covers it.
+
+---
+
+Copyright (c) Finsight inc
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
