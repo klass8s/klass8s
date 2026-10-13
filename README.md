@@ -9,14 +9,14 @@ by the [tequila/k8schema-generator](https://github.com/tequila/k8schema-generato
 `tequila/k8schema` has a minor release for every supported Kubernetes API version
 (usually, four latest minor releases). Check your Kubernetes version 
 and install a corresponding version of `tequila/k8schema` - for example, 
-if you're using Kubernetes v1.32, install `tequila/k8schema` as follows:
+if you're using Kubernetes v1.35, install `tequila/k8schema` as follows:
 
 ```bash
-composer require tequila/k8schema:~1.32.0
+composer require tequila/k8schema:~1.35.8
 ```
 
 > [!IMPORTANT]
-> Always use the tilde (`~`) operator with all three version numbers (e.g., `~1.32.0`) 
+> Always use the tilde (`~`) operator with all three version numbers (e.g., `~1.35.8`) 
 > when installing `tequila/k8schema`. 
 > Using the caret (`^`) operator will automatically update the library to the newest minor Kubernetes version, 
 > which may break your manifests if you're not using the newest version of Kubernetes.
