@@ -8,8 +8,11 @@ wins.
 ## What a pull request must satisfy
 
 - It targets `main`, never the branch of another open pull request.
-- `composer test` and `composer cs:check` pass (`composer install` installs the style tool with
-  the rest; `composer tools:install` does it alone).
+- `composer test`, `composer check` and `composer cs:check` pass (`composer install` installs
+  the style tool with the rest; `composer tools:install` does it alone).
+- Klass8s is written in Phaenon: a change to a `.phn` is committed with the `.src/` the build wrote
+  for it. `composer build:check`, part of `composer cs:check`, fails until it is, and also when the
+  package archive would leave out a file the package needs.
 - A change in behaviour comes with a test that fails without it. The tests render manifests and
   compare the result; they need no cluster, and a test must not start one.
 - What a change makes wrong in `README.md` or `docs/` is corrected in the same pull request.
@@ -17,7 +20,7 @@ wins.
   (`type(scope): subject`, `!` for a change that breaks existing manifest classes); each commit has a
   body that says what changed and why. Pull requests are squash-merged: the title becomes the commit
   on `main`.
-- The constraint on `tequila/k8schema` keeps the tilde form (`~1.35.8`) for every Kubernetes minor
+- The constraint on `klass8s/k8schema` keeps the tilde form (`~1.35.8`) for every Kubernetes minor
   it accepts.
 - Manifests stay proxiable. Klass8s wraps every manifest in a Proximity proxy to dispatch the events
   around its methods: a `final` manifest class cannot be proxied at all, and a `final` method is

@@ -7,7 +7,7 @@ private vulnerability reporting: the repository's **Security** tab, **Report a v
 (<https://github.com/klass8s/klass8s/security/advisories/new>).
 
 Say what is affected (a manifest type, a configurator, the bundle's configuration or commands, the
-YAML rendered for a given class), the version (`composer show tequila/klass8s`), and the class or
+YAML rendered for a given class), the version (`composer show klass8s/klass8s`), and the class or
 the steps that show the problem. The fix is coordinated in the advisory, and the advisory is
 published with the release that carries it.
 

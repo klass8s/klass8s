@@ -7,7 +7,7 @@ satisfy to be merged.
 
 - **A bug:** open an issue with the smallest manifest class that shows it, the command you ran, the
   YAML Klass8s rendered and the YAML you expected, and the versions of PHP, Klass8s and k8schema
-  (`composer show tequila/klass8s tequila/k8schema`).
+  (`composer show klass8s/klass8s klass8s/k8schema`).
 - **A feature or a change of behaviour:** open an issue to discuss it before writing the code. A
   change to what Klass8s renders for an existing class reaches every user on their next update, so it
   is decided before it is built.
@@ -19,9 +19,16 @@ You need PHP 8.5 and Composer.
 
 ```bash
 composer install                         # also installs the code-style tool from its own lock (tools:install)
-composer test                            # the PHPUnit suite
-composer cs:check                        # the code-style check; `composer cs` fixes what it reports
+composer test                            # the PHPUnit suite, run on the compiled tests
+composer cs:check                        # the format check, then build:check; `composer cs` formats
+composer check                           # the Phaenon type check
 ```
+
+Klass8s is written in [Phaenon](https://phaenon.dev): the sources are the `.phn` files in `src/`
+and `tests/`, and `composer install` compiles them into `.src/` and `.tests/`. `.src/` is
+committed, because it is what a project that installs Klass8s loads: a change to a `.phn` is
+committed together with the `.src/` the build wrote for it, and `composer build:check` (part of
+`composer cs:check`) fails until it is.
 
 The suite renders manifests in memory and compares the result; it needs no cluster.
 
@@ -29,7 +36,8 @@ The suite renders manifests in memory and compares the result; it needs no clust
 
 - It targets `main`, never the branch of another open pull request. A change that depends on an
   unmerged one goes into the same pull request, or waits for that one to merge.
-- `composer test` and `composer cs:check` pass.
+- `composer test`, `composer check` and `composer cs:check` pass, and the committed `.src/` is
+  what the build writes.
 - A change in behaviour comes with a test that fails without it, and with the documentation it makes
   wrong corrected in the same pull request.
 - The title is a [Conventional Commits](https://www.conventionalcommits.org) header,
@@ -37,7 +45,7 @@ The suite renders manifests in memory and compares the result; it needs no clust
   for a change that breaks existing manifest classes. Pull requests are squash-merged, so the title
   becomes the commit on `main` and the line in the changelog. Every commit in the pull request is a
   Conventional Commit too, with a body that says what changed and why.
-- The constraint on `tequila/k8schema` keeps the tilde form (`~1.35.8`) for every Kubernetes minor it
+- The constraint on `klass8s/k8schema` keeps the tilde form (`~1.35.8`) for every Kubernetes minor it
   accepts: a caret would let a routine update move a project to another Kubernetes API.
 
 ## License

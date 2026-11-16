@@ -23,6 +23,6 @@ labels: bug
 
 **Versions**
 
-- `composer show tequila/klass8s tequila/k8schema`:
+- `composer show klass8s/klass8s klass8s/k8schema`:
 - `php -v`:
 - Kubernetes version the manifests target:

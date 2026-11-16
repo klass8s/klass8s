@@ -10,10 +10,7 @@
 /tools export-ignore
 /var export-ignore
 /.github export-ignore
-/.claude export-ignore
-/.serena export-ignore
 /AGENTS.md export-ignore
-/CLAUDE.md export-ignore
 /.editorconfig export-ignore
 /.php-cs-fixer.dist.php export-ignore
 /.pre-commit-config.yaml export-ignore
