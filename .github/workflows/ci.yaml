@@ -1,0 +1,76 @@
+# The Phaenon type check, the format and compiled-outputs gate, and the suite against every
+# Kubernetes minor of k8schema.
+#
+# Every job runs on a GitHub-hosted runner with a read-only GITHUB_TOKEN and names no stored
+# secret, so a pull request from a fork runs exactly what a branch runs.
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions: {}
+
+concurrency:
+    group: ci-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    checks:
+        name: Type check, format, compiled outputs
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+            - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+              with:
+                  php-version: '8.5'
+                  tools: composer
+                  coverage: none
+            - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: ~/.cache/composer/files
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.json', 'tools/*/composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+            # The phaenon/phn plugin compiles src/ into .src/ and tests/ into .tests/ during the
+            # install; build:check (inside cs:check) then fails when the committed .src/ is not
+            # what the build wrote, or when the package archive would drop a compiled file.
+            - run: composer update --no-interaction --no-progress
+            - run: composer install -d tools/php-cs-fixer --no-interaction --no-progress
+            - run: vendor/bin/phn check --format=github
+            - run: composer cs:check
+
+    tests:
+        name: PHPUnit (k8schema ${{ matrix.k8schema }})
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                # Every Kubernetes minor composer.json accepts.
+                k8schema: ['~1.34.8', '~1.35.8', '~1.36.1', '~1.37.1']
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+            - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+              with:
+                  php-version: '8.5'
+                  tools: composer
+                  coverage: none
+            - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: ~/.cache/composer/files
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.json') }}-${{ matrix.k8schema }}
+                  restore-keys: composer-${{ runner.os }}-
+            - run: composer require --no-update --no-interaction "klass8s/k8schema:${{ matrix.k8schema }}"
+            - run: composer update --no-interaction --no-progress
+            - run: composer test
