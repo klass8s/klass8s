@@ -1,10 +1,15 @@
 {
-    "name": "tequila/klass8s",
+    "name": "klass8s/klass8s",
     "description": "Define Kubernetes manifests as PHP classes",
     "type": "symfony-bundle",
     "license": "MIT",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
+    "support": {
+        "issues": "https://github.com/klass8s/klass8s/issues",
+        "source": "https://github.com/klass8s/klass8s",
+        "security": "https://github.com/klass8s/klass8s/security/policy",
+        "docs": "https://klass8s.dev"
+    },
+    "homepage": "https://klass8s.dev",
     "authors": [
         {
             "name": "Petr Buchin",
@@ -24,8 +29,11 @@
         "symfony/string": ">=8.0",
         "symfony/process": "^8.0",
         "symfony/event-dispatcher-contracts": "^3.0",
-        "tequila/k8schema": "~1.34.8 || ~1.35.8 || ~1.36.1 || ~1.37.1",
-        "tequila/proximity": "dev-main"
+        "klass8s/k8schema": "~1.34.8 || ~1.35.8 || ~1.36.1 || ~1.37.1",
+        "klass8s/proximity": "^0.2"
+    },
+    "replace": {
+        "tequila/klass8s": "self.version"
     },
     "autoload": {
         "psr-4": {
@@ -75,12 +83,6 @@
         "test": "Run the suite on the compiled tests",
         "test:bundle": "Run the bundle's part of the suite"
     },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://composer.tequila.dev/"
-        }
-    ],
     "require-dev": {
         "phaenon/phn": "0.7.0",
         "phpunit/phpunit": "^13.0",
