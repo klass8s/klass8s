@@ -1,0 +1,26 @@
+namespace Klass8s\Core\Pod;
+
+use K8Schema\Api\Core\V1\PodTemplateSpec;
+use Klass8s\App\AppInterface;
+use Klass8s\Event\Events;
+use Klass8s\Event\PodTemplateSpecGeneratedEvent;
+use Klass8s\Manifest\MetadataConfigurator;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+final readonly class PodTemplateSpecProcessor
+{
+    __construct(
+        private PodSpecProcessor $specProcessor,
+        private EventDispatcherInterface $dispatcher,
+    ) {}
+
+    process(PodTemplateSpecInterface $builder, PodTemplateSpec $templateSpec, AppInterface $app): void {
+        $meta = $templateSpec->metadata();
+        $metaConfigurator = new MetadataConfigurator($meta->labels(), $meta->annotations());
+        $builder->metadata($metaConfigurator);
+
+        $this->specProcessor->process($builder, $templateSpec->spec(), $app);
+
+        Events::dispatch($this->dispatcher, new PodTemplateSpecGeneratedEvent($templateSpec, $builder), PodTemplateSpecGeneratedEvent::NAME);
+    }
+}

@@ -1,0 +1,129 @@
+namespace Klass8s\Tests\Render;
+
+use Klass8s\App\AppManager;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+/** What the keys of an app in klass8s.yaml do to its render. */
+final class AppConfigRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    protected static getKernelClass(): string => RenderTestKernel::class;
+
+    testTheAutoSetOptionsTakeReplicasAndResourcesFromTheConfig(): void {
+        $worker = RenderedResource::in($this->render('config'), 'Deployment', 'config-worker');
+
+        self::assertSame(3, $worker->get('spec', 'replicas'));
+        self::assertSame('250m', $worker->get('spec', 'template', 'spec', 'containers', 0, 'resources', 'requests', 'cpu'));
+        self::assertSame('64Mi', $worker->get('spec', 'template', 'spec', 'containers', 0, 'resources', 'requests', 'memory'));
+    }
+
+    testAutoSetResourcesReachesJobsAndCronJobs(): void {
+        $yaml = $this->render('config');
+        $job = RenderedResource::in($yaml, 'Job', 'config-migrate')->at('spec', 'template', 'spec', 'containers', 0);
+        $cronJob = RenderedResource::in($yaml, 'CronJob', 'config-nightly')->at('spec', 'jobTemplate', 'spec', 'template', 'spec', 'containers', 0);
+
+        self::assertSame(['limits' => ['memory' => '128Mi'], 'requests' => ['cpu' => '100m']], $job->get('resources'));
+        self::assertSame(['requests' => ['memory' => '32Mi']], $cronJob->get('resources'));
+    }
+
+    testAutoSetReplicasLeavesAWorkloadWithoutReplicasAlone(): void {
+        $job = RenderedResource::in($this->render('config'), 'Job', 'config-migrate');
+
+        self::assertFalse($job->has('spec', 'replicas'), 'A Job has no replicas, whatever its config says');
+        self::assertFalse($job->has('spec', 'parallelism'));
+    }
+
+    testZeroReplicasFromTheConfigAreKept(): void
+        => self::assertSame(0, RenderedResource::in($this->render('config'), 'Deployment', 'config-idle')->get('spec', 'replicas'));
+
+    testTheAppsDeployPriorityIsAnnotated(): void {
+        $worker = RenderedResource::in($this->render('config'), 'Deployment', 'config-worker');
+
+        self::assertSame('5', $worker->get('metadata', 'annotations', 'klass8s.dev/deploy-priority'));
+    }
+
+    testAVirtualManifestIsNotRendered(): void {
+        $names = array_map(
+            static fn(RenderedResource $resource): mixed => $resource->get('metadata', 'name'),
+            RenderedResource::allIn($this->render('config')),
+        );
+
+        self::assertContains('config-worker', $names);
+        self::assertNotContains('config-legacy', $names);
+    }
+
+    testAVirtualConfigMapAndSecretStayReferenceable(): void {
+        $yaml = $this->render('config');
+        $kinds = array_map(
+            static fn(RenderedResource $resource): mixed => $resource->get('kind'),
+            RenderedResource::allIn($yaml),
+        );
+        $pod = RenderedResource::in($yaml, 'Deployment', 'config-reader')->at('spec', 'template', 'spec');
+
+        self::assertNotContains('ConfigMap', $kinds);
+        self::assertNotContains('Secret', $kinds);
+        self::assertSame(
+            [['configMapRef' => ['name' => 'config-shared', 'optional' => false]], ['secretRef' => ['name' => 'config-credentials', 'optional' => false]]],
+            $pod->get('containers', 0, 'envFrom'),
+        );
+        self::assertSame('config-shared', $pod->get('volumes', 0, 'configMap', 'name'));
+        self::assertSame('config-credentials', $pod->get('volumes', 1, 'secret', 'secretName'));
+    }
+
+    /**
+     * The render has no bytes of a virtual ConfigMap or Secret to fingerprint, so a workload's
+     * checksums leave it out, as they do an external one: the reader's equal those of a workload
+     * that reads nothing, and a change to the virtual source rolls nothing (that is up to whatever
+     * renders it).
+     */
+    testAVirtualSourceIsLeftOutOfTheChecksums(): void {
+        $yaml = $this->render('config');
+        $reader = RenderedResource::in($yaml, 'Deployment', 'config-reader')->at('spec', 'template', 'metadata', 'annotations');
+        $worker = RenderedResource::in($yaml, 'Deployment', 'config-worker')->at('spec', 'template', 'metadata', 'annotations');
+
+        foreach (['klass8s.dev/env-sources-checksum', 'klass8s.dev/volume-sources-checksum'] as $annotation) {
+            self::assertSame(md5(''), $reader->get($annotation), $annotation);
+            self::assertSame($worker->get($annotation), $reader->get($annotation), $annotation);
+        }
+    }
+
+    testAnAppWithoutManifestsRendersNothing(): void {
+        $output = $this->appManager()->generateManifests('empty');
+
+        self::assertTrue($output->isEmpty());
+        self::assertSame('', $output->render()->toString());
+    }
+
+    testReplicasSetInBothTheConfigAndTheManifestAreRefused(): void {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessageMatches('/Replicas for manifest ".+ScaledDeployment" in app "ambiguous" are declared both in manifests\' config and in method ScaledDeployment::replicas\(\)/');
+
+        $this->render('ambiguous');
+    }
+
+    testResourcesSetInBothTheConfigAndTheManifestAreRefused(): void {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessageMatches('/Resources for manifest ".+SizedDeployment" in app "sizing" are declared both in manifests\' config and in method SizedDeployment::resources\(\)/');
+
+        $this->render('sizing');
+    }
+
+    testASingleDocumentIsRenderedAsWrittenUnderItsFileHeader(): void {
+        $yaml = $this->render('solo');
+
+        self::assertSame(1, substr_count($yaml, '# File: '));
+        self::assertStringStartsWith("# File: /solo/api.deployment.yaml\napiVersion: apps/v1\n", $yaml);
+        self::assertStringContainsString("\nmetadata:\n  annotations:\n", $yaml, 'Two-space indentation, as the renderer writes it');
+    }
+
+    private render(string $appAlias): string => $this->appManager()->generateManifests($appAlias)->render()->toString();
+
+    private appManager(): AppManager {
+        self::bootKernel();
+
+        return self::service(AppManager::class);
+    }
+}

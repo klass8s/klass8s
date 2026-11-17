@@ -1,0 +1,113 @@
+namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
+
+use Klass8s\GatewayApi\Enum\HTTPPathModifierType;
+
+/** A header a filter sets or adds (Gateway API's HTTPHeader). */
+type HTTPHeader = array{name: string, value: string};
+
+final class HTTPRouteFilterConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    requestHeaderModifier(list<HTTPHeader> $set = [], list<HTTPHeader> $add = [], list<string> $remove = []): static {
+        $this->data['type'] = 'RequestHeaderModifier';
+        $this->data['requestHeaderModifier'] = array_filter([
+            'set' => $set,
+            'add' => $add,
+            'remove' => $remove,
+        ], static fn(array $v): bool => [] !== $v);
+
+        return $this;
+    }
+
+    responseHeaderModifier(list<HTTPHeader> $set = [], list<HTTPHeader> $add = [], list<string> $remove = []): static {
+        $this->data['type'] = 'ResponseHeaderModifier';
+        $this->data['responseHeaderModifier'] = array_filter([
+            'set' => $set,
+            'add' => $add,
+            'remove' => $remove,
+        ], static fn(array $v): bool => [] !== $v);
+
+        return $this;
+    }
+
+    requestRedirect(
+        ?string $scheme = null,
+        ?string $hostname = null,
+        ?int $port = null,
+        ?int $statusCode = null,
+        ?HTTPPathModifierType $pathType = null,
+        ?string $pathValue = null,
+    ): static {
+        $this->data['type'] = 'RequestRedirect';
+        $redirect = array_filter([
+            'scheme' => $scheme,
+            'hostname' => $hostname,
+            'port' => $port,
+            'statusCode' => $statusCode,
+        ], static fn(mixed $v): bool => null !== $v);
+
+        if (null !== $pathType && null !== $pathValue) {
+            $redirect['path'] = [
+                'type' => $pathType->value,
+                $pathType === HTTPPathModifierType::ReplaceFullPath ? 'replaceFullPath' : 'replacePrefixMatch' => $pathValue,
+            ];
+        }
+
+        $this->data['requestRedirect'] = $redirect;
+
+        return $this;
+    }
+
+    urlRewrite(
+        ?string $hostname = null,
+        ?HTTPPathModifierType $pathType = null,
+        ?string $pathValue = null,
+    ): static {
+        $this->data['type'] = 'URLRewrite';
+        $rewrite = array_filter([
+            'hostname' => $hostname,
+        ], static fn(mixed $v): bool => null !== $v);
+
+        if (null !== $pathType && null !== $pathValue) {
+            $rewrite['path'] = [
+                'type' => $pathType->value,
+                $pathType === HTTPPathModifierType::ReplaceFullPath ? 'replaceFullPath' : 'replacePrefixMatch' => $pathValue,
+            ];
+        }
+
+        $this->data['urlRewrite'] = $rewrite;
+
+        return $this;
+    }
+
+    requestMirror(string $serviceName, int $port, ?int $percent = null, ?string $namespace = null): static {
+        $this->data['type'] = 'RequestMirror';
+        $mirror = [
+            'backendRef' => array_filter([
+                'name' => $serviceName,
+                'port' => $port,
+                'namespace' => $namespace,
+            ], static fn(mixed $v): bool => null !== $v),
+        ];
+
+        if (null !== $percent) {
+            $mirror['percent'] = $percent;
+        }
+
+        $this->data['requestMirror'] = $mirror;
+
+        return $this;
+    }
+
+    extensionRef(string $group, string $kind, string $name): static {
+        $this->data['type'] = 'ExtensionRef';
+        $this->data['extensionRef'] = [
+            'group' => $group,
+            'kind' => $kind,
+            'name' => $name,
+        ];
+
+        return $this;
+    }
+}

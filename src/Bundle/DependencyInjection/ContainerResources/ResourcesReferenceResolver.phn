@@ -1,0 +1,45 @@
+namespace Klass8s\Bundle\DependencyInjection\ContainerResources;
+
+use Klass8s\Bundle\DependencyInjection\AppConfig;
+use Klass8s\Bundle\DependencyInjection\ResourcesConfig;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+
+final readonly class ResourcesReferenceResolver
+{
+    private const string PATTERN = '/^(@([-\w]+)\.)?(\$([-\w]+))$/';
+
+    /**
+     * The requests or limits a reference such as `@app.$manifest` or `$manifest` points
+     * to, followed through the references it meets on the way.
+     *
+     * @param $resourcesKey - Either "requests" or "limits"
+     */
+    resolve(string $reference, string $resourcesKey, string $currentAppAlias, map<string, AppConfig> $appsConfig): ResourcesConfig {
+        if (!preg_match(self::PATTERN, $reference, $matches)) {
+            throw new InvalidConfigurationException(
+                sprintf('Invalid resources reference string "%s"', $reference),
+            );
+        }
+
+        $appAlias = $matches[2];
+        $manifestName = $matches[4];
+        $appAlias = $appAlias ?: $currentAppAlias;
+
+        $appConfig = $appsConfig[$appAlias] ?? null;
+        if (null === $appConfig) {
+            throw new InvalidConfigurationException(sprintf('App "%s" from resources reference string "%s" does not exist', $appAlias, $reference));
+        }
+
+        $manifestConfig = $appConfig['manifests'][$manifestName] ?? null;
+        if (null === $manifestConfig) {
+            throw new InvalidConfigurationException(sprintf('Config for manifest "%s" in app "%s" from resources reference string "%s" does not exist.', $manifestName, $appAlias, $reference));
+        }
+
+        $resourcesConfig = $manifestConfig['resources'][$resourcesKey] ?? null;
+        if (null === $resourcesConfig) {
+            throw new InvalidConfigurationException(sprintf('Resources %s are not specified for manifest "%s" in app "%s" (resources reference string is "%s").', $resourcesKey, $manifestName, $appAlias, $reference));
+        }
+
+        return is_string($resourcesConfig) ? $this->resolve($resourcesConfig, $resourcesKey, $appAlias, $appsConfig) : $resourcesConfig;
+    }
+}

@@ -1,0 +1,52 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscaler;
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerBehavior;
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerSpec;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Core\Autoscaling\Configurator\MetricsConfigurator;
+use Klass8s\Core\Autoscaling\HorizontalPodAutoscalerInterface;
+use Klass8s\Manifest\Reference\VersionedManifestClassReference;
+use Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter;
+
+final class HorizontalPodAutoscalerMaker extends AbstractResourceMaker<HorizontalPodAutoscalerInterface, HorizontalPodAutoscaler>
+{
+    __construct(private readonly VersionedManifestClassReferenceConverter $refConverter) {}
+
+    protected supportedClass(): class<HorizontalPodAutoscalerInterface> => HorizontalPodAutoscalerInterface::class;
+
+    protected makeResource(HorizontalPodAutoscalerInterface $manifest): HorizontalPodAutoscaler {
+        $scaleTargetRef = $this->scaleTargetRef($manifest->scaleTargetRef());
+
+        $hpaSpec = new HorizontalPodAutoscalerSpec($manifest->maxReplicas(), $scaleTargetRef);
+        $hpaSpec->setMinReplicas($manifest->minReplicas());
+
+        $metricsConfigurator = new MetricsConfigurator($hpaSpec->metrics(), $this->refConverter);
+        $manifest->metrics($metricsConfigurator);
+
+        $hpaSpecBehavior = $hpaSpec->getBehavior() ?? new HorizontalPodAutoscalerBehavior();
+        $behaviorConfigurator = new BehaviorConfigurator($hpaSpecBehavior);
+        $manifest->behavior($behaviorConfigurator);
+        if ([] !== array_filter($hpaSpecBehavior->jsonSerialize()->getArrayCopy())) {
+            $hpaSpec->setBehavior($hpaSpecBehavior);
+        }
+
+        $hpa = new HorizontalPodAutoscaler($hpaSpec);
+
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $hpa);
+
+        $manifest->configureHorizontalPodAutoscaler($hpa);
+
+        return $hpa;
+    }
+
+    private scaleTargetRef(VersionedManifestClassReference|CrossVersionObjectReference $reference): CrossVersionObjectReference {
+        if ($reference instanceof CrossVersionObjectReference) {
+            return $reference;
+        }
+
+        return $this->refConverter->toCrossVersionObjectReference($reference);
+    }
+}

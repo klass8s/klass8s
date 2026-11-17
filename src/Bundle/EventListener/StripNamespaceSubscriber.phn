@@ -1,0 +1,33 @@
+namespace Klass8s\Bundle\EventListener;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use Klass8s\Event\Helm\HelmManifestProcessedEvent;
+use Klass8s\Event\ManifestGeneratedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+final readonly class StripNamespaceSubscriber implements EventSubscriberInterface
+{
+    private \ReflectionProperty $namespaceProperty;
+
+    __construct() {
+        $this->namespaceProperty = new \ReflectionProperty(
+            ObjectMeta::class,
+            'namespace',
+        );
+    }
+
+    onManifestGenerated(ManifestGeneratedEvent $event): void
+        => $this->namespaceProperty->setValue($event->apiResource()->metadata(), null);
+
+    onHelmManifestProcessed(HelmManifestProcessedEvent $event): void {
+        $metadata = $event->resource->metadata;
+        if ($metadata instanceof \stdClass) {
+            unset($metadata->namespace);
+        }
+    }
+
+    static getSubscribedEvents(): map<string, string> => [
+        ManifestGeneratedEvent::NAME => 'onManifestGenerated',
+        HelmManifestProcessedEvent::NAME => 'onHelmManifestProcessed',
+    ];
+}

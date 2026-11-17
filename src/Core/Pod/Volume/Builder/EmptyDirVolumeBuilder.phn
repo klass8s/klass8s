@@ -1,0 +1,30 @@
+namespace Klass8s\Core\Pod\Volume\Builder;
+
+use K8Schema\Api\Core\V1\EmptyDirVolumeSource;
+use K8Schema\Api\Core\V1\Volume;
+use Klass8s\Core\Container\Resources\Memory;
+
+class EmptyDirVolumeBuilder extends AbstractVolumeBuilder
+{
+    private const string MEDIUM_MEMORY = 'Memory';
+
+    private EmptyDirVolumeSource $source;
+
+    __construct() {
+        $this->source = new EmptyDirVolumeSource();
+    }
+
+    init(Volume $volume): void => $volume->setEmptyDir($this->source);
+
+    useRAM(): static {
+        $this->source->setMedium(self::MEDIUM_MEMORY);
+
+        return $this;
+    }
+
+    setSizeLimit(Memory $memory): static {
+        $this->source->setSizeLimit($memory->toString());
+
+        return $this;
+    }
+}

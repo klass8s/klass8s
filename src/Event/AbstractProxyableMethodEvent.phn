@@ -1,0 +1,47 @@
+namespace Klass8s\Event;
+
+use Klass8s\Proxy\ProxyableInterface;
+
+abstract class AbstractProxyableMethodEvent<P of ProxyableInterface> implements ProxyableMethodEventInterface<P>
+{
+    protected mixed $returnValue = null;
+    protected bool $returnValueHasChanged = false;
+
+    __construct(
+        protected readonly P $proxyable,
+        protected readonly string $methodName,
+        protected readonly map<string, mixed> $methodParams,
+    ) {}
+
+    proxyable(): P => $this->proxyable;
+
+    methodName(): string => $this->methodName;
+
+    methodParams(): map<string, mixed> => $this->methodParams;
+
+    methodParam(string $name): mixed {
+        if (!array_key_exists($name, $this->methodParams)) {
+            throw new \InvalidArgumentException(sprintf('Method parameter "%s" does not exist.', $name));
+        }
+
+        return $this->methodParams[$name];
+    }
+
+    typedMethodParam<T of object>(string $paramName, class<T> $paramClass): T {
+        $param = $this->methodParam($paramName);
+        if (!$param instanceof $paramClass) {
+            throw new \InvalidArgumentException(sprintf('Method parameter "%s" must be an instance of "%s", "%s" given.', $paramName, $paramClass, get_debug_type($param)));
+        }
+
+        return $param;
+    }
+
+    getReturnValue(): mixed => $this->returnValue;
+
+    returnValueHasChanged(): bool => $this->returnValueHasChanged;
+
+    setReturnValue(mixed $returnValue): void {
+        $this->returnValue = $returnValue;
+        $this->returnValueHasChanged = true;
+    }
+}

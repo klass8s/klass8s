@@ -1,0 +1,33 @@
+namespace Klass8s\Collection;
+
+/**
+ * The nested parts of a resource that is built as data (Gateway API, Prometheus Operator):
+ * each is created empty under its key the first time a configurator asks for it, and
+ * found there afterwards.
+ */
+final class NestedData
+{
+    private __construct() {}
+
+    static list(\ArrayObject<string, mixed> $data, string $key): GenericList<mixed> {
+        $list = $data[$key] ??= new GenericList<mixed>();
+        assert($list instanceof GenericList);
+
+        return $list;
+    }
+
+    static object(\ArrayObject<string, mixed> $data, string $key): \ArrayObject<string, mixed> {
+        $object = $data[$key] ??= new \ArrayObject<string, mixed>();
+        assert($object instanceof \ArrayObject);
+
+        return $object;
+    }
+
+    /** Appends an item to the array under the key. */
+    static append(\ArrayObject<string, mixed> $data, string $key, map<string, mixed> $item): void {
+        $items = $data[$key] ?? [];
+        assert(is_array($items));
+        $items[] = $item;
+        $data[$key] = $items;
+    }
+}

@@ -1,0 +1,9 @@
+namespace Klass8s\Manifest\Labels;
+
+use Klass8s\Manifest\ManifestInterface;
+
+interface LabelsGeneratorInterface
+{
+    /** The labels every resource made from the manifest carries, by name. */
+    forManifest(ManifestInterface $manifest): map<string, string>;
+}

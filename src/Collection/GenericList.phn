@@ -1,0 +1,12 @@
+namespace Klass8s\Collection;
+
+final class GenericList<T> implements \JsonSerializable, \Countable
+{
+    private list<T> $items = [];
+
+    add(T $item): void => $this->items[] = $item;
+
+    count(): int => count($this->items);
+
+    jsonSerialize(): list<T> => $this->items;
+}

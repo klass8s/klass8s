@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Autoscaling;
+
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscaler;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractHorizontalPodAutoscaler extends AbstractManifest implements HorizontalPodAutoscalerInterface
+{
+    minReplicas(): int => 1;
+
+    behavior(BehaviorConfigurator $behavior): void {}
+
+    configureHorizontalPodAutoscaler(HorizontalPodAutoscaler $hpa): void {}
+
+    static apiVersion(): string => HorizontalPodAutoscaler::API_VERSION;
+
+    static kind(): string => HorizontalPodAutoscaler::KIND;
+}

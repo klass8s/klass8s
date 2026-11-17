@@ -1,0 +1,32 @@
+namespace Klass8s\Core\Container;
+
+use K8Schema\Api\Core\V1\Container;
+use K8Schema\Collection\StringList;
+use Klass8s\Core\Container\Env\EnvConfigurator;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Container\Image\ImagePullPolicy;
+use Klass8s\Core\Container\Lifecycle\LifecycleConfigurator;
+use Klass8s\Core\Container\Lifecycle\Probes\ProbesConfigurator;
+use Klass8s\Core\Container\Ports\PortsConfigurator;
+use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
+use Klass8s\Core\Container\Security\SecurityContextConfigurator;
+use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
+use Klass8s\Proxy\ProxyableInterface;
+
+interface ContainerInterface extends ProxyableInterface
+{
+    containerName(): string;
+    args(StringList $args): void;
+    command(StringList $command): void;
+    env(EnvConfigurator $env): void;
+    volumeMounts(VolumeMountsConfigurator $mounts): void;
+    resources(ContainerResourcesInterface $resources): void;
+    ports(PortsConfigurator $ports): void;
+    lifecycle(LifecycleConfigurator $lifecycle): void;
+    probes(ProbesConfigurator $probes): void;
+    securityContext(SecurityContextConfigurator $context): void;
+    image(): Image;
+    imagePullPolicy(): ?ImagePullPolicy;
+    workingDir(): ?string;
+    configureContainer(Container $container): void;
+}

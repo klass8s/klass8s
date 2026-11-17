@@ -1,0 +1,8 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Event\ContainerMethodEvent;
+
+abstract class AbstractContainerMethodSubscriber extends AbstractMethodSubscriber
+{
+    protected static eventNames(): iterable<string> => [ContainerMethodEvent::NAME];
+}

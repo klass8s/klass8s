@@ -1,0 +1,17 @@
+namespace Klass8s\Core\CronJob;
+
+use K8Schema\Api\Batch\V1\CronJob;
+use Klass8s\Core\Job\JobInterface;
+
+interface CronJobInterface extends JobInterface
+{
+    concurrencyPolicy(): ConcurrencyPolicy;
+    failedJobsHistoryLimit(): ?int;
+    job(): JobInterface;
+    schedule(): string;
+    startingDeadlineSeconds(): ?int;
+    successfulJobsHistoryLimit(): ?int;
+    configureCronJob(CronJob $cronJob): void;
+    suspendCronJob(): bool;
+    timeZone(): ?string;
+}

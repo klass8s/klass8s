@@ -1,0 +1,11 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+class LegacyDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'legacy';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+}

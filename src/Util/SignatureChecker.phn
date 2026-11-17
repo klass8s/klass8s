@@ -1,0 +1,75 @@
+namespace Klass8s\Util;
+
+/**
+ * Whether a method may stand in for another: an env-suffixed method for the one it overrides per
+ * environment, a #[BeforeMethod] or #[AfterMethod] wrapper for the one it wraps. Both are called
+ * with the arguments of the original call, by name, so the parameters must match one for one: in
+ * name, type, by-reference and variadic marks, and in being optional or not. The return types must
+ * match too, except that by default a nullable return type equals the type it makes nullable.
+ *
+ * Types are compared as PHP resolves them, so `self` is the class that declares the method: where
+ * the original, declared in a parent class, says `self`, a stand-in declared in a subclass names
+ * that parent class.
+ */
+final readonly class SignatureChecker
+{
+    static check(
+        \ReflectionFunctionAbstract $methodA,
+        \ReflectionFunctionAbstract $methodB,
+        bool $ignoreNullsInReturnTypes = true,
+    ): bool
+        => self::type($methodA->getReturnType(), $ignoreNullsInReturnTypes) === self::type($methodB->getReturnType(), $ignoreNullsInReturnTypes)
+        && self::parameters($methodA) === self::parameters($methodB);
+
+    private static parameters(\ReflectionFunctionAbstract $function): list<string> => array_map(
+        static fn(\ReflectionParameter $parameter): string => sprintf(
+            '%s %s%s$%s%s',
+            self::type($parameter->getType(), false),
+            $parameter->isPassedByReference() ? '&' : '',
+            $parameter->isVariadic() ? '...' : '',
+            $parameter->getName(),
+            $parameter->isOptional() ? ' = …' : '',
+        ),
+        $function->getParameters(),
+    );
+
+    /**
+     * A type as one string, however it is spelled: the order of a union or an intersection,
+     * `?int` against `int|null`, the case of a class name, and `iterable` against the
+     * `array|Traversable` it is.
+     */
+    private static type(?\ReflectionType $type, bool $ignoreNull): string {
+        if (null === $type) {
+            return '';
+        }
+
+        $members = [];
+        foreach ($type instanceof \ReflectionUnionType ? $type->getTypes() : [$type] as $member) {
+            array_push($members, ...self::members($member));
+        }
+        if ($type->allowsNull() && [] === array_intersect($members, ['mixed', 'null'])) {
+            $members[] = 'null';
+        }
+        if ($ignoreNull) {
+            $members = array_filter($members, static fn(string $member): bool => 'null' !== $member);
+        }
+
+        return implode('|', self::sorted(array_values(array_unique($members))));
+    }
+
+    /** One member of a union, as the names it stands for: an intersection as one, its parts sorted. */
+    private static members(\ReflectionType $type): list<string> {
+        if ($type instanceof \ReflectionIntersectionType) {
+            return [implode('&', self::sorted(array_map(static fn(\ReflectionType $part): string => strtolower((string) $part), $type->getTypes())))];
+        }
+        $name = strtolower(ltrim((string) $type, '?'));
+
+        return 'iterable' === $name ? ['array', 'traversable'] : [$name];
+    }
+
+    private static sorted(list<string> $names): list<string> {
+        sort($names);
+
+        return $names;
+    }
+}

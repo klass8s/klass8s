@@ -1,0 +1,51 @@
+namespace Klass8s\Registry;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Runtime\ManifestRuntimeStatusResolverInterface;
+
+final class AppRegistry
+{
+    private map<string, AppInterface> $apps = [];
+
+    __construct(private readonly ManifestRuntimeStatusResolverInterface $statusResolver) {}
+
+    add(string $alias, AppInterface $app): void {
+        if ($this->has($alias)) {
+            throw new \InvalidArgumentException(
+                sprintf('App with alias "%s" already exists', $alias),
+            );
+        }
+
+        if (!$this->statusResolver->isClassEnabled(new \ReflectionClass($app))) {
+            return;
+        }
+
+        $this->apps[$alias] = $app;
+    }
+
+    all(): map<string, AppInterface> => $this->apps;
+
+    aliases(): list<string> => array_keys($this->apps);
+
+    /** The apps of a class, by alias. */
+    allAppsByClass<T of AppInterface>(class<T> $appClass): iterable<string, T> {
+        foreach ($this->apps as $alias => $app) {
+            if ($app instanceof $appClass) {
+                yield $alias => $app;
+            }
+        }
+    }
+
+    classes(): list<class<AppInterface>> => array_values(array_unique(array_map(fn(AppInterface $app): string => $app::class, $this->apps)));
+
+    has(string $alias): bool => array_key_exists($alias, $this->apps);
+
+    get(string $alias): AppInterface {
+        if (!$this->has($alias)) {
+            throw new \InvalidArgumentException(
+                sprintf('App "%s" does not exist', $alias),
+            );
+        }
+        return $this->apps[$alias];
+    }
+}

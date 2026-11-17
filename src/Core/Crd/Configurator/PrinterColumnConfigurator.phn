@@ -1,0 +1,28 @@
+namespace Klass8s\Core\Crd\Configurator;
+
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceColumnDefinition;
+
+class PrinterColumnConfigurator
+{
+    __construct(
+        private readonly CustomResourceColumnDefinition $column,
+    ) {}
+
+    description(string $description): static {
+        $this->column->setDescription($description);
+
+        return $this;
+    }
+
+    format(string $format): static {
+        $this->column->setFormat($format);
+
+        return $this;
+    }
+
+    priority(int $priority): static {
+        $this->column->setPriority($priority);
+
+        return $this;
+    }
+}

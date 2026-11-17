@@ -1,0 +1,26 @@
+namespace Klass8s\GatewayApi\GatewayClass;
+
+final readonly class ParametersRef
+{
+    __construct(
+        public string $group,
+        public string $kind,
+        public string $name,
+        public ?string $namespace = null,
+    ) {}
+
+    /** @return array{group: string, kind: string, name: string, namespace?: string} */
+    toArray(): array {
+        $data = [
+            'group' => $this->group,
+            'kind' => $this->kind,
+            'name' => $this->name,
+        ];
+
+        if (null !== $this->namespace) {
+            $data['namespace'] = $this->namespace;
+        }
+
+        return $data;
+    }
+}

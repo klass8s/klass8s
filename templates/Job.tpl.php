@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 echo "<?php\n"; ?>
 
-namespace <?php echo $namespace; ?>;
+namespace <?php echo $variables['namespace']; ?>;
 
 use Klass8s\Core\Container\Image\Image;
 use Klass8s\Core\Job\AbstractContainerJob;
 
-class <?php echo $className; ?> extends AbstractContainerJob
+class <?php echo $variables['className']; ?> extends AbstractContainerJob
 {
     public function image(): Image
     {
@@ -15,6 +15,6 @@ class <?php echo $className; ?> extends AbstractContainerJob
 
     public static function shortName(): string
     {
-        return '<?php echo $manifestName; ?>';
+        return '<?php echo $variables['manifestName']; ?>';
     }
 }

@@ -1,0 +1,27 @@
+namespace Klass8s\Core\Service\Configurator;
+
+use K8Schema\Api\Core\V1\ServicePort;
+use Klass8s\Core\Service\IPProtocol;
+
+class ServicePortConfigurator
+{
+    __construct(private ServicePort $port) {}
+
+    setProtocol(IPProtocol $protocol): static {
+        $this->port->setProtocol($protocol->toString());
+
+        return $this;
+    }
+
+    setName(string $name): static {
+        $this->port->setName($name);
+
+        return $this;
+    }
+
+    setNodePort(int $nodePort): static {
+        $this->port->setNodePort($nodePort);
+
+        return $this;
+    }
+}

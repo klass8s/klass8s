@@ -1,0 +1,15 @@
+namespace Klass8s\Event;
+
+use Klass8s\Manifest\ManifestInterface;
+use Proximity\ProxyInterface;
+
+class ManifestMethodCalledEvent extends ManifestMethodEvent implements ProxyableMethodCalledEventInterface<ManifestInterface&ProxyInterface>
+{
+    const string NAME = 'klass8s.manifest.method_called';
+
+    __construct(ManifestInterface&ProxyInterface $proxyable, string $methodName, map<string, mixed> $methodParams, private readonly mixed $returnedValue) {
+        parent::__construct($proxyable, $methodName, $methodParams);
+    }
+
+    returnedValue(): mixed => $this->returnedValue;
+}

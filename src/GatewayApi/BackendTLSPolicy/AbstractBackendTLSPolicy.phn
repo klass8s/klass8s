@@ -1,0 +1,20 @@
+namespace Klass8s\GatewayApi\BackendTLSPolicy;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\OptionsConfigurator;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TargetRefsConfigurator;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TLSValidationConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractBackendTLSPolicy extends AbstractManifest implements BackendTLSPolicyInterface
+{
+    final static kind(): string => BackendTLSPolicyApiResource::KIND;
+
+    static apiVersion(): string => AbstractGatewayApiResource::API_VERSION;
+
+    targetRefs(TargetRefsConfigurator $targetRefs): void {}
+
+    validation(TLSValidationConfigurator $validation): void {}
+
+    options(OptionsConfigurator $options): void {}
+}

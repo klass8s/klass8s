@@ -1,0 +1,113 @@
+namespace Klass8s\Bundle;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuilderInterface;
+use Klass8s\Autoscaling\ScalingTriggerResolverInterface;
+use Klass8s\Bridge\Helm\Release\HelmReleaseInterface;
+use Klass8s\Bundle\Checksum\Calculator\ChecksumCalculatorInterface;
+use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
+use Klass8s\Bundle\DependencyInjection\Compiler\AppsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\ContainerImageMiddlewarePriorityPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetReplicasPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\AutoSetResourcesPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultMetadataLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultSelectorLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultServiceSelectorPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DisableChecksumGenerationPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DisableStripNamespacePass;
+use Klass8s\Bundle\DependencyInjection\Compiler\HelmReleasesPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\ManifestsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\RemoveAutowiredAppsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\SetAppConfigPass;
+use Klass8s\Bundle\DependencyInjection\Klass8sExtension;
+use Klass8s\Bundle\EnvManagement\DIContainerRegistry;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Middleware\ContainerImageMiddlewareInterface;
+use Klass8s\ResourceMaker\ResourceMakerInterface;
+use Klass8s\Runtime\ManifestStatusResolverStrategyInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+
+class Klass8sBundle extends AbstractBundle
+{
+    const string TAG_APP = 'klass8s.app';
+    const string TAG_MANIFEST = 'klass8s.manifest';
+    const string TAG_RESOURCE_MAKER = 'klass8s.resource_maker';
+    const string TAG_MG_CONTEXT = 'klass8s.manifest_generator.context';
+    const string TAG_IMAGE_MIDDLEWARE = 'klass8s.middleware.container_image';
+    const string TAG_CHECKSUM_CALCULATOR = 'klass8s.checksum_calculator';
+    const string TAG_MANIFEST_RUNTIME_STATUS_RESOLVER = 'klass8s.manifest.runtime_status_resolver.strategy';
+    const string TAG_KEDA_TRIGGER_BUILDER = 'klass8s.autoscaling.keda.trigger_builder';
+    const string TAG_AUTOSCALING_TRIGGER_RESOLVER = 'klass8s.autoscaling.trigger_resolver';
+    const string TAG_HELM_RELEASE = 'klass8s.helm.release';
+
+    build(ContainerBuilder $container): void {
+        parent::build($container);
+
+        $this->setupAutoconfiguration($container);
+
+        $container
+            ->addCompilerPass(new AppsPass())
+            ->addCompilerPass(new ContainerImageMiddlewarePriorityPass())
+            ->addCompilerPass(new DefaultMetadataLabelsPass())
+            ->addCompilerPass(new DefaultSelectorLabelsPass())
+            ->addCompilerPass(new DefaultServiceSelectorPass())
+            ->addCompilerPass(new DisableChecksumGenerationPass())
+            ->addCompilerPass(new DisableStripNamespacePass())
+            ->addCompilerPass(new HelmReleasesPass())
+            ->addCompilerPass(pass: new SetAppConfigPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -8)
+            ->addCompilerPass(pass: new ManifestsPass(), type: PassConfig::TYPE_OPTIMIZE, priority: -16)
+            ->addCompilerPass(pass: new RemoveAutowiredAppsPass(), type: PassConfig::TYPE_REMOVE)
+            ->addCompilerPass(pass: new AutoSetReplicasPass(), priority: -32)
+            ->addCompilerPass(pass: new AutoSetResourcesPass(), priority: -32)
+        ;
+    }
+
+    getContainerExtension(): Klass8sExtension => new Klass8sExtension();
+
+    setContainer(?ContainerInterface $container = null): void {
+        $this->container = $container;
+        if (null !== $container) {
+            DIContainerRegistry::set($container);
+        }
+    }
+
+    private setupAutoconfiguration(ContainerBuilder $container): void {
+        $container->registerForAutoconfiguration(AppInterface::class)
+            ->addTag(self::TAG_APP);
+
+        $container->registerForAutoconfiguration(ManifestInterface::class)
+            ->addTag(self::TAG_MANIFEST);
+
+        $container->registerForAutoconfiguration(ResourceMakerInterface::class)
+            ->addTag(self::TAG_RESOURCE_MAKER);
+
+        $container->registerForAutoconfiguration(ContextInterface::class)
+            ->addTag(self::TAG_MG_CONTEXT);
+
+        $container->registerForAutoconfiguration(ContainerImageMiddlewareInterface::class)
+            ->addTag(self::TAG_IMAGE_MIDDLEWARE);
+
+        $container
+            ->registerForAutoconfiguration(ChecksumCalculatorInterface::class)
+            ->addTag(self::TAG_CHECKSUM_CALCULATOR);
+
+        $container
+            ->registerForAutoconfiguration(ManifestStatusResolverStrategyInterface::class)
+            ->addTag(self::TAG_MANIFEST_RUNTIME_STATUS_RESOLVER);
+
+        $container
+            ->registerForAutoconfiguration(TriggerBuilderInterface::class)
+            ->addTag(self::TAG_KEDA_TRIGGER_BUILDER);
+
+        $container
+            ->registerForAutoconfiguration(ScalingTriggerResolverInterface::class)
+            ->addTag(self::TAG_AUTOSCALING_TRIGGER_RESOLVER);
+
+        $container
+            ->registerForAutoconfiguration(HelmReleaseInterface::class)
+            ->addTag(self::TAG_HELM_RELEASE);
+    }
+}

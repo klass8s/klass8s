@@ -1,0 +1,15 @@
+namespace Klass8s\Tests\Support;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
+/** The services of a kernel test case's container, typed by their class. */
+trait ContainerServicesTrait
+{
+    abstract protected static getContainer(): ContainerInterface;
+
+    private static service<T of object>(class<T> $class): T {
+        $service = static::getContainer()->get($class);
+
+        return $service instanceof $class ? $service : throw new \LogicException(sprintf('The container has no service "%s".', $class));
+    }
+}

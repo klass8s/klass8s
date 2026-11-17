@@ -1,0 +1,105 @@
+namespace Klass8s\Monitoring\Prometheus\Configurator;
+
+final class EndpointConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    basicAuth(SecretKeyReference $username, SecretKeyReference $password): static {
+        $this->data['basicAuth'] = [
+            'username' => $username,
+            'password' => $password,
+        ];
+
+        return $this;
+    }
+
+    bearerTokenSecret(SecretKeyReference $secretRef): static {
+        $this->data['bearerTokenSecret'] = $secretRef;
+
+        return $this;
+    }
+
+    bearerTokenFile(string $filename): static {
+        $this->data['bearerTokenFile'] = $filename;
+
+        return $this;
+    }
+
+    honorLabels(bool $honorLabels): static {
+        $this->data['honorLabels'] = $honorLabels;
+
+        return $this;
+    }
+
+    honorTimestamps(bool $honorTimestamps): static {
+        $this->data['honorTimestamps'] = $honorTimestamps;
+
+        return $this;
+    }
+
+    interval(string $interval): static {
+        $this->data['interval'] = $interval;
+
+        return $this;
+    }
+
+    metricRelabelings(array<mixed> $metricRelabelings): static {
+        $this->data['metricRelabelings'] = $metricRelabelings;
+
+        return $this;
+    }
+
+    params(array<mixed> $params): static {
+        $this->data['params'] = $params;
+
+        return $this;
+    }
+
+    path(string $path): static {
+        $this->data['path'] = $path;
+
+        return $this;
+    }
+
+    port(string $port): static {
+        $this->data['port'] = $port;
+
+        return $this;
+    }
+
+    proxyUrl(string $proxyUrl): static {
+        $this->data['proxyUrl'] = $proxyUrl;
+
+        return $this;
+    }
+
+    relabelings(array<mixed> $relabelings): static {
+        $this->data['relabelings'] = $relabelings;
+
+        return $this;
+    }
+
+    scheme(string $scheme): static {
+        $this->data['scheme'] = $scheme;
+
+        return $this;
+    }
+
+    scrapeTimeout(string $scrapeTimeout): static {
+        $this->data['scrapeTimeout'] = $scrapeTimeout;
+
+        return $this;
+    }
+
+    targetPort(int|string $targetPort): static {
+        $this->data['targetPort'] = $targetPort;
+
+        return $this;
+    }
+
+    tlsConfig(array<mixed> $tlsConfig): static {
+        $this->data['tlsConfig'] = $tlsConfig;
+
+        return $this;
+    }
+}

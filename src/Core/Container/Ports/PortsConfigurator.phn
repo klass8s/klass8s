@@ -1,0 +1,16 @@
+namespace Klass8s\Core\Container\Ports;
+
+use K8Schema\Api\Core\V1\ContainerPort;
+use K8Schema\Api\Core\V1\ContainerPortList;
+
+class PortsConfigurator
+{
+    __construct(private ContainerPortList $ports) {}
+
+    add(int $containerPort): ContainerPortBuilder {
+        $port = new ContainerPort($containerPort);
+        $this->ports->add($port);
+
+        return new ContainerPortBuilder($port);
+    }
+}

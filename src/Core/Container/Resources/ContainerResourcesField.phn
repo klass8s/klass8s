@@ -1,0 +1,47 @@
+namespace Klass8s\Core\Container\Resources;
+
+use K8Schema\Api\Core\V1\ResourceFieldSelector;
+
+class ContainerResourcesField
+{
+    private const string LIMITS_CPU = 'limits.cpu';
+    private const string LIMITS_MEMORY = 'limits.memory';
+    private const string LIMITS_EPHEMERAL_STORAGE = 'limits.ephemeral-storage';
+    private const string REQUESTS_CPU = 'requests.cpu';
+    private const string REQUESTS_MEMORY = 'requests.memory';
+    private const string REQUESTS_EPHEMERAL_STORAGE = 'requests.ephemeral-storage';
+
+    private ResourceFieldSelector $selector;
+
+    private __construct(string $resourceName) {
+        $this->selector = new ResourceFieldSelector($resourceName);
+    }
+
+    selector(): ResourceFieldSelector => $this->selector;
+
+    setContainerName(?string $containerName): static {
+        if (null !== $containerName) {
+            $this->selector->setContainerName($containerName);
+        }
+
+        return $this;
+    }
+
+    setDivisor(string $divisor): static {
+        $this->selector->setDivisor($divisor);
+
+        return $this;
+    }
+
+    static cpuLimits(): static => new static(self::LIMITS_CPU);
+
+    static cpuRequests(): static => new static(self::REQUESTS_CPU);
+
+    static memoryLimits(): static => new static(self::LIMITS_MEMORY);
+
+    static memoryRequests(): static => new static(self::REQUESTS_MEMORY);
+
+    static storageLimits(): static => new static(self::LIMITS_EPHEMERAL_STORAGE);
+
+    static storageRequests(): static => new static(self::REQUESTS_EPHEMERAL_STORAGE);
+}

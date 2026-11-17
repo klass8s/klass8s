@@ -1,0 +1,30 @@
+namespace Klass8s\ResourceMaker\Prometheus;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use Klass8s\Collection\GenericList;
+use Klass8s\Monitoring\Prometheus\Configurator\RuleGroupsConfigurator;
+use Klass8s\Monitoring\Prometheus\PrometheusRuleApiResource;
+use Klass8s\Monitoring\Prometheus\PrometheusRuleInterface;
+use Klass8s\ResourceMaker\AbstractResourceMaker;
+
+class PrometheusRuleMaker extends AbstractResourceMaker<PrometheusRuleInterface, PrometheusRuleApiResource>
+{
+    protected supportedClass(): class<PrometheusRuleInterface> => PrometheusRuleInterface::class;
+
+    protected makeResource(PrometheusRuleInterface $manifest): PrometheusRuleApiResource {
+        $data = new \ArrayObject<string, mixed>();
+        $data['apiVersion'] = $manifest::apiVersion();
+        $data['kind'] = $manifest::kind();
+
+        $data['metadata'] = new ObjectMeta();
+        $prometheusRule = new PrometheusRuleApiResource($data);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $prometheusRule);
+
+        $groups = new GenericList<\ArrayObject<string, mixed>>();
+        $data['spec'] = new \ArrayObject<string, mixed>(['groups' => $groups]);
+        $manifest->groups(new RuleGroupsConfigurator($groups));
+
+        return $prometheusRule;
+    }
+}

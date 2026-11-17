@@ -1,0 +1,27 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject;
+
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Fallback;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaledObject;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaleTargetReference;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\ScaleTarget\WorkloadContainerReference;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ScaledObjectInterface extends ManifestInterface
+{
+    scaleTargetRef(): ScaleTargetReference|WorkloadContainerReference;
+    pollingInterval(): int;
+    cooldownPeriod(): int;
+    idleReplicaCount(): ?int;
+    minReplicaCount(): int;
+    maxReplicaCount(): int;
+    fallback(): ?Fallback;
+    restoreToOriginalReplicaCount(): ?bool;
+    hpaName(): ?string;
+    behavior(BehaviorConfigurator $behavior): void;
+
+    triggers(TriggerBuildersRegistry $builders): iterable<Trigger>;
+    configureScaledObject(ScaledObject $scaledObject): void;
+}

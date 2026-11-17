@@ -1,0 +1,43 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject;
+
+use Klass8s\Autoscaling\Attribute\Autoscale;
+use Klass8s\Autoscaling\AutoscaleDecision;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaleTargetReference;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
+use Klass8s\Manifest\ManifestTemplateInterface;
+use Klass8s\Manifest\ManifestTemplateTrait;
+
+/**
+ * The ScaledObject spawned for a workload carrying the {@see Autoscale} attribute — one
+ * dynamically-named instance per attributed workload, named `{workload short name}-scaler`.
+ * Everything it renders was decided before construction: the attribute supplies the timing
+ * knobs, the {@see AutoscaleDecision} the replica bounds, and the triggers arrive already
+ * resolved from the workload's trigger attributes.
+ */
+class AutoscaleScaledObject extends AbstractScaledObject implements ManifestTemplateInterface
+{
+    use ManifestTemplateTrait;
+
+    __construct(
+        string $shortName,
+        private readonly ScaleTargetReference $scaleTargetRef,
+        private readonly Autoscale $attribute,
+        private readonly AutoscaleDecision $decision,
+        private readonly list<Trigger> $triggers,
+    ) {
+        $this->dynamicShortName = $shortName;
+    }
+
+    scaleTargetRef(): ScaleTargetReference => $this->scaleTargetRef;
+
+    pollingInterval(): int => $this->attribute->pollingIntervalSeconds;
+
+    cooldownPeriod(): int => $this->attribute->cooldownSeconds;
+
+    minReplicaCount(): int => $this->decision->minReplicas;
+
+    maxReplicaCount(): int => $this->decision->maxReplicas;
+
+    triggers(TriggerBuildersRegistry $builders): iterable<Trigger> => $this->triggers;
+}

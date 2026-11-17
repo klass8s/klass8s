@@ -1,0 +1,40 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\MySQL;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\OneOf;
+
+class MySQLTrigger extends AbstractTriggerBuilder
+{
+    /** Format of connection string is "user:password@tcp(mysql:3306)/db_name" */
+    private const string CONNECTION_STRING = 'connectionString';
+    private const string CONNECTION_STRING_FROM_ENV = 'connectionStringFromEnv';
+    private const string QUERY = 'query';
+    private const string QUERY_VALUE = 'queryValue';
+    private const string ACTIVATION_QUERY_VALUE = 'activationQueryValue';
+
+    connectionString(string $connectionString): static => $this->set(self::CONNECTION_STRING, $connectionString);
+
+    connectionStringFromEnv(string $envName): static => $this->set(self::CONNECTION_STRING_FROM_ENV, $envName);
+
+    query(string $query): static => $this->set(self::QUERY, $query);
+
+    queryValue(int|float $value): static => $this->set(self::QUERY_VALUE, $value);
+
+    activationQueryValue(int|float $value): static => $this->set(self::ACTIVATION_QUERY_VALUE, $value);
+
+    static withQuery(string $query): static {
+        $instance = new static();
+        $instance->query($query);
+
+        return $instance;
+    }
+
+    protected requiredKeys(): list<string|OneOf> => [
+        OneOf::fromValues(self::CONNECTION_STRING, self::CONNECTION_STRING_FROM_ENV),
+        self::QUERY,
+        self::QUERY_VALUE,
+        self::ACTIVATION_QUERY_VALUE,
+    ];
+
+    protected static type(): string => 'mysql';
+}

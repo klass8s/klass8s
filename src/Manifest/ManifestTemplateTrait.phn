@@ -1,0 +1,31 @@
+namespace Klass8s\Manifest;
+
+trait ManifestTemplateTrait
+{
+    /** @internal */
+    protected bool $dynamicShortNameSet = false;
+
+    protected(set) string $dynamicShortName {
+        get {
+            if (!$this->dynamicShortNameSet) {
+                throw new \RuntimeException('Dynamic short name is not set yet.');
+            }
+
+            return $this->dynamicShortName;
+        }
+        set {
+            if ($this->dynamicShortNameSet) {
+                throw new \RuntimeException('Dynamic short name is already set and cannot be changed.');
+            }
+
+            $this->dynamicShortName = $value;
+            $this->dynamicShortNameSet = true;
+        }
+    }
+
+    abstract static className(): string;
+
+    static shortName(): string {
+        throw new \BadMethodCallException(sprintf('Class "%s" is a manifest template, therefore the short name of the manifest cannot be retrieved statically. Use `$dynamicShortName` property on the instance of the class to get instance\'s name.', static::className()));
+    }
+}

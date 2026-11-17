@@ -1,0 +1,53 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\Collection\NestedData;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Secret\SecretInterface;
+use Klass8s\GatewayApi\Enum\TlsMode;
+
+final class TlsConfigurator
+{
+    __construct(
+        private \ArrayObject<string, mixed> $data,
+        private AppInterface $app,
+    ) {}
+
+    mode(TlsMode $mode): static {
+        $this->data['mode'] = $mode->value;
+
+        return $this;
+    }
+
+    terminate(): static => $this->mode(TlsMode::Terminate);
+
+    passthrough(): static => $this->mode(TlsMode::Passthrough);
+
+    certificateRef(string $name, ?string $namespace = null, string $group = '', string $kind = 'Secret'): static {
+        if (!isset($this->data['certificateRefs'])) {
+            $this->data['certificateRefs'] = [];
+        }
+
+        $ref = array_filter([
+            'group' => $group,
+            'kind' => $kind,
+            'name' => $name,
+            'namespace' => $namespace,
+        ], static fn(mixed $v): bool => null !== $v);
+
+        NestedData::append($this->data, 'certificateRefs', $ref);
+
+        return $this;
+    }
+
+    certificateRefFromClass(class<SecretInterface> $secretClass, ?string $namespace = null): static {
+        $name = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
+
+        return $this->certificateRef($name, $namespace);
+    }
+
+    options(map<string, string> $options): static {
+        $this->data['options'] = $options;
+
+        return $this;
+    }
+}

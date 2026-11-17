@@ -1,0 +1,215 @@
+namespace Klass8s\Core\Container\Env;
+
+use K8Schema\Api\Core\V1\ConfigMapKeySelector;
+use K8Schema\Api\Core\V1\EnvFromSource;
+use K8Schema\Api\Core\V1\EnvFromSourceList;
+use K8Schema\Api\Core\V1\EnvVar;
+use K8Schema\Api\Core\V1\EnvVarList;
+use K8Schema\Api\Core\V1\SecretKeySelector;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Container\Resources\ContainerResourcesField;
+use Klass8s\Core\Pod\PodField;
+use Klass8s\Core\Secret\SecretInterface;
+use Klass8s\Event\ConfigMapEnvSourceAddedEvent;
+use Klass8s\Event\ConfigMapEnvSourceEvent;
+use Klass8s\Event\Events;
+use Klass8s\Event\SecretEnvSourceAddedEvent;
+use Klass8s\Event\SecretEnvSourceEvent;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Registry\AppRegistry;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+readonly class EnvConfigurator
+{
+    __construct(
+        private EnvVarList $vars,
+        private EnvFromSourceList $sources,
+        private AppInterface $app,
+        private AppRegistry $appRegistry,
+        private EventDispatcherInterface $dispatcher,
+        private ExternalConfigurationRegistry $externalConfigurations,
+    ) {}
+
+    addFromClasses(class<SecretInterface|ConfigMapInterface> ...$classes): static {
+        foreach ($classes as $class) {
+            $this->addFromClass($class);
+        }
+
+        return $this;
+    }
+
+    /** @param $varNamesPrefix - Allowed only for configmaps */
+    addFromClass(class<SecretInterface|ConfigMapInterface> $className, bool $mustExist = true, ?string $varNamesPrefix = null): static {
+        if (is_a($className, ConfigMapInterface::class, true)) {
+            return $this->addConfigMapClass($className, $mustExist, $varNamesPrefix);
+        } elseif (is_a($className, SecretInterface::class, true)) {
+            if (null !== $varNamesPrefix) {
+                throw new \LogicException(sprintf('$varNamesPrefix must be specified only with config map classes, but specified with secret class "%s"', $className));
+            }
+
+            return $this->addSecretClass($className, $mustExist);
+        }
+
+        throw new \InvalidArgumentException(sprintf('$className must be a name of class, that implements either "%s" or "%s"', ConfigMapInterface::class, SecretInterface::class));
+    }
+
+    addConfigMapClass(class<ConfigMapInterface> $configMapClass, bool $mustExist = true, ?string $varNamesPrefix = null): static {
+        $event = new ConfigMapEnvSourceEvent($configMapClass, $this->app, $this);
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+        if ($event->isPropagationStopped()) {
+            return $this;
+        }
+
+        $this->ensureAppOwnsManifestClass($configMapClass);
+        $cmName = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
+
+        $this->addConfigMap($cmName, $mustExist, $varNamesPrefix);
+
+        $event = new ConfigMapEnvSourceAddedEvent($configMapClass, $this->app, $this);
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+
+        return $this;
+    }
+
+    addConfigMap(string $configMapName, bool $mustExist = true, ?string $varNamesPrefix = null, bool $external = false): static {
+        $envFromSource = new EnvFromSource();
+        if (null !== $varNamesPrefix) {
+            $envFromSource->setPrefix($varNamesPrefix);
+        }
+        $envFromSource->configMapRef()
+            ->setName($configMapName)
+            ->setOptional(!$mustExist);
+
+        $this->sources->add($envFromSource);
+
+        if ($external) {
+            $this->externalConfigurations->addConfigMap($configMapName);
+        }
+
+        return $this;
+    }
+
+    addSecretClass(class<SecretInterface> $secretClass, bool $mustExist = true): static {
+        $event = new SecretEnvSourceEvent($secretClass, $this->app, $this);
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+        if ($event->isPropagationStopped()) {
+            return $this;
+        }
+
+        $this->ensureAppOwnsManifestClass($secretClass);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
+
+        $this->addSecret($secretName, $mustExist);
+
+        $event = new SecretEnvSourceAddedEvent($secretClass, $this->app, $this);
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+
+        return $this;
+    }
+
+    addSecret(string $secretName, bool $mustExist = true, bool $external = false): static {
+        $envFromSource = new EnvFromSource();
+        $envFromSource->secretRef()
+            ->setName($secretName)
+            ->setOptional(!$mustExist);
+
+        $this->sources->add($envFromSource);
+
+        if ($external) {
+            $this->externalConfigurations->addSecret($secretName);
+        }
+
+        return $this;
+    }
+
+    public function var(string $name, string $value): static {
+        $var = new EnvVar($name);
+        $var->setValue($value);
+
+        $this->vars->add($var);
+
+        return $this;
+    }
+
+    varFromConfigMapClass(string $varName, class<ConfigMapInterface> $configMapClass, string $configMapKey, bool $optional = false): static {
+        $this->ensureAppOwnsManifestClass($configMapClass);
+        $cmName = $this->app->resourceNameFromManifestClass($configMapClass, ConfigMapInterface::class);
+
+        $keySelector = new ConfigMapKeySelector($configMapKey);
+        $keySelector
+            ->setName($cmName)
+            ->setOptional($optional);
+
+        $var = new EnvVar($varName);
+        $var->valueFrom()->setConfigMapKeyRef($keySelector);
+        $this->vars->add($var);
+
+        return $this;
+    }
+
+    varFromSecretClass(string $varName, class<SecretInterface> $secretClass, string $secretKey, bool $optional = false): static {
+        $this->ensureAppOwnsManifestClass($secretClass);
+        $secretName = $this->app->resourceNameFromManifestClass($secretClass, SecretInterface::class);
+
+        $keySelector = new SecretKeySelector($secretKey);
+        $keySelector
+            ->setName($secretName)
+            ->setOptional($optional);
+
+        $var = new EnvVar($varName);
+        $var->valueFrom()->setSecretKeyRef($keySelector);
+        $this->vars->add($var);
+
+        return $this;
+    }
+
+    varFromPod(string $varName, PodField $podField): static {
+        $fieldSelector = $podField->selector();
+
+        $var = new EnvVar($varName);
+        $var->valueFrom()->setFieldRef($fieldSelector);
+        $this->vars->add($var);
+
+        return $this;
+    }
+
+    varFromContainerResources(string $varName, ContainerResourcesField $field): static {
+        $fieldSelector = $field->selector();
+
+        $var = new EnvVar($varName);
+        $var->valueFrom()->setResourceFieldRef($fieldSelector);
+        $this->vars->add($var);
+
+        return $this;
+    }
+
+    withExternalApp(string $appAlias): static => new static(
+        $this->vars,
+        $this->sources,
+        $this->appRegistry->get($appAlias),
+        $this->appRegistry,
+        $this->dispatcher,
+        $this->externalConfigurations,
+    );
+
+    private ensureAppOwnsManifestClass(class<ManifestInterface> $className): void {
+        if ($this->app->ownsManifestClass($className)) {
+            return;
+        }
+
+        $msg = <<<'ERR'
+            App "%s" does not have manifests with class "%s". Please use method "%s::withExternalApp()"
+            for adding configmaps or secrets from another app. Example:
+
+            $env->withExternalApp('externalAppAlias')
+                ->addConfigMap(MyConfigMap::class)
+                ->addSecret(MySecret::class)
+            ;
+            ERR;
+
+        throw new \InvalidArgumentException(
+            sprintf($msg, $this->app->alias(), $className, EnvConfigurator::class),
+        );
+    }
+}

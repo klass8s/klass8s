@@ -1,0 +1,31 @@
+namespace Klass8s\Manifest\Labels;
+
+use Klass8s\Manifest\FullNameAwareInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\ManifestTemplateInterface;
+
+readonly class DefaultLabelsGenerator implements LabelsGeneratorInterface
+{
+    forManifest(ManifestInterface $manifest): map<string, string> {
+        // The component label is the manifest's short name: the dynamic one of a template
+        // (a template may ALSO be full-name aware — a data-driven set whose instances carry
+        // fixed names, e.g. one runner set per org named after the org — and its static
+        // shortName() throws by design), the static one of a full-name-aware manifest (its
+        // full name is not its role), the computed one otherwise.
+        $component = match (true) {
+            $manifest instanceof ManifestTemplateInterface => $manifest->dynamicShortName,
+            $manifest instanceof FullNameAwareInterface => self::staticShortName($manifest),
+            default => $manifest->computedShortName,
+        };
+
+        return [
+            K8sLabel::Name->value => $manifest->app->alias(),
+            K8sLabel::Component->value => $component,
+        ];
+    }
+
+    // `$manifest::shortName()` in the match arm itself, where the manifest is a
+    // ManifestInterface&FullNameAwareInterface, is looked up on FullNameAwareInterface alone by
+    // phn 0.7; widened back to ManifestInterface here, the call resolves.
+    private static staticShortName(ManifestInterface $manifest): string => $manifest::shortName();
+}

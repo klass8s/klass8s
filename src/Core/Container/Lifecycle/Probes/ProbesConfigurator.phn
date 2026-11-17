@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Container\Lifecycle\Probes;
+
+use K8Schema\Api\Core\V1\Probe;
+
+class ProbesConfigurator
+{
+    __construct(
+        private Probe $livenessProbe,
+        private Probe $readinessProbe,
+        private Probe $startupProbe,
+    ) {}
+
+    livenessProbe(): ProbeConfigurator => new ProbeConfigurator($this->livenessProbe);
+
+    readinessProbe(): ProbeConfigurator => new ProbeConfigurator($this->readinessProbe);
+
+    startupProbe(): ProbeConfigurator => new ProbeConfigurator($this->startupProbe);
+}

@@ -1,0 +1,14 @@
+namespace Klass8s\Tests\Checksum\Fixture\ChecksumApp;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\ConfigMap\AbstractConfigMap;
+
+class TestConfigMap extends AbstractConfigMap
+{
+    static shortName(): string => 'config';
+
+    data(StringMap $data): void {
+        $data->add('LOG_LEVEL', 'info');
+        $data->add('CACHE_HOST', 'valkey.local');
+    }
+}

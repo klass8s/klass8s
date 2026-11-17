@@ -1,0 +1,8 @@
+namespace Klass8s\GatewayApi\BackendTLSPolicy;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+
+class BackendTLSPolicyApiResource extends AbstractGatewayApiResource
+{
+    const string KIND = 'BackendTLSPolicy';
+}

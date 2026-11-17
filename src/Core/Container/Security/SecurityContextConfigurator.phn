@@ -1,0 +1,54 @@
+namespace Klass8s\Core\Container\Security;
+
+use K8Schema\Api\Core\V1\SecurityContext;
+
+class SecurityContextConfigurator
+{
+    __construct(private SecurityContext $context) {}
+
+    capabilities(): CapabilitiesConfigurator => new CapabilitiesConfigurator($this->context->capabilities());
+
+    seLinuxOptions(): SELinuxOptionsConfigurator => new SELinuxOptionsConfigurator($this->context->seLinuxOptions());
+
+    allowPrivilegeEscalation(bool $allow): static {
+        $this->context->setAllowPrivilegeEscalation($allow);
+
+        return $this;
+    }
+
+    setPrivileged(bool $privileged): static {
+        $this->context->setPrivileged($privileged);
+
+        return $this;
+    }
+
+    setProcMount(string $procMount): static {
+        $this->context->setProcMount($procMount);
+
+        return $this;
+    }
+
+    setReadOnlyRootFilesystem(bool $readOnlyRootFilesystem): static {
+        $this->context->setReadOnlyRootFilesystem($readOnlyRootFilesystem);
+
+        return $this;
+    }
+
+    setRunAsGroup(int $group): static {
+        $this->context->setRunAsGroup($group);
+
+        return $this;
+    }
+
+    runAsNonRoot(bool $runAsNonRoot): static {
+        $this->context->setRunAsNonRoot($runAsNonRoot);
+
+        return $this;
+    }
+
+    runAsUser(int $user): static {
+        $this->context->setRunAsUser($user);
+
+        return $this;
+    }
+}

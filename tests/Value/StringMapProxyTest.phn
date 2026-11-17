@@ -1,0 +1,21 @@
+namespace Klass8s\Tests\Value;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Value\StringMapProxy;
+use PHPUnit\Framework\TestCase;
+
+final class StringMapProxyTest extends TestCase
+{
+    testAnEmptyMapSerializesAsNothing(): void
+        => self::assertNull(StringMapProxy::make(new StringMap())->jsonSerialize());
+
+    testValuesAreWrittenAsStrings(): void {
+        $map = new StringMap();
+        $version = new class implements \Stringable {
+            __toString(): string => 'v1.2.3';
+        };
+        StringMapProxy::make($map)->addAll(['replicas' => 3, 'enabled' => true, 'name' => 'api', 'version' => $version]);
+
+        self::assertSame('{"replicas":"3","enabled":"true","name":"api","version":"v1.2.3"}', json_encode($map, JSON_THROW_ON_ERROR));
+    }
+}

@@ -1,0 +1,77 @@
+namespace Klass8s\Core\Rbac\Configurator\Binding;
+
+use K8Schema\Api\Rbac\V1\Subject;
+use K8Schema\Api\Rbac\V1\SubjectList;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Authentication\WellKnownUserOrGroup;
+use Klass8s\Core\ServiceAccount\ServiceAccountInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Registry\AppRegistry;
+
+readonly class SubjectsConfigurator
+{
+    private const string API_GROUP_RBAC = 'rbac.authorization.k8s.io';
+
+    __construct(
+        private SubjectList $subjects,
+        private AppInterface $app,
+        private AppRegistry $appRegistry,
+    ) {}
+
+    addGroup(WellKnownUserOrGroup|string $group): static {
+        $groupName = $group instanceof WellKnownUserOrGroup ? $group->value : $group;
+        $subject = new Subject(SubjectKind::Group->name, $groupName);
+        $subject->setApiGroup(self::API_GROUP_RBAC);
+        $this->subjects->add($subject);
+
+        return $this;
+    }
+
+    addUser(string $name): static {
+        $subject = new Subject(SubjectKind::User->name, $name);
+        $subject->setApiGroup(self::API_GROUP_RBAC);
+        $this->subjects->add($subject);
+
+        return $this;
+    }
+
+    addServiceAccount(string $name, string $namespace): static {
+        $subject = new Subject(SubjectKind::ServiceAccount->name, $name);
+        $subject
+            ->setNamespace($namespace)
+            ->setApiGroup('');
+        $this->subjects->add($subject);
+
+        return $this;
+    }
+
+    addServiceAccountClass(class<ServiceAccountInterface> $serviceAccountClass, string $namespace): static {
+        $this->ensureAppOwnsManifestClass($serviceAccountClass);
+        $name = $this->app->resourceNameFromManifestClass($serviceAccountClass, ServiceAccountInterface::class);
+        $this->addServiceAccount($name, $namespace);
+
+        return $this;
+    }
+
+    withExternalApp(string $appAlias): static
+        => new static($this->subjects, $this->appRegistry->get($appAlias), $this->appRegistry);
+
+    private ensureAppOwnsManifestClass(class<ManifestInterface> $className): void {
+        if ($this->app->ownsManifestClass($className)) {
+            return;
+        }
+
+        $msg = <<<'ERR'
+            App "%s" does not have manifests with class "%s". Please use method "%s::withExternalApp()"
+            for referencing manifests from other apps.
+
+            $subjects
+                ->withExternalApp('externalAppAlias')
+                ->addServiceAccountClass(MyServiceAccount::class, 'default');
+            ERR;
+
+        throw new \InvalidArgumentException(
+            sprintf($msg, $this->app->alias(), $className, self::class),
+        );
+    }
+}

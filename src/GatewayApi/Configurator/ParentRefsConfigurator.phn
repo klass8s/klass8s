@@ -1,0 +1,27 @@
+namespace Klass8s\GatewayApi\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
+use Klass8s\GatewayApi\Gateway\GatewayInterface;
+
+final readonly class ParentRefsConfigurator
+{
+    __construct(
+        private GenericList<\ArrayObject<string, mixed>> $data,
+        private AppInterface $app,
+    ) {}
+
+    add(string $name): ParentRefConfigurator {
+        $refData = new \ArrayObject<string, mixed>();
+        $refData['name'] = $name;
+        $this->data->add($refData);
+
+        return new ParentRefConfigurator($refData);
+    }
+
+    addFromClass(class<GatewayInterface> $gatewayClass): ParentRefConfigurator {
+        $name = $this->app->resourceNameFromManifestClass($gatewayClass, GatewayInterface::class);
+
+        return $this->add($name);
+    }
+}

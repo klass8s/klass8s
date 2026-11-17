@@ -1,0 +1,13 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\CronJob\AbstractContainerCronJob;
+
+class NightlyCronJob extends AbstractContainerCronJob
+{
+    static shortName(): string => 'nightly';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    schedule(): string => '0 3 * * *';
+}

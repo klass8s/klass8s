@@ -1,0 +1,25 @@
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture;
+
+use Klass8s\Autoscaling\Attribute\ScalingTriggerAttributeInterface;
+use Klass8s\Autoscaling\AutoscaleContext;
+use Klass8s\Autoscaling\ScalingTriggerResolverInterface;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+
+final class TestFanOutTriggerResolver implements ScalingTriggerResolverInterface
+{
+    supports(ScalingTriggerAttributeInterface $attribute): bool => $attribute instanceof TestFanOutTrigger;
+
+    resolve(ScalingTriggerAttributeInterface $attribute, AutoscaleContext $context): list<Trigger> {
+        \assert($attribute instanceof TestFanOutTrigger);
+
+        $triggers = [];
+        foreach ($attribute->queues as $queue) {
+            $trigger = new Trigger('test-lag');
+            $trigger->metadata->add('queue', $queue);
+            $trigger->metadata->add('lagThreshold', (string) $attribute->lagThreshold);
+            $triggers[] = $trigger;
+        }
+
+        return $triggers;
+    }
+}

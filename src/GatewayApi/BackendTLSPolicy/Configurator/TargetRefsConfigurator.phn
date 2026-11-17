@@ -1,0 +1,37 @@
+namespace Klass8s\GatewayApi\BackendTLSPolicy\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
+use Klass8s\Core\Service\ServiceInterface;
+
+final readonly class TargetRefsConfigurator
+{
+    __construct(
+        private GenericList<map<string, string>> $data,
+        private AppInterface $app,
+    ) {}
+
+    addService(string $name, ?string $sectionName = null): static => $this->add('', 'Service', $name, $sectionName);
+
+    addServiceClass(class<ServiceInterface> $serviceClass, ?string $sectionName = null): static {
+        $name = $this->app->resourceNameFromManifestClass($serviceClass, ServiceInterface::class);
+
+        return $this->addService($name, $sectionName);
+    }
+
+    add(string $group, string $kind, string $name, ?string $sectionName = null): static {
+        $ref = [
+            'group' => $group,
+            'kind' => $kind,
+            'name' => $name,
+        ];
+
+        if (null !== $sectionName) {
+            $ref['sectionName'] = $sectionName;
+        }
+
+        $this->data->add($ref);
+
+        return $this;
+    }
+}

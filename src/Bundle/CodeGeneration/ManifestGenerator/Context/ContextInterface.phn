@@ -1,0 +1,17 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Bundle\CodeGeneration\ClassDetails;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ContextInterface
+{
+    createDedicatedDir(): bool;
+
+    kind(): string;
+
+    parentInterface(): class<ManifestInterface>;
+
+    templateName(): string;
+
+    templateVariables(ClassDetails $details, string $manifestName): map<string, string>;
+}

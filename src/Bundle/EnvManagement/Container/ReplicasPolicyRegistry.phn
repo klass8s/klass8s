@@ -1,0 +1,17 @@
+namespace Klass8s\Bundle\EnvManagement\Container;
+
+final class ReplicasPolicyRegistry
+{
+    /** where key is an environment name, like "dev", "prod", etc. and value is the default replicas */
+    private map<string, int> $defaults = [];
+
+    whenEnv(string $env, int $defaultReplicas): static {
+        $this->defaults[$env] = $defaultReplicas;
+
+        return $this;
+    }
+
+    getForEnv(string $env): int => $this->defaults[$env];
+
+    hasForEnv(string $env): bool => array_key_exists($env, $this->defaults);
+}

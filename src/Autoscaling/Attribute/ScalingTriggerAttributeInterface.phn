@@ -1,0 +1,12 @@
+namespace Klass8s\Autoscaling\Attribute;
+
+/**
+ * Marker for scaling trigger attributes: pure-data class attributes that declare one KEDA
+ * trigger for a workload carrying {@see Autoscale}. Attributes hold no logic and no services —
+ * a tagged {@see \Klass8s\Autoscaling\ScalingTriggerResolverInterface} service turns each of
+ * them into a {@see \Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger} at render time.
+ *
+ * Trigger attributes are inherited as a set: the nearest class in the hierarchy that declares
+ * at least one of them wins, and its set replaces the parent's entirely.
+ */
+interface ScalingTriggerAttributeInterface {}

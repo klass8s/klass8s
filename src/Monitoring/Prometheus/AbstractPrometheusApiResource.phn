@@ -1,0 +1,19 @@
+namespace Klass8s\Monitoring\Prometheus;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use K8Schema\APIResourceInterface;
+
+abstract class AbstractPrometheusApiResource implements APIResourceInterface
+{
+    /** @param $data - The resource as data, its ObjectMeta under `metadata` */
+    __construct(protected \ArrayObject<string, mixed> $data) {}
+
+    metadata(): ObjectMeta {
+        $metadata = $this->data['metadata'];
+        assert($metadata instanceof ObjectMeta);
+
+        return $metadata;
+    }
+
+    jsonSerialize(): \ArrayObject<string, mixed> => $this->data;
+}

@@ -1,0 +1,13 @@
+namespace Klass8s\Bundle\CodeGeneration;
+
+final readonly class ClassDetails
+{
+    __construct(
+        public string $className,
+        public string $namespace,
+        public string $directory,
+        public string $fileName,
+    ) {}
+
+    fullFilePath(): string => $this->directory . DIRECTORY_SEPARATOR . $this->fileName;
+}

@@ -1,0 +1,73 @@
+namespace Klass8s\Tests\Support;
+
+use PHPUnit\Framework\Assert;
+use Symfony\Component\Yaml\Yaml;
+
+/**
+ * A resource of a render, read back from its YAML. A value is found by its path of keys
+ * and list indexes, `get('spec', 'listeners', 0, 'name')`; the typed readers fail the test
+ * when the path leads to something else.
+ */
+final readonly class RenderedResource implements \Countable
+{
+    __construct(public map<int|string, mixed> $data) {}
+
+    /** Every resource of a render's YAML, its documents in order. */
+    static allIn(string $yaml): list<RenderedResource> {
+        $resources = [];
+        foreach (explode("\n---\n", $yaml) as $document) {
+            $parsed = Yaml::parse(preg_replace('/^#\s*File:.*\n/', '', trim($document)) ?? '');
+            if (is_array($parsed) && isset($parsed['kind'])) {
+                $resources[] = new self($parsed);
+            }
+        }
+
+        return $resources;
+    }
+
+    /** The first resource of the kind, and of the name when one is given, in a render's YAML; the test fails without one. */
+    static in(string $yaml, string $kind, ?string $name = null): RenderedResource {
+        foreach (self::allIn($yaml) as $resource) {
+            if ($kind === $resource->get('kind') && (null === $name || $name === $resource->get('metadata', 'name'))) {
+                return $resource;
+            }
+        }
+
+        Assert::fail(sprintf('No %s%s in the render.', $kind, null === $name ? '' : sprintf(' named "%s"', $name)));
+    }
+
+    /** The value at the path, or null when the path leads nowhere. */
+    get(int|string ...$path): mixed {
+        $value = $this->data;
+        foreach ($path as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) {
+                return null;
+            }
+            $value = $value[$key];
+        }
+
+        return $value;
+    }
+
+    has(int|string ...$path): bool => null !== $this->get(...$path);
+
+    list(int|string ...$path): list<mixed> {
+        $value = $this->get(...$path);
+        Assert::assertIsList($value, sprintf('No list at %s.', implode('.', $path)));
+
+        return $value;
+    }
+
+    map(int|string ...$path): map<int|string, mixed> {
+        $value = $this->get(...$path);
+        Assert::assertIsArray($value, sprintf('No map at %s.', implode('.', $path)));
+
+        return $value;
+    }
+
+    /** How many entries the resource, or the part of one it is, holds. */
+    count(): int => count($this->data);
+
+    /** The map or list at the path, as a resource of its own. */
+    at(int|string ...$path): RenderedResource => new self($this->map(...$path));
+}

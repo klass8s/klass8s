@@ -1,0 +1,58 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Networking\V1\Ingress;
+use K8Schema\Api\Networking\V1\IngressBackend;
+use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
+use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
+use Klass8s\Core\Ingress\IngressInterface;
+use Klass8s\Event\Events;
+use Klass8s\Event\IngressGeneratedEvent;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
+use Klass8s\Registry\AppRegistry;
+
+final class IngressMaker extends AbstractResourceMaker<IngressInterface, Ingress>
+{
+    __construct(
+        private readonly ManifestClassReferenceConverter $referencesService,
+        private readonly AppRegistry $appRegistry,
+    ) {}
+
+    protected makeResource(IngressInterface $manifest): Ingress {
+        $ingress = new Ingress();
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $ingress);
+
+        $specDefaultBackend = $ingress->spec()->getDefaultBackend() ?? new IngressBackend();
+        $backendConfigurator = new IngressBackendConfigurator(
+            app: $app,
+            appRegistry: $this->appRegistry,
+            referencesService: $this->referencesService,
+            backend: $specDefaultBackend,
+        );
+        $manifest->defaultBackend($backendConfigurator);
+        if ([] !== array_filter($specDefaultBackend->jsonSerialize()->getArrayCopy())) {
+            $ingress->spec()->setDefaultBackend($specDefaultBackend);
+        }
+
+        $rules = new IngressRulesConfigurator(
+            rules: $ingress->spec()->rules(),
+            app: $app,
+            referencesService: $this->referencesService,
+            appRegistry: $this->appRegistry,
+        );
+        $manifest->rules($rules);
+
+        $ingressClassName = $manifest->ingressClassName();
+        if (null !== $ingressClassName) {
+            $ingress->spec()->setIngressClassName($ingressClassName);
+        }
+
+        $manifest->configureIngress($ingress);
+
+        Events::dispatch($this->dispatcher, new IngressGeneratedEvent($manifest, $ingress, $app), IngressGeneratedEvent::NAME);
+
+        return $ingress;
+    }
+
+    protected supportedClass(): class<IngressInterface> => IngressInterface::class;
+}

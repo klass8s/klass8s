@@ -1,0 +1,8 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Event\ManifestMethodCalledEvent;
+
+abstract class AbstractManifestMethodResultSubscriber extends AbstractMethodResultSubscriber
+{
+    protected static eventNames(): iterable<string> => [ManifestMethodCalledEvent::NAME];
+}

@@ -1,0 +1,26 @@
+namespace Klass8s\Core\Persistence;
+
+use K8Schema\Api\Storage\V1\StorageClass;
+use K8Schema\Collection\StringMap;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractStorageClass extends AbstractManifest implements StorageClassInterface
+{
+    final static kind(): string => StorageClass::KIND;
+
+    static apiVersion(): string => StorageClass::API_VERSION;
+
+    parameters(StringMap $parameters): void {}
+
+    reclaimPolicy(): ReclaimPolicy => ReclaimPolicy::Delete;
+
+    volumeBindingMode(): VolumeBindingMode => VolumeBindingMode::Immediate;
+
+    allowVolumeExpansion(): bool => false;
+
+    mountOptions(): iterable<string> => [];
+
+    allowedTopologies(AllowedTopologiesConfigurator $topologies): void {}
+
+    isDefaultClass(): bool => false;
+}

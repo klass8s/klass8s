@@ -1,0 +1,26 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
+
+final class AdvancedSettings implements \JsonSerializable
+{
+    private ?bool $restoreToOriginalReplicaCount = null;
+    private HPAConfig $horizontalPodAutoscalerConfig;
+
+    __construct() {
+        $this->horizontalPodAutoscalerConfig = new HPAConfig();
+    }
+
+    getRestoreToOriginalReplicaCount(): ?bool => $this->restoreToOriginalReplicaCount;
+
+    setRestoreToOriginalReplicaCount(bool $value): static {
+        $this->restoreToOriginalReplicaCount = $value;
+
+        return $this;
+    }
+
+    horizontalPodAutoscalerConfig(): HPAConfig => $this->horizontalPodAutoscalerConfig;
+
+    jsonSerialize(): map<string, bool|HPAConfig|null> => [
+        'restoreToOriginalReplicaCount' => $this->restoreToOriginalReplicaCount,
+        'horizontalPodAutoscalerConfig' => $this->horizontalPodAutoscalerConfig,
+    ];
+}

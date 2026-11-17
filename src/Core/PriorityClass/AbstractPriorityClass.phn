@@ -1,0 +1,17 @@
+namespace Klass8s\Core\PriorityClass;
+
+use K8Schema\Api\Scheduling\V1\PriorityClass;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractPriorityClass extends AbstractManifest implements PriorityClassInterface
+{
+    final static kind(): string => PriorityClass::KIND;
+
+    static apiVersion(): string => PriorityClass::API_VERSION;
+
+    description(): ?string => null;
+
+    globalDefault(): bool => false;
+
+    preemptionPolicy(): ?PreemptionPolicy => null;
+}

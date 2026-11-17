@@ -1,0 +1,20 @@
+namespace Klass8s\Event;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Proximity\ProxyInterface;
+
+class ContainerMethodCalledEvent extends ContainerMethodEvent implements ProxyableMethodCalledEventInterface<ContainerInterface&ProxyInterface>
+{
+    const string NAME = 'klass8s.container.method_called';
+
+    __construct(
+        ContainerInterface&ProxyInterface $proxyable,
+        string $methodName,
+        map<string, mixed> $methodParams,
+        private readonly mixed $returnedValue,
+    ) {
+        parent::__construct($proxyable, $methodName, $methodParams);
+    }
+
+    returnedValue(): mixed => $this->returnedValue;
+}

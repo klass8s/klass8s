@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Deployment\DeploymentInterface;
+
+final readonly class DeploymentGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.deployment';
+
+    __construct(
+        private DeploymentInterface $manifest,
+        private Deployment $deployment,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): DeploymentInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->deployment;
+
+    deployment(): Deployment => $this->deployment;
+
+    app(): AppInterface => $this->app;
+}

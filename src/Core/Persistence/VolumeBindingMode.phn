@@ -1,0 +1,9 @@
+namespace Klass8s\Core\Persistence;
+
+enum VolumeBindingMode: string
+{
+    case Immediate = 'Immediate';
+    case WaitForFirstConsumer = 'WaitForFirstConsumer';
+
+    toString(): string => $this->value;
+}

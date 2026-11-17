@@ -1,0 +1,17 @@
+namespace Klass8s\Core\Rbac\Configurator;
+
+use K8Schema\Api\Rbac\V1\AggregationRule;
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+
+readonly class AggregationRuleConfigurator
+{
+    __construct(private AggregationRule $rule) {}
+
+    addClusterRoleSelector(): SelectorConfigurator {
+        $selector = new LabelSelector();
+        $this->rule->clusterRoleSelectors()->add($selector);
+
+        return new SelectorConfigurator($selector);
+    }
+}

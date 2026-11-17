@@ -1,0 +1,33 @@
+namespace Klass8s\Core\Container\Ports;
+
+use K8Schema\Api\Core\V1\ContainerPort;
+use Klass8s\Core\Service\IPProtocol;
+
+class ContainerPortBuilder
+{
+    __construct(private ContainerPort $port) {}
+
+    setName(string $name): static {
+        $this->port->setName($name);
+
+        return $this;
+    }
+
+    setHostIP(string $hostIP): static {
+        $this->port->setHostIP($hostIP);
+
+        return $this;
+    }
+
+    setHostPort(int $port): static {
+        $this->port->setHostPort($port);
+
+        return $this;
+    }
+
+    setProtocol(IPProtocol $protocol): static {
+        $this->port->setProtocol($protocol->value);
+
+        return $this;
+    }
+}

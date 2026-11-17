@@ -1,0 +1,18 @@
+namespace Klass8s\Bundle\DependencyInjection\Compiler\Traits;
+
+use Klass8s\Bundle\Klass8sBundle;
+
+trait GetAppAliasTrait
+{
+    /** @param $tags - The attributes of each of the service's app tags, as findTaggedServiceIds() gives them */
+    private getAppAlias(string $serviceId, array<mixed> $tags): string {
+        foreach ($tags as $tag) {
+            $alias = is_array($tag) ? $tag['alias'] ?? null : null;
+            if (is_string($alias)) {
+                return $alias;
+            }
+        }
+
+        throw new \LogicException(sprintf('"%s" tag on app service "%s" does not have "alias" attribute.', Klass8sBundle::TAG_APP, $serviceId));
+    }
+}

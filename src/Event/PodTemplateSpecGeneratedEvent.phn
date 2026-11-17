@@ -1,0 +1,14 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Core\V1\PodTemplateSpec;
+use Klass8s\Core\Pod\PodTemplateSpecInterface;
+
+final readonly class PodTemplateSpecGeneratedEvent
+{
+    const string NAME = 'klass8s.pod_template_spec.generated';
+
+    __construct(
+        public PodTemplateSpec $templateSpec,
+        public PodTemplateSpecInterface $builder,
+    ) {}
+}

@@ -1,0 +1,6 @@
+namespace Klass8s\Runtime;
+
+interface ManifestRuntimeStatusResolverInterface
+{
+    isClassEnabled(\ReflectionClass $class): bool;
+}

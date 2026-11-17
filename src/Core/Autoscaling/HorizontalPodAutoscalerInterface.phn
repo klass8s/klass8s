@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Autoscaling;
+
+use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscaler;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Core\Autoscaling\Configurator\MetricsConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\VersionedManifestClassReference;
+
+interface HorizontalPodAutoscalerInterface extends ManifestInterface
+{
+    minReplicas(): int;
+    maxReplicas(): int;
+    behavior(BehaviorConfigurator $behavior): void;
+    metrics(MetricsConfigurator $metrics): void;
+    scaleTargetRef(): VersionedManifestClassReference|CrossVersionObjectReference;
+    configureHorizontalPodAutoscaler(HorizontalPodAutoscaler $hpa): void;
+}

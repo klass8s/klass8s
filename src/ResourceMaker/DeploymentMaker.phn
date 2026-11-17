@@ -1,0 +1,68 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\DeploymentSpec;
+use K8Schema\Api\Apps\V1\DeploymentStrategy;
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Core\Deployment\StrategyConfigurator;
+use Klass8s\Core\Pod\PodTemplateSpecProcessor;
+use Klass8s\Event\DeploymentGeneratedEvent;
+use Klass8s\Event\Events;
+use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
+
+final class DeploymentMaker extends AbstractResourceMaker<DeploymentInterface, Deployment>
+{
+    use ConfigureSelectorTrait;
+
+    __construct(private readonly PodTemplateSpecProcessor $specProcessor) {}
+
+    protected makeResource(DeploymentInterface $manifest): Deployment {
+        $deployment = new Deployment();
+
+        $this->configureSelector($manifest, $deployment->spec()->selector());
+
+        $this->processStrategy($manifest, $deployment->spec());
+
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $deployment);
+        $this->specProcessor->process($manifest, $deployment->spec()->template(), $app);
+
+        $spec = $deployment->spec();
+        foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
+            $deployment->metadata()->labels()->add($name, $value);
+            $deployment->spec()->template()->metadata()->labels()->add($name, $value);
+        }
+
+        $minReadySeconds = $manifest->minReadySeconds();
+        $progressDeadlineSeconds = $manifest->progressDeadlineSeconds();
+        $spec
+            ->setReplicas($manifest->replicas())
+            ->setRevisionHistoryLimit($manifest->revisionHistoryLimit());
+        if (null !== $minReadySeconds) {
+            $spec->setMinReadySeconds($minReadySeconds);
+        }
+        if (null !== $progressDeadlineSeconds) {
+            $spec->setProgressDeadlineSeconds($progressDeadlineSeconds);
+        }
+        $manifest->configureDeployment($deployment);
+
+        Events::dispatch($this->dispatcher, new DeploymentGeneratedEvent($manifest, $deployment, $app), DeploymentGeneratedEvent::NAME);
+
+        return $deployment;
+    }
+
+    protected supportedClass(): class<DeploymentInterface> => DeploymentInterface::class;
+
+    private processStrategy(DeploymentInterface $manifest, DeploymentSpec $spec): void {
+        $specStrategy = $spec->getStrategy() ?? new DeploymentStrategy();
+        $this->configureStrategy($manifest, $specStrategy);
+        if ([] !== array_filter($specStrategy->jsonSerialize()->getArrayCopy())) {
+            $spec->setStrategy($specStrategy);
+        }
+    }
+
+    private configureStrategy(DeploymentInterface $manifest, DeploymentStrategy $strategy): void {
+        $strategyConfigurator = new StrategyConfigurator($strategy);
+        $manifest->strategy($strategyConfigurator);
+    }
+}

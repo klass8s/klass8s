@@ -1,0 +1,18 @@
+namespace Klass8s\Manifest\Reference;
+
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\ProxyManager;
+
+final readonly class ManifestInstanceReference implements ManifestReferenceInterface
+{
+    __construct(
+        public ManifestInterface $manifest,
+        public ?string $apiGroup = null,
+    ) {}
+
+    appAlias(): string => $this->manifest->app->alias();
+
+    apiGroup(): ?string => $this->apiGroup;
+
+    className(): string => ProxyManager::unwrapClassName($this->manifest);
+}

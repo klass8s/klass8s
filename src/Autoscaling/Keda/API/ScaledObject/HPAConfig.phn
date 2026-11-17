@@ -1,0 +1,28 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
+
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerBehavior;
+
+class HPAConfig implements \JsonSerializable
+{
+    private ?string $name = null;
+    private HorizontalPodAutoscalerBehavior $behavior;
+
+    __construct() {
+        $this->behavior = new HorizontalPodAutoscalerBehavior();
+    }
+
+    behavior(): HorizontalPodAutoscalerBehavior => $this->behavior;
+
+    getName(): ?string => $this->name;
+
+    setName(string $name): static {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    jsonSerialize(): array<mixed> => [
+        'name' => $this->name,
+        'behavior' => $this->behavior,
+    ];
+}

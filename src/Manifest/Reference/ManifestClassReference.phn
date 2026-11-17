@@ -1,0 +1,15 @@
+namespace Klass8s\Manifest\Reference;
+
+use Klass8s\Manifest\ManifestInterface;
+
+/** A manifest of an app, by its class: what a resource names another resource by. */
+final readonly class ManifestClassReference
+{
+    __construct(public string $appAlias, public class<ManifestInterface> $className, public ?string $apiGroup = null) {}
+
+    appAlias(): string => $this->appAlias;
+
+    apiGroup(): ?string => $this->apiGroup;
+
+    className(): class<ManifestInterface> => $this->className;
+}

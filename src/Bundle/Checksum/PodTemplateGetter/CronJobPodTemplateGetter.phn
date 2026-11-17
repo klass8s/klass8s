@@ -1,0 +1,9 @@
+namespace Klass8s\Bundle\Checksum\PodTemplateGetter;
+
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\Api\Core\V1\PodTemplateSpec;
+
+class CronJobPodTemplateGetter
+{
+    get(CronJob $workload): PodTemplateSpec => $workload->getSpec()->jobTemplate()->spec()->template();
+}

@@ -1,0 +1,24 @@
+namespace Klass8s\GatewayApi\ReferenceGrant\Configurator;
+
+use Klass8s\Collection\GenericList;
+
+final readonly class ReferenceGrantFromConfigurator
+{
+    __construct(private GenericList<map<string, string>> $data) {}
+
+    add(string $group, string $kind, string $namespace): static {
+        $this->data->add([
+            'group' => $group,
+            'kind' => $kind,
+            'namespace' => $namespace,
+        ]);
+
+        return $this;
+    }
+
+    allowHTTPRoutes(string $namespace): static => $this->add('gateway.networking.k8s.io', 'HTTPRoute', $namespace);
+
+    allowGRPCRoutes(string $namespace): static => $this->add('gateway.networking.k8s.io', 'GRPCRoute', $namespace);
+
+    allowGateways(string $namespace): static => $this->add('gateway.networking.k8s.io', 'Gateway', $namespace);
+}

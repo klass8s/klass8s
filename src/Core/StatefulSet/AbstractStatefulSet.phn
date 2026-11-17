@@ -1,0 +1,65 @@
+namespace Klass8s\Core\StatefulSet;
+
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Core\V1\PodSpec;
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
+use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
+use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
+use Klass8s\Core\Pod\Policy\RestartPolicy;
+use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
+use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
+use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+use Klass8s\Core\StatefulSet\UpdateStrategy\UpdateStrategyConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+abstract class AbstractStatefulSet extends AbstractManifest implements StatefulSetInterface
+{
+    static kind(): string => StatefulSet::KIND;
+
+    static apiVersion(): string => StatefulSet::API_VERSION;
+
+    initContainers(): iterable<ContainerInterface> => [];
+
+    affinity(AffinityConfigurator $affinity): void {}
+
+    imagePullSecrets(ImagePullSecretsConfigurator $secrets): void {}
+
+    nodeSelector(StringMap $nodeSelector): void {}
+
+    tolerations(TolerationsConfigurator $tolerations): void {}
+
+    volumes(VolumesConfigurator $volumes): void {}
+
+    restartPolicy(): ?RestartPolicy => null;
+
+    configurePodSpec(PodSpec $spec): void {}
+
+    priorityClass(PriorityClassConfigurator $priorityClass): void {}
+
+    podManagementPolicy(): ?PodManagementPolicy => null;
+
+    replicas(): int => 1;
+
+    revisionHistoryLimit(): int => 1;
+
+    selector(SelectorConfigurator $selector): void {}
+
+    updateStrategy(UpdateStrategyConfigurator $updateStrategy): void {}
+
+    volumeClaimTemplates(): iterable<PersistentVolumeClaimInterface> => [];
+
+    serviceAccountName(): ?string => null;
+
+    serviceAccount(): ?ManifestClassReference => null;
+
+    terminationGracePeriodSeconds(): ?int => null;
+
+    topologySpreadConstraints(TopologySpreadConstraintsConfigurator $constraints): void {}
+
+    configureStatefulSet(StatefulSet $statefulSet): void {}
+}

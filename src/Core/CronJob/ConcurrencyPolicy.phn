@@ -1,0 +1,10 @@
+namespace Klass8s\Core\CronJob;
+
+enum ConcurrencyPolicy: string
+{
+    case Allow = 'Allow';
+    case Forbid = 'Forbid';
+    case Replace = 'Replace';
+
+    toString(): string => $this->value;
+}

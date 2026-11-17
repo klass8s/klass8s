@@ -1,0 +1,39 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\NestedData;
+use Klass8s\GatewayApi\Enum\ProtocolType;
+
+final class ListenerConfigurator
+{
+    __construct(
+        private \ArrayObject<string, mixed> $data,
+        private AppInterface $app,
+    ) {}
+
+    port(int $port): static {
+        $this->data['port'] = $port;
+
+        return $this;
+    }
+
+    protocol(ProtocolType $protocol): static {
+        $this->data['protocol'] = $protocol->value;
+
+        return $this;
+    }
+
+    hostname(string $hostname): static {
+        $this->data['hostname'] = $hostname;
+
+        return $this;
+    }
+
+    tls(): TlsConfigurator {
+        return new TlsConfigurator(NestedData::object($this->data, 'tls'), $this->app);
+    }
+
+    allowedRoutes(): AllowedRoutesConfigurator {
+        return new AllowedRoutesConfigurator(NestedData::object($this->data, 'allowedRoutes'));
+    }
+}

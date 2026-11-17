@@ -1,0 +1,11 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+class WorkerDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'worker';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+}

@@ -1,0 +1,5 @@
+namespace Klass8s\Core\Pod;
+
+use Klass8s\Manifest\MetadataAwareInterface;
+
+interface PodTemplateSpecInterface extends PodSpecInterface, MetadataAwareInterface {}

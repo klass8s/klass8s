@@ -1,0 +1,13 @@
+namespace Klass8s\Bundle\EnvManagement\Attribute;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+readonly class EnabledForEnvs
+{
+    private list<string> $envs;
+
+    __construct(string ...$envs) {
+        $this->envs = array_values($envs);
+    }
+
+    envs(): list<string> => $this->envs;
+}

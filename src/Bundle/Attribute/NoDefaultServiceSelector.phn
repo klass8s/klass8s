@@ -1,0 +1,11 @@
+namespace Klass8s\Bundle\Attribute;
+
+/**
+ * This attribute is used on Service manifests to specify that the default selector
+ * should not be applied to them. Note that the default service selector along with
+ * default selector labels on Deployment or StatefulSet allows you to wire together
+ * Service and Deployment/StatefulSet just by specifying the same manifest name for them.
+ * @see \Klass8s\Bundle\EventListener\DefaultSelectorLabelsSubscriber
+ */
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class NoDefaultServiceSelector {}

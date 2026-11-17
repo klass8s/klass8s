@@ -1,0 +1,12 @@
+namespace Klass8s\Core\Autoscaling\Metric;
+
+final readonly class TypedMetricTarget
+{
+    private __construct(public TargetType $type, public string|float|int $value) {}
+
+    static utilization(int $averageUtilization): self => new self(TargetType::Utilization, $averageUtilization);
+
+    static value(float|string $value): self => new self(TargetType::Value, $value);
+
+    static averageValue(float|string $value): self => new self(TargetType::AverageValue, $value);
+}

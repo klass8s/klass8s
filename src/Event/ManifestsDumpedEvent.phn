@@ -1,0 +1,6 @@
+namespace Klass8s\Event;
+
+final readonly class ManifestsDumpedEvent
+{
+    const string NAME = 'klass8s.manifests.dumped';
+}

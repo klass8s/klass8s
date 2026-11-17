@@ -1,0 +1,10 @@
+namespace Klass8s\Core\StatefulSet\UpdateStrategy;
+
+use K8Schema\Api\Apps\V1\RollingUpdateStatefulSetStrategy;
+
+readonly class RollingUpdateStrategyConfigurator
+{
+    __construct(private RollingUpdateStatefulSetStrategy $rollingUpdate) {}
+
+    setPartition(int $partition): void => $this->rollingUpdate->setPartition($partition);
+}

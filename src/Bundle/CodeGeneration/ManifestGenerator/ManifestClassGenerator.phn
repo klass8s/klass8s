@@ -1,0 +1,31 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator;
+
+use Klass8s\Bundle\CodeGeneration\ClassDetailsResolver\ManifestResolver;
+use Klass8s\Bundle\CodeGeneration\GeneratedSource;
+use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
+use Klass8s\Bundle\CodeGeneration\TemplateRenderer;
+use Klass8s\App\AppInterface;
+
+final readonly class ManifestClassGenerator
+{
+    __construct(
+        private ManifestResolver $resolver,
+        private TemplateRenderer $renderer,
+    ) {}
+
+    generate(string $manifestName, ContextInterface $context, AppInterface $app): string {
+        $details = $this->resolver->getClassDetails(
+            $app,
+            $manifestName,
+            $context->kind(),
+            $context->createDedicatedDir(),
+        );
+        $source = GeneratedSource::for($details->fullFilePath());
+        $source->write($this->renderer->render(
+            $source->template($context->templateName()),
+            $context->templateVariables($details, $manifestName),
+        ));
+
+        return $source->path;
+    }
+}

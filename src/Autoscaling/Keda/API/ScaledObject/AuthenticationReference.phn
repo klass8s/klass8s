@@ -1,0 +1,10 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
+
+final readonly class AuthenticationReference implements \JsonSerializable
+{
+    __construct(public string $name) {}
+
+    jsonSerialize(): map<string, string> => [
+        'name' => $this->name,
+    ];
+}

@@ -1,0 +1,32 @@
+namespace Klass8s\Core\Pod\Affinity;
+
+use K8Schema\Api\Core\V1\NodeSelectorRequirement;
+use Klass8s\Core\LabelSelector\Operator;
+
+class NodeAffinityExpression extends PodAffinityExpression
+{
+    toNodeSelectorRequirement(): NodeSelectorRequirement {
+        $requirement = new NodeSelectorRequirement($this->key, $this->operator());
+        if (null !== $this->values) {
+            $requirement->values()->addAll($this->values);
+        }
+
+        return $requirement;
+    }
+
+    greaterThan(int $value): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::GreaterThan;
+        $this->values = [(string) $value];
+
+        return $this;
+    }
+
+    lowerThan(int $value): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::LowerThan;
+        $this->values = [(string) $value];
+
+        return $this;
+    }
+}

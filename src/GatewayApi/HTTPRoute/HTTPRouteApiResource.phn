@@ -1,0 +1,8 @@
+namespace Klass8s\GatewayApi\HTTPRoute;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+
+class HTTPRouteApiResource extends AbstractGatewayApiResource
+{
+    const string KIND = 'HTTPRoute';
+}

@@ -1,0 +1,8 @@
+namespace Klass8s\GatewayApi\ReferenceGrant;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+
+class ReferenceGrantApiResource extends AbstractGatewayApiResource
+{
+    const string KIND = 'ReferenceGrant';
+}

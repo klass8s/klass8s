@@ -1,0 +1,15 @@
+namespace Klass8s\Event;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Container\Env\EnvConfigurator;
+
+readonly class ConfigMapEnvSourceAddedEvent
+{
+    const string NAME = 'klass8s.env_source.config_map.added';
+
+    __construct(
+        public string $configMapClass,
+        public AppInterface $app,
+        public EnvConfigurator $env,
+    ) {}
+}

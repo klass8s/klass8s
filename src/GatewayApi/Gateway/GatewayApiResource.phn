@@ -1,0 +1,8 @@
+namespace Klass8s\GatewayApi\Gateway;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+
+class GatewayApiResource extends AbstractGatewayApiResource
+{
+    const string KIND = 'Gateway';
+}

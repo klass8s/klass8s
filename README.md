@@ -155,6 +155,24 @@ composer require tequila/k8schema:~1.35.8
 > Using the caret (`^`) operator will automatically update the library to the newest minor Kubernetes version, 
 > which may break your manifests if you're not using the newest version of Kubernetes.
 
+## Development
+Klass8s is written in [Phaenon](https://phaenon.dev), a typed dialect of PHP that compiles to the PHP
+you would have written by hand. The sources are the `.phn` files in `src/` and `tests/`. The package
+ships the PHP they compile to, in `.src/`, so a project that installs Klass8s needs nothing beyond
+Composer: no compiler and no Composer plugin.
+
+To work on Klass8s itself:
+
+```bash
+composer install        # also installs phn, the compiler, whose plugin builds .src/ and .tests/
+composer test           # the suite, run on the compiled tests
+composer cs             # format the .phn: Phaenon's layout, then php-cs-fixer on the compiled PHP
+composer cs:check       # check the format, then that the committed .src/ is what the build writes
+```
+
+`composer check` type-checks the sources without writing anything. Commit a change to a `.phn`
+together with the `.src/` the build wrote for it.
+
 ## Origins
 Klass8s continues [`dealroadshow/k8s-framework`](https://github.com/petr-buchin/k8s-framework),
 [`dealroadshow/k8s-bundle`](https://github.com/petr-buchin/k8s-bundle) and `dealroadshow/keda-bundle`,

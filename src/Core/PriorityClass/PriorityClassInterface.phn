@@ -1,0 +1,11 @@
+namespace Klass8s\Core\PriorityClass;
+
+use Klass8s\Manifest\ManifestInterface;
+
+interface PriorityClassInterface extends ManifestInterface
+{
+    description(): ?string;
+    globalDefault(): bool;
+    preemptionPolicy(): ?PreemptionPolicy;
+    value(): int;
+}

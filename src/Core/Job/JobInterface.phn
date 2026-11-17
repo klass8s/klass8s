@@ -1,0 +1,26 @@
+namespace Klass8s\Core\Job;
+
+use K8Schema\Api\Batch\V1\Job;
+use Klass8s\Core\Job\FailurePolicy\PodFailurePolicyConfigurator;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Pod\PodTemplateSpecInterface;
+use Klass8s\Manifest\ManifestInterface;
+
+interface JobInterface extends PodTemplateSpecInterface, ManifestInterface
+{
+    selector(SelectorConfigurator $selector): void;
+    backoffLimit(): ?int;
+    activeDeadlineSeconds(): ?int;
+    ttlSecondsAfterFinished(): ?int;
+    completions(): ?int;
+    manualSelector(): ?bool;
+    parallelism(): ?int;
+    suspend(): bool;
+
+    /**
+     * The Job's `podFailurePolicy`, rule by rule; nothing added = no policy rendered.
+     * Needs `restartPolicy: Never` on the pod template.
+     */
+    podFailurePolicy(PodFailurePolicyConfigurator $policy): void;
+    configureJob(Job  $job): void;
+}

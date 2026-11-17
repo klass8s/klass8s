@@ -1,0 +1,50 @@
+namespace Klass8s\Tests\Bundle\DependencyInjection;
+
+use Klass8s\Tests\Support\ConfiguredTestKernel;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+
+final class EnvSuffixedMethodsConfigTest extends TestCase
+{
+    testAConditionMayBeABoolean(): void {
+        $eventMap = self::eventMap(['name' => 'tolerations', 'if' => true]);
+
+        self::assertSame(['tolerations'], $eventMap['klass8s.manifest.method_called'] ?? null);
+    }
+
+    testAConditionMayBeAParameterReference(): void {
+        self::assertArrayHasKey('klass8s.manifest.method_called', self::eventMap(['name' => 'tolerations', 'if' => '%spot_nodes%'], ['spot_nodes' => true]));
+        self::assertSame([], self::eventMap(['name' => 'tolerations', 'if' => '%spot_nodes%'], ['spot_nodes' => false]));
+        self::assertSame([], self::eventMap(['name' => 'tolerations', 'if_not' => '%spot_nodes%'], ['spot_nodes' => true]));
+    }
+
+    testAMethodWhoseConditionIsFalseIsLeftOut(): void
+        => self::assertSame([], self::eventMap(['name' => 'tolerations', 'if_not' => true]));
+
+    testAnEnvironmentVariableIsRefusedWithTheKeyAndTheMethodNamed(): void {
+        try {
+            self::eventMap(['name' => 'tolerations', 'if' => '%env(bool:SPOT_NODES)%']);
+            self::fail('The container compiled.');
+        } catch (\Exception $exception) {
+            $previous = $exception->getPrevious() ?? $exception;
+            self::assertInstanceOf(InvalidConfigurationException::class, $previous);
+            self::assertSame(
+                'Key "if" in a config for env-suffixed method "tolerations" must be a boolean or a reference to a boolean parameter, got "%env(bool:SPOT_NODES)%": an environment variable is known only at runtime, after the env-suffixed methods are compiled into the container.',
+                $previous->getMessage(),
+            );
+        }
+    }
+
+    private static eventMap(map<string, mixed> $method, map<string, bool|int|float|string|null> $parameters = []): array<mixed> {
+        $kernel = new ConfiguredTestKernel(['env_management' => ['env_suffixed_methods' => [$method]]], $parameters);
+        try {
+            $kernel->boot();
+            $eventMap = $kernel->getContainer()->getParameter('klass8s.env_management.env_suffixed_methods.event_map');
+            self::assertIsArray($eventMap);
+
+            return $eventMap;
+        } finally {
+            $kernel->shutdown();
+        }
+    }
+}

@@ -1,0 +1,63 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Nats;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+
+/**
+ * KEDA `nats-jetstream` scaler: scales on the lag (`num_pending`) of one durable JetStream
+ * consumer, read from the NATS server's HTTP monitoring endpoint (port 8222 by default).
+ * The endpoint itself is unauthenticated — reachability is controlled at the network level.
+ */
+class NatsJetStreamTrigger extends AbstractTriggerBuilder
+{
+    private const string NATS_SERVER_MONITORING_ENDPOINT = 'natsServerMonitoringEndpoint';
+    private const string ACCOUNT = 'account';
+    private const string STREAM = 'stream';
+    private const string CONSUMER = 'consumer';
+    private const string LAG_THRESHOLD = 'lagThreshold';
+    private const string ACTIVATION_LAG_THRESHOLD = 'activationLagThreshold';
+    private const string USE_HTTPS = 'useHttps';
+
+    /**
+     * host:port of the NATS HTTP monitoring endpoint — WITHOUT a scheme: KEDA
+     * builds the URL itself and prepends http:// (or https:// per useHttps),
+     * so a scheme here produces "http://http://…" and a runtime parse error
+     * in every scaling cycle.
+     */
+    monitoringEndpoint(string $endpoint): static {
+        if (str_contains($endpoint, '://')) {
+            throw new \LogicException(sprintf('NATS monitoring endpoint must be host:port without a scheme — KEDA prepends http(s):// itself (see useHttps). Got "%s".', $endpoint));
+        }
+
+        return $this->set(self::NATS_SERVER_MONITORING_ENDPOINT, $endpoint);
+    }
+
+    /** NATS account name; KEDA defaults to '$G' when not set. */
+    account(string $account): static => $this->set(self::ACCOUNT, $account);
+
+    stream(string $stream): static => $this->set(self::STREAM, $stream);
+
+    consumer(string $consumer): static => $this->set(self::CONSUMER, $consumer);
+
+    lagThreshold(int $lagThreshold): static => $this->set(self::LAG_THRESHOLD, $lagThreshold);
+
+    activationLagThreshold(int $activationLagThreshold): static
+        => $this->set(self::ACTIVATION_LAG_THRESHOLD, $activationLagThreshold);
+
+    useHttps(bool $value = true): static => $this->set(self::USE_HTTPS, $value ? 'true' : 'false');
+
+    static forConsumer(string $stream, string $consumer): static {
+        $instance = new static();
+        $instance->stream($stream)->consumer($consumer);
+
+        return $instance;
+    }
+
+    protected static type(): string => 'nats-jetstream';
+
+    protected requiredKeys(): list<string> => [
+        self::NATS_SERVER_MONITORING_ENDPOINT,
+        self::STREAM,
+        self::CONSUMER,
+        self::LAG_THRESHOLD,
+    ];
+}

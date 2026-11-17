@@ -1,0 +1,12 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Rbac\V1\ClusterRoleBinding;
+use K8Schema\Api\Rbac\V1\RoleRef;
+use Klass8s\Core\Rbac\ClusterRoleBindingInterface;
+
+class ClusterRoleBindingMaker extends AbstractRoleBindingMaker<ClusterRoleBindingInterface, ClusterRoleBinding>
+{
+    protected roleBinding(RoleRef $ref): ClusterRoleBinding => new ClusterRoleBinding($ref);
+
+    protected supportedClass(): class<ClusterRoleBindingInterface> => ClusterRoleBindingInterface::class;
+}

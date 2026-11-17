@@ -1,0 +1,15 @@
+namespace Klass8s\Event;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Proximity\ProxyInterface;
+
+class ContainerMethodEvent extends AbstractProxyableMethodEvent<ContainerInterface&ProxyInterface>
+{
+    const string NAME = 'klass8s.container.before_method';
+
+    __construct(ContainerInterface&ProxyInterface $proxyable, string $methodName, map<string, mixed> $methodParams) {
+        parent::__construct($proxyable, $methodName, $methodParams);
+    }
+
+    container(): ContainerInterface&ProxyInterface => $this->proxyable;
+}

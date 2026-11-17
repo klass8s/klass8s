@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Container\VolumeMount;
+
+class MountPropagation
+{
+    private const string NONE = 'None';
+    private const string HOST_TO_CONTAINER = 'HostToContainer';
+    private const string BIDIRECTIONAL = 'Bidirectional';
+
+    private __construct(private string $value) {}
+
+    toString(): string => $this->value;
+
+    static none(): static => new static(self::NONE);
+
+    static hostToContainer(): static => new static(self::HOST_TO_CONTAINER);
+
+    static bidirectional(): static => new static(self::BIDIRECTIONAL);
+}

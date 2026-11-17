@@ -1,0 +1,39 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Bundle\EventListener\Traits\EnsureMethodIsNotDeclaredInUserManifestTrait;
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Core\StatefulSet\StatefulSetInterface;
+use Klass8s\Event\ManifestMethodEvent;
+use Klass8s\Event\ProxyableMethodEventInterface;
+
+class AutoSetReplicasSubscriber extends AbstractMethodSubscriber
+{
+    use EnsureMethodIsNotDeclaredInUserManifestTrait;
+
+    protected supports(ProxyableMethodEventInterface $event): bool {
+        if ('replicas' !== $event->methodName()) {
+            return false;
+        }
+
+        $manifest = $event->proxyable();
+
+        return $manifest instanceof DeploymentInterface || $manifest instanceof StatefulSetInterface;
+    }
+
+    protected beforeMethod(ProxyableMethodEventInterface $event): void {
+        $manifest = $event->proxyable();
+        if (!$manifest instanceof DeploymentInterface && !$manifest instanceof StatefulSetInterface) {
+            throw new \InvalidArgumentException(sprintf('Manifest "%s" must implement either %s or %s, but implements neither.', $manifest::class, DeploymentInterface::class, StatefulSetInterface::class));
+        }
+
+        $replicas = $manifest->config['replicas'] ?? null;
+        if (null !== $replicas) {
+            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'replicas');
+            $event->setReturnValue($replicas);
+        }
+    }
+
+    protected static eventNames(): iterable<string> {
+        yield ManifestMethodEvent::NAME;
+    }
+}

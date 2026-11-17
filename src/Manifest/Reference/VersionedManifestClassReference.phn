@@ -1,0 +1,8 @@
+namespace Klass8s\Manifest\Reference;
+
+use Klass8s\Manifest\ManifestInterface;
+
+final readonly class VersionedManifestClassReference
+{
+    __construct(public string $appAlias, public class<ManifestInterface> $className, public ?string $apiVersion = null) {}
+}

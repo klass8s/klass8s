@@ -1,0 +1,38 @@
+namespace Klass8s\Core\Service\Configurator;
+
+use K8Schema\Api\Core\V1\Service;
+
+class ServiceTypeConfigurator
+{
+    const string TYPE_CLUSTER_IP = 'ClusterIP';
+    const string TYPE_NODE_PORT = 'NodePort';
+    const string TYPE_LOAD_BALANCER = 'LoadBalancer';
+    const string TYPE_EXTERNAL_NAME = 'ExternalName';
+
+    __construct(private Service $service) {}
+
+    clusterIP(): void => $this->setServiceType(self::TYPE_CLUSTER_IP);
+
+    nodePort(): void => $this->setServiceType(self::TYPE_NODE_PORT);
+
+    loadBalancer(): void => $this->setServiceType(self::TYPE_LOAD_BALANCER);
+
+    externalName(string $externalName): void {
+        $this->setServiceType(self::TYPE_EXTERNAL_NAME);
+        $this->service->spec()->setExternalName($externalName);
+    }
+
+    private setServiceType(string $type): void {
+        $existingType = $this->service->spec()->getType();
+        if (null !== $existingType && $existingType !== $type) {
+            throw new \LogicException(
+                sprintf(
+                    'Cannot set service type to "%s", it is already set to "%s"',
+                    $type,
+                    $existingType,
+                ),
+            );
+        }
+        $this->service->spec()->setType($type);
+    }
+}

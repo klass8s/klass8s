@@ -1,0 +1,45 @@
+namespace Klass8s\Tests;
+
+use Klass8s\Bundle\Klass8sBundle;
+use Klass8s\Tests\Support\TestDirectory;
+use Proximity\Bundle\ProximityBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Kernel;
+
+class TestKernel extends Kernel
+{
+    registerBundles(): iterable => [
+        new FrameworkBundle(),
+        new ProximityBundle(),
+        new Klass8sBundle(),
+    ];
+
+    getCacheDir(): string => TestDirectory::path('bundle-test-cache-' . uniqid());
+
+    getLogDir(): string => TestDirectory::path('bundle-test-logs');
+
+    /** @phpstan-ignore missingType.iterableValue */
+    protected getKernelParameters(): array => array_replace(parent::getKernelParameters(), [
+        'kernel.project_dir' => __DIR__ . '/../var/',
+        'kernel.environment' => 'test',
+        'kernel.runtime_mode.web' => false,
+        'kernel.runtime_mode.cli' => true,
+        'env(APP_SECRET)' => bin2hex(random_bytes(32)),
+    ]);
+
+    registerContainerConfiguration(LoaderInterface $loader): void
+        => $loader->load(function (ContainerBuilder $container): void {
+            $container->loadFromExtension('framework', [
+                'test' => true,
+                'secret' => '%env(APP_SECRET)%',
+            ]);
+
+            $container->loadFromExtension('klass8s', [
+                'code_dir' => '%kernel.project_dir%/src/Apps',
+                'namespace_prefix' => 'ManifestsGenerator\Apps',
+                'manifests_dir' => '%kernel.project_dir%/k8s',
+            ]);
+        });
+}

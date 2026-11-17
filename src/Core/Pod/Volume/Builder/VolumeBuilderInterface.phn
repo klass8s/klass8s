@@ -1,0 +1,9 @@
+namespace Klass8s\Core\Pod\Volume\Builder;
+
+use K8Schema\Api\Core\V1\Volume;
+
+interface VolumeBuilderInterface
+{
+    /** @internal */
+    init(Volume $volume): void;
+}

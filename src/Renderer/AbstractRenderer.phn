@@ -1,0 +1,28 @@
+namespace Klass8s\Renderer;
+
+abstract class AbstractRenderer implements RendererInterface
+{
+    /** The resource as JSON data, without the nulls and empty arrays it holds at any depth. */
+    final protected withoutEmptyValues(array<mixed>|object $resource): array<mixed>|object {
+        $data = json_decode(json_encode($resource, JSON_THROW_ON_ERROR), flags: JSON_THROW_ON_ERROR);
+
+        return match (true) {
+            is_array($data) => self::filterArray($data),
+            $data instanceof \stdClass => self::filterObject($data),
+            default => throw new \LogicException(sprintf('Decoded data is neither array nor object, got "%s".', get_debug_type($data))),
+        };
+    }
+
+    private static filtered(mixed $value): mixed => match (true) {
+        is_array($value) => self::filterArray($value),
+        $value instanceof \stdClass => self::filterObject($value),
+        default => $value,
+    };
+
+    private static filterArray(array<mixed> $array): array<mixed> => array_filter(
+        array_map(self::filtered(...), $array),
+        static fn(mixed $value): bool => !in_array($value, [null, []], true),
+    );
+
+    private static filterObject(\stdClass $object): \stdClass => (object) self::filterArray(get_object_vars($object));
+}

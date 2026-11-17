@@ -1,0 +1,21 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Job\JobInterface;
+
+readonly class JobGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.job';
+
+    __construct(private JobInterface $manifest, private Job $job, private AppInterface $app) {}
+
+    manifest(): JobInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->job;
+
+    job(): Job => $this->job;
+
+    app(): AppInterface => $this->app;
+}

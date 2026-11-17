@@ -1,0 +1,22 @@
+namespace Klass8s\Core\Container\Env;
+
+final class ExternalConfigurationRegistry
+{
+    /**
+     * An array, where keys are names of Kubernetes ConfigMaps that are external, which means they are optional during the generation of manifests, and values are false booleans (ignored)
+     */
+    private map<string, false> $configMaps = [];
+
+    /**
+     * An array, where keys are names of Kubernetes Secrets that are external, which means they are optional during the generation of manifests, and values are false booleans (ignored)
+     */
+    private map<string, false> $secrets = [];
+
+    addConfigMap(string $configMapName): void => $this->configMaps[$configMapName] = false;
+
+    hasConfigMap(string $configMapName): bool => array_key_exists($configMapName, $this->configMaps);
+
+    addSecret(string $secretName): void => $this->secrets[$secretName] = false;
+
+    hasSecret(string $secretName): bool => array_key_exists($secretName, $this->secrets);
+}

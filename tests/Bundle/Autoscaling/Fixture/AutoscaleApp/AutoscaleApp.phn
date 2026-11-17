@@ -1,0 +1,8 @@
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture\AutoscaleApp;
+
+use Klass8s\App\AbstractApp;
+
+class AutoscaleApp extends AbstractApp
+{
+    static name(): string => 'autoscale';
+}

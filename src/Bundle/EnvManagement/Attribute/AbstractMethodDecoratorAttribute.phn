@@ -1,0 +1,12 @@
+namespace Klass8s\Bundle\EnvManagement\Attribute;
+
+abstract readonly class AbstractMethodDecoratorAttribute
+{
+    __construct(protected string $methodName, protected list<string> $forEnvs, protected bool $replacesReturnValue = false) {}
+
+    methodName(): string => $this->methodName;
+
+    envs(): list<string> => $this->forEnvs;
+
+    replacesReturnValue(): bool => $this->replacesReturnValue;
+}

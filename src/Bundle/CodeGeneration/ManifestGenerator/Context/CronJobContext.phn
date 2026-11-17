@@ -1,0 +1,10 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Core\CronJob\CronJobInterface;
+
+class CronJobContext extends AbstractContext
+{
+    kind(): string => 'CronJob';
+
+    static interfaceName(): class<CronJobInterface> => CronJobInterface::class;
+}

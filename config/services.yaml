@@ -34,22 +34,22 @@ services:
     Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter: ~
 
     Klass8s\Bridge\Helm\:
-        resource: '../src/Bridge/Helm/'
+        resource: '../.src/Bridge/Helm/'
         exclude:
-            - '../src/Bridge/Helm/Release/HelmRelease.php'
+            - '../.src/Bridge/Helm/Release/HelmRelease.php'
 
     Klass8s\Renderer\:
-        resource: '../src/Renderer/'
+        resource: '../.src/Renderer/'
 
     Klass8s\ResourceMaker\:
-        resource: '../src/ResourceMaker/'
+        resource: '../.src/ResourceMaker/'
 
     Klass8s\Autoscaling\Keda\ResourceMaker\:
-        resource: '../src/Autoscaling/Keda/ResourceMaker/'
+        resource: '../.src/Autoscaling/Keda/ResourceMaker/'
 
     Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\:
-        resource: '../src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/'
-        exclude: '../src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/Prometheus/PrometheusTrigger.php'
+        resource: '../.src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/'
+        exclude: '../.src/Autoscaling/Keda/Manifest/ScaledObject/Trigger/Prometheus/PrometheusTrigger.php'
 
     Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry:
         $builders: !tagged_iterator !php/const Klass8s\Bundle\Klass8sBundle::TAG_KEDA_TRIGGER_BUILDER
@@ -67,7 +67,7 @@ services:
         public: true
 
     Klass8s\Util\:
-        resource: '../src/Util/'
+        resource: '../.src/Util/'
 
     Klass8s\Core\Container\ContainerMakerInterface: '@Klass8s\Core\Container\ContainerMaker'
     Klass8s\Manifest\Labels\LabelsGeneratorInterface: '@Klass8s\Manifest\Labels\DefaultLabelsGenerator'
@@ -93,9 +93,9 @@ services:
     Klass8s\Runtime\ManifestRuntimeStatusResolverInterface: '@Klass8s\Runtime\DelegatingRuntimeStatusResolver'
 
     Klass8s\Bundle\:
-        resource: '../src/Bundle/'
+        resource: '../.src/Bundle/'
         exclude:
-          - '../src/Bundle/DependencyInjection/*'
+          - '../.src/Bundle/DependencyInjection/*'
 
     Klass8s\Bundle\Runtime\StatusResolver\Strategy\EnabledForEnvStrategy:
         arguments:

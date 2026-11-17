@@ -1,0 +1,41 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Rbac\V1\ClusterRoleBinding;
+use K8Schema\Api\Rbac\V1\RoleBinding;
+use K8Schema\Api\Rbac\V1\RoleRef;
+use Klass8s\Core\Rbac\ClusterRoleBindingInterface;
+use Klass8s\Core\Rbac\Configurator\Binding\RoleRefConfigurator;
+use Klass8s\Core\Rbac\Configurator\Binding\SubjectsConfigurator;
+use Klass8s\Core\Rbac\RoleBindingInterface;
+use Klass8s\Proxy\ProxyManager;
+use Klass8s\Registry\AppRegistry;
+use Klass8s\Util\K8SchemaObjects;
+
+abstract class AbstractRoleBindingMaker<M of RoleBindingInterface|ClusterRoleBindingInterface, R of RoleBinding|ClusterRoleBinding> extends AbstractResourceMaker<M, R>
+{
+    /** The empty binding of this maker's kind, around the role reference the manifest configures. */
+    abstract protected roleBinding(RoleRef $ref): R;
+
+    __construct(private readonly AppRegistry $appRegistry) {}
+
+    protected makeResource(M $manifest): R {
+        $roleRef = K8SchemaObjects::construct(RoleRef::class, ['apiGroup' => '', 'kind' => '', 'name' => '']);
+        $roleBinding = $this->roleBinding($roleRef);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $roleBinding);
+
+        $roleRefConfigurator = new RoleRefConfigurator($roleRef, $app, $this->appRegistry);
+        $manifest->roleRef($roleRefConfigurator);
+        if (in_array('', [$roleRef->getName(), $roleRef->getApiGroup(), $roleRef->getKind()])) {
+            throw new \RuntimeException(sprintf('RoleRef is not configured properly, you must configure it in method %s::roleRef()', ProxyManager::unwrapClassName($manifest)));
+        }
+
+        $subjectsConfigurator = new SubjectsConfigurator($roleBinding->subjects(), $app, $this->appRegistry);
+        $manifest->subjects($subjectsConfigurator);
+        if (0 === $roleBinding->subjects()->count()) {
+            throw new \RuntimeException(sprintf('RoleBinding has no subjects, you must configure them in method %s::subjects()', ProxyManager::unwrapClassName($manifest)));
+        }
+
+        return $roleBinding;
+    }
+}

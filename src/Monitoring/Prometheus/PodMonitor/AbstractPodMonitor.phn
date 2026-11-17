@@ -1,0 +1,8 @@
+namespace Klass8s\Monitoring\Prometheus\PodMonitor;
+
+use Klass8s\Monitoring\Prometheus\AbstractMonitor;
+
+abstract class AbstractPodMonitor extends AbstractMonitor implements PodMonitorInterface
+{
+    static kind(): string => 'PodMonitor';
+}

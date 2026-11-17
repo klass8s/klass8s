@@ -1,0 +1,11 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
+
+final readonly class Fallback implements \JsonSerializable
+{
+    __construct(public int $failureThreshold, public int $replicas) {}
+
+    jsonSerialize(): map<string, int> => [
+        'failureThreshold' => $this->failureThreshold,
+        'replicas' => $this->replicas,
+    ];
+}

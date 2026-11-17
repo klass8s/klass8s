@@ -1,0 +1,107 @@
+namespace Klass8s\Tests\Render;
+
+use Klass8s\Bundle\Klass8sBundle;
+use Klass8s\Tests\Support\TestDirectory;
+use Proximity\Bundle\ProximityBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Kernel;
+
+/**
+ * Apps rendered for their output: one configured in klass8s.yaml's keyed form (the apps keyed by
+ * alias, as a YAML file writes them) with the auto-set options on, one without manifests, one whose
+ * replicas are set twice, and one of everyday core resources.
+ */
+class RenderTestKernel extends Kernel
+{
+    registerBundles(): iterable => [
+        new FrameworkBundle(),
+        new ProximityBundle(),
+        new Klass8sBundle(),
+    ];
+
+    getCacheDir(): string => TestDirectory::path('render-test-cache-' . spl_object_id($this));
+
+    getLogDir(): string => TestDirectory::path('render-test-logs');
+
+    /** @phpstan-ignore missingType.iterableValue */
+    protected getKernelParameters(): array => array_replace(parent::getKernelParameters(), [
+        'kernel.project_dir' => __DIR__,
+        'kernel.environment' => 'test',
+        'kernel.runtime_mode.web' => false,
+        'kernel.runtime_mode.cli' => true,
+        'env(APP_SECRET)' => bin2hex(random_bytes(32)),
+    ]);
+
+    registerContainerConfiguration(LoaderInterface $loader): void
+        => $loader->load(function (ContainerBuilder $container): void {
+            $container->loadFromExtension('framework', [
+                'test' => true,
+                'secret' => '%env(APP_SECRET)%',
+            ]);
+
+            $container->loadFromExtension('klass8s', [
+                'code_dir' => __DIR__ . '/Fixture',
+                'namespace_prefix' => 'Klass8s\Tests\Render\Fixture',
+                'manifests_dir' => TestDirectory::path('render-test-manifests'),
+                'auto_set_resources' => true,
+                'auto_set_replicas' => true,
+                'apps' => [
+                    'config' => [
+                        'deploy_priority' => 5,
+                        'manifests' => [
+                            'worker' => [
+                                'replicas' => 3,
+                                'resources' => ['requests' => ['cpu' => '250m', 'memory' => '64Mi']],
+                            ],
+                            'legacy' => ['virtual' => true],
+                            'shared' => ['virtual' => true],
+                            'credentials' => ['virtual' => true],
+                            'idle' => ['replicas' => 0],
+                            'migrate' => [
+                                'replicas' => 2,
+                                'resources' => ['requests' => ['cpu' => '100m'], 'limits' => ['memory' => '128Mi']],
+                            ],
+                            'nightly' => ['resources' => ['requests' => ['memory' => '32Mi']]],
+                        ],
+                    ],
+                    'ambiguous' => [
+                        'manifests' => ['scaled' => ['replicas' => 3]],
+                    ],
+                    'sizing' => [
+                        'manifests' => ['sized' => ['resources' => ['requests' => ['cpu' => '1']]]],
+                    ],
+                ],
+            ]);
+
+            $classes = [
+                Fixture\ConfigApp\ConfigApp::class,
+                Fixture\ConfigApp\WorkerDeployment::class,
+                Fixture\ConfigApp\LegacyDeployment::class,
+                Fixture\ConfigApp\SharedConfigMap::class,
+                Fixture\ConfigApp\CredentialsSecret::class,
+                Fixture\ConfigApp\ReaderDeployment::class,
+                Fixture\ConfigApp\IdleDeployment::class,
+                Fixture\ConfigApp\MigrateJob::class,
+                Fixture\ConfigApp\NightlyCronJob::class,
+                Fixture\SoloApp\SoloApp::class,
+                Fixture\SoloApp\SoloDeployment::class,
+                Fixture\AmbiguousResourcesApp\AmbiguousResourcesApp::class,
+                Fixture\AmbiguousResourcesApp\SizedDeployment::class,
+                Fixture\EmptyApp\EmptyApp::class,
+                Fixture\AmbiguousApp\AmbiguousApp::class,
+                Fixture\AmbiguousApp\ScaledDeployment::class,
+                Fixture\CoreApp\CoreApp::class,
+                Fixture\CoreApp\BatchPriorityClass::class,
+                Fixture\CoreApp\PlacedDeployment::class,
+                Fixture\CoreApp\WebIngress::class,
+                Fixture\CoreApp\WebAutoscaler::class,
+                Fixture\CoreApp\TokenSecret::class,
+                Fixture\CoreApp\ClientDeployment::class,
+            ];
+            foreach ($classes as $class) {
+                $container->register($class)->setAutowired(true)->setAutoconfigured(true);
+            }
+        });
+}

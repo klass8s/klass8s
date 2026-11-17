@@ -1,0 +1,41 @@
+namespace Klass8s\Core\Rbac\Configurator;
+
+use K8Schema\Api\Rbac\V1\PolicyRule;
+use Klass8s\Core\Rbac\Verb;
+
+readonly class PolicyRuleConfigurator
+{
+    __construct(private PolicyRule $rule) {}
+
+    addApiGroups(string ...$groups): static {
+        $this->rule->apiGroups()->addAll($groups);
+
+        return $this;
+    }
+
+    addNonResourceURLs(string ...$urls): static {
+        $this->rule->nonResourceURLs()->addAll($urls);
+
+        return $this;
+    }
+
+    addResourceNames(string ...$names): static {
+        $this->rule->resourceNames()->addAll($names);
+
+        return $this;
+    }
+
+    addResources(string ...$resources): static {
+        $this->rule->resources()->addAll($resources);
+
+        return $this;
+    }
+
+    addVerbs(Verb ...$verbs): static {
+        $this->rule->verbs()->addAll(array_map(fn(Verb $verb) => $verb->value, $verbs));
+
+        return $this;
+    }
+
+    rule(): PolicyRule => $this->rule;
+}

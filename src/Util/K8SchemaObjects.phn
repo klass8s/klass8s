@@ -1,0 +1,24 @@
+namespace Klass8s\Util;
+
+/**
+ * Builds the k8schema objects whose constructors differ between the generations of
+ * k8schema Klass8s supports: 1.36 builds a PriorityClass without its value and a RoleRef
+ * without its API group, 1.35 a pod condition pattern without its status. The caller
+ * names every argument any generation takes, and the constructor of the installed one
+ * is given those it declares; the caller sets the rest with setters.
+ */
+final class K8SchemaObjects
+{
+    private __construct() {}
+
+    static construct<T of object>(class<T> $class, map<string, mixed> $arguments): T {
+        $declared = [];
+        foreach (new \ReflectionMethod($class, '__construct')->getParameters() as $parameter) {
+            if (array_key_exists($parameter->name, $arguments)) {
+                $declared[$parameter->name] = $arguments[$parameter->name];
+            }
+        }
+
+        return new $class(...$declared);
+    }
+}

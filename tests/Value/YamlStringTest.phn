@@ -1,0 +1,26 @@
+namespace Klass8s\Tests\Value;
+
+use Klass8s\Value\YamlString;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Exception\ParseException;
+
+final class YamlStringTest extends TestCase
+{
+    testTextIsKeptAsGiven(): void {
+        $yaml = "# File: /shop/api.deployment.yaml\nkind: Deployment\nspec:\n  replicas: 2\n  selector: []\n";
+
+        self::assertSame($yaml, new YamlString($yaml)->toString());
+    }
+
+    testADocumentThatDoesNotParseIsRefused(): void {
+        $this->expectException(ParseException::class);
+
+        new YamlString("kind: [Deployment\n");
+    }
+
+    testEveryDocumentOfAStreamIsParsed(): void {
+        $this->expectException(ParseException::class);
+
+        new YamlString("kind: Deployment\n---\nkind: [Service\n");
+    }
+}

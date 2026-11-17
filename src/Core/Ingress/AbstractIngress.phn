@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Ingress;
+
+use K8Schema\Api\Networking\V1\Ingress;
+use Klass8s\Core\Ingress\Configurator\IngressBackendConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractIngress extends AbstractManifest implements IngressInterface
+{
+    defaultBackend(IngressBackendConfigurator $factory): void {}
+
+    ingressClassName(): ?string => null;
+
+    configureIngress(Ingress $ingress): void {}
+
+    final static kind(): string => Ingress::KIND;
+
+    static apiVersion(): string => Ingress::API_VERSION;
+}

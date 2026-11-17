@@ -1,0 +1,21 @@
+namespace Klass8s\Bridge\Helm\Chart;
+
+final readonly class UnpackedChartDirectory
+{
+    __construct(public string $path) {
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" does not exist.', $path));
+        }
+        if (!is_dir($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" is a file.', $path));
+        }
+        if (!is_readable($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" is not readable.', $path));
+        }
+
+        $chartYamlPath = $path . '/Chart.yaml';
+        if (!file_exists($chartYamlPath)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" does not contain Chart.yaml file.', $path));
+        }
+    }
+}

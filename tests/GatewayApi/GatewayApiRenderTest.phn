@@ -1,0 +1,254 @@
+namespace Klass8s\Tests\GatewayApi;
+
+use Klass8s\App\AppProcessor;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+class GatewayApiRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    private AppProcessor $appProcessor;
+
+    protected static getKernelClass(): string => GatewayApiTestKernel::class;
+
+    protected setUp(): void {
+        self::bootKernel();
+        $this->appProcessor = self::service(AppProcessor::class);
+    }
+
+    testGatewayClassRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $gatewayClass = RenderedResource::in($yaml, 'GatewayClass');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $gatewayClass->get('apiVersion'));
+        self::assertSame('GatewayClass', $gatewayClass->get('kind'));
+        self::assertSame('gateway-main', $gatewayClass->get('metadata', 'name'));
+
+        // Spec
+        self::assertSame('example.io/gateway-controller', $gatewayClass->get('spec', 'controllerName'));
+        self::assertSame('Test gateway class', $gatewayClass->get('spec', 'description'));
+
+        // Default labels
+        self::assertDefaultLabels($gatewayClass, 'gateway', 'main');
+        // Klass8s annotations
+        self::assertKlass8sAnnotations($gatewayClass, 'gateway');
+    }
+
+    testGatewayRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $gateway = RenderedResource::in($yaml, 'Gateway');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $gateway->get('apiVersion'));
+        self::assertSame('Gateway', $gateway->get('kind'));
+        self::assertSame('gateway-main', $gateway->get('metadata', 'name'));
+
+        // Spec
+        self::assertSame('gateway-main', $gateway->get('spec', 'gatewayClassName'));
+
+        // Listeners
+        self::assertCount(2, $gateway->list('spec', 'listeners'));
+
+        $httpListener = $gateway->at('spec', 'listeners', 0);
+        self::assertSame('http', $httpListener->get('name'));
+        self::assertSame(80, $httpListener->get('port'));
+        self::assertSame('HTTP', $httpListener->get('protocol'));
+        self::assertSame('*.example.com', $httpListener->get('hostname'));
+        self::assertSame('Same', $httpListener->get('allowedRoutes', 'namespaces', 'from'));
+
+        $httpsListener = $gateway->at('spec', 'listeners', 1);
+        self::assertSame('https', $httpsListener->get('name'));
+        self::assertSame(443, $httpsListener->get('port'));
+        self::assertSame('HTTPS', $httpsListener->get('protocol'));
+        self::assertSame('Terminate', $httpsListener->get('tls', 'mode'));
+        self::assertSame('wildcard-cert', $httpsListener->get('tls', 'certificateRefs', 0, 'name'));
+
+        // Addresses
+        self::assertCount(1, $gateway->list('spec', 'addresses'));
+        self::assertSame('IPAddress', $gateway->get('spec', 'addresses', 0, 'type'));
+        self::assertSame('10.0.0.1', $gateway->get('spec', 'addresses', 0, 'value'));
+
+        self::assertDefaultLabels($gateway, 'gateway', 'main');
+        self::assertKlass8sAnnotations($gateway, 'gateway');
+    }
+
+    testHTTPRouteRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $route = RenderedResource::in($yaml, 'HTTPRoute');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $route->get('apiVersion'));
+        self::assertSame('HTTPRoute', $route->get('kind'));
+        self::assertSame('gateway-api', $route->get('metadata', 'name'));
+
+        // Parent refs
+        self::assertCount(1, $route->list('spec', 'parentRefs'));
+        self::assertSame('gateway-main', $route->get('spec', 'parentRefs', 0, 'name'));
+        self::assertSame('https', $route->get('spec', 'parentRefs', 0, 'sectionName'));
+
+        // Hostnames
+        self::assertSame(['api.example.com'], $route->get('spec', 'hostnames'));
+
+        // Rules
+        self::assertCount(2, $route->list('spec', 'rules'));
+
+        // Rule 1: api-v1
+        $rule1 = $route->at('spec', 'rules', 0);
+        self::assertSame('api-v1', $rule1->get('name'));
+        self::assertCount(2, $rule1->list('matches'));
+        self::assertSame('PathPrefix', $rule1->get('matches', 0, 'path', 'type'));
+        self::assertSame('/api/v1', $rule1->get('matches', 0, 'path', 'value'));
+        self::assertSame('GET', $rule1->get('matches', 0, 'method'));
+        self::assertSame('POST', $rule1->get('matches', 1, 'method'));
+
+        // Backend refs with weights
+        self::assertCount(2, $rule1->list('backendRefs'));
+        self::assertSame('api-service', $rule1->get('backendRefs', 0, 'name'));
+        self::assertSame(8080, $rule1->get('backendRefs', 0, 'port'));
+        self::assertSame(90, $rule1->get('backendRefs', 0, 'weight'));
+        self::assertSame('api-canary', $rule1->get('backendRefs', 1, 'name'));
+        self::assertSame(10, $rule1->get('backendRefs', 1, 'weight'));
+
+        // Timeouts
+        self::assertSame('30s', $rule1->get('timeouts', 'request'));
+        self::assertSame('10s', $rule1->get('timeouts', 'backendRequest'));
+
+        // Rule 2: redirect
+        $rule2 = $route->at('spec', 'rules', 1);
+        self::assertSame('old-api-redirect', $rule2->get('name'));
+        self::assertSame('RequestRedirect', $rule2->get('filters', 0, 'type'));
+        self::assertSame(301, $rule2->get('filters', 0, 'requestRedirect', 'statusCode'));
+
+        self::assertDefaultLabels($route, 'gateway', 'api');
+        self::assertKlass8sAnnotations($route, 'gateway');
+    }
+
+    testHttpsRedirectRouteRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $route = RenderedResource::in($yaml, 'HTTPRoute', 'gateway-https-redirect');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $route->get('apiVersion'));
+
+        // Attaches only to the Gateway's HTTP listener, cross-namespace
+        self::assertCount(1, $route->list('spec', 'parentRefs'));
+        self::assertSame('gateway-main', $route->get('spec', 'parentRefs', 0, 'name'));
+        self::assertSame('edge', $route->get('spec', 'parentRefs', 0, 'namespace'));
+        self::assertSame('http', $route->get('spec', 'parentRefs', 0, 'sectionName'));
+
+        // Catch-all: no hostnames restriction
+        self::assertArrayNotHasKey('hostnames', $route->map('spec'));
+
+        // Single rule: match everything, 301 to https
+        self::assertCount(1, $route->list('spec', 'rules'));
+        $rule = $route->at('spec', 'rules', 0);
+        self::assertSame('PathPrefix', $rule->get('matches', 0, 'path', 'type'));
+        self::assertSame('/', $rule->get('matches', 0, 'path', 'value'));
+        self::assertSame('RequestRedirect', $rule->get('filters', 0, 'type'));
+        self::assertSame('https', $rule->get('filters', 0, 'requestRedirect', 'scheme'));
+        self::assertSame(301, $rule->get('filters', 0, 'requestRedirect', 'statusCode'));
+
+        self::assertDefaultLabels($route, 'gateway', 'https-redirect');
+        self::assertKlass8sAnnotations($route, 'gateway');
+    }
+
+    testGRPCRouteRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $route = RenderedResource::in($yaml, 'GRPCRoute');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $route->get('apiVersion'));
+        self::assertSame('GRPCRoute', $route->get('kind'));
+        self::assertSame('gateway-grpc', $route->get('metadata', 'name'));
+
+        self::assertSame(['grpc.example.com'], $route->get('spec', 'hostnames'));
+
+        // Rules
+        self::assertCount(1, $route->list('spec', 'rules'));
+        $rule = $route->at('spec', 'rules', 0);
+        self::assertSame('user-service', $rule->get('name'));
+
+        // GRPC method match
+        self::assertSame('Exact', $rule->get('matches', 0, 'method', 'type'));
+        self::assertSame('mypackage.UserService', $rule->get('matches', 0, 'method', 'service'));
+        self::assertSame('GetUser', $rule->get('matches', 0, 'method', 'method'));
+
+        // Backend ref
+        self::assertSame('user-grpc', $rule->get('backendRefs', 0, 'name'));
+        self::assertSame(9090, $rule->get('backendRefs', 0, 'port'));
+
+        self::assertDefaultLabels($route, 'gateway', 'grpc');
+        self::assertKlass8sAnnotations($route, 'gateway');
+    }
+
+    testReferenceGrantRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $grant = RenderedResource::in($yaml, 'ReferenceGrant');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $grant->get('apiVersion'));
+        self::assertSame('ReferenceGrant', $grant->get('kind'));
+        self::assertSame('gateway-allow-routes', $grant->get('metadata', 'name'));
+
+        // From
+        self::assertCount(2, $grant->list('spec', 'from'));
+        self::assertSame('HTTPRoute', $grant->get('spec', 'from', 0, 'kind'));
+        self::assertSame('frontend-ns', $grant->get('spec', 'from', 0, 'namespace'));
+        self::assertSame('Gateway', $grant->get('spec', 'from', 1, 'kind'));
+        self::assertSame('infra-ns', $grant->get('spec', 'from', 1, 'namespace'));
+
+        // To
+        self::assertCount(2, $grant->list('spec', 'to'));
+        self::assertSame('Service', $grant->get('spec', 'to', 0, 'kind'));
+        self::assertSame('Secret', $grant->get('spec', 'to', 1, 'kind'));
+        self::assertSame('tls-cert', $grant->get('spec', 'to', 1, 'name'));
+
+        self::assertDefaultLabels($grant, 'gateway', 'allow-routes');
+        self::assertKlass8sAnnotations($grant, 'gateway');
+    }
+
+    testBackendTLSPolicyRendering(): void {
+        $output = $this->appProcessor->process('gateway');
+        $yaml = $output->render()->toString();
+
+        $policy = RenderedResource::in($yaml, 'BackendTLSPolicy');
+
+        self::assertSame('gateway.networking.k8s.io/v1', $policy->get('apiVersion'));
+        self::assertSame('BackendTLSPolicy', $policy->get('kind'));
+        self::assertSame('gateway-backend-tls', $policy->get('metadata', 'name'));
+
+        // Target refs
+        self::assertCount(1, $policy->list('spec', 'targetRefs'));
+        self::assertSame('Service', $policy->get('spec', 'targetRefs', 0, 'kind'));
+        self::assertSame('api-service', $policy->get('spec', 'targetRefs', 0, 'name'));
+        self::assertSame('https', $policy->get('spec', 'targetRefs', 0, 'sectionName'));
+
+        // Validation
+        self::assertSame('api.internal', $policy->get('spec', 'validation', 'hostname'));
+        self::assertSame('api-ca-cert', $policy->get('spec', 'validation', 'caCertificateRefs', 0, 'name'));
+        self::assertSame('Hostname', $policy->get('spec', 'validation', 'subjectAltNames', 0, 'type'));
+        self::assertSame('api.internal', $policy->get('spec', 'validation', 'subjectAltNames', 0, 'hostname'));
+
+        self::assertDefaultLabels($policy, 'gateway', 'backend-tls');
+        self::assertKlass8sAnnotations($policy, 'gateway');
+    }
+
+    private static assertDefaultLabels(RenderedResource $resource, string $appName, string $componentName): void {
+        self::assertSame($appName, $resource->get('metadata', 'labels', 'app.kubernetes.io/name'), 'Missing or wrong app.kubernetes.io/name label');
+        self::assertSame($componentName, $resource->get('metadata', 'labels', 'app.kubernetes.io/component'), 'Missing or wrong app.kubernetes.io/component label');
+    }
+
+    private static assertKlass8sAnnotations(RenderedResource $resource, string $appName): void {
+        self::assertSame($appName, $resource->get('metadata', 'annotations', 'klass8s.dev/app'), 'Missing or wrong klass8s.dev/app annotation');
+        self::assertTrue($resource->has('metadata', 'annotations', 'klass8s.dev/deploy-priority'), 'Missing klass8s.dev/deploy-priority annotation');
+    }
+}

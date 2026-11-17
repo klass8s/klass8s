@@ -1,0 +1,22 @@
+namespace Klass8s\Event;
+
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as NamedEventDispatcherInterface;
+
+/**
+ * Dispatches Klass8s's events under their names. The classes that dispatch them depend on a
+ * PSR-14 dispatcher: Symfony's, which the bundle wires, routes an event by the name it is
+ * given; any other routes it by its class.
+ */
+final class Events
+{
+    private __construct() {}
+
+    static dispatch(EventDispatcherInterface $dispatcher, object $event, string $name): void {
+        if ($dispatcher instanceof NamedEventDispatcherInterface) {
+            $dispatcher->dispatch($event, $name);
+        } else {
+            $dispatcher->dispatch($event);
+        }
+    }
+}

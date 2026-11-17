@@ -1,0 +1,22 @@
+namespace Klass8s\Core\Persistence;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Manifest\ManifestInterface;
+
+interface StorageClassInterface extends ManifestInterface
+{
+    provisioner(): string;
+    parameters(StringMap $parameters): void;
+    reclaimPolicy(): ReclaimPolicy;
+    volumeBindingMode(): VolumeBindingMode;
+    allowVolumeExpansion(): bool;
+
+    mountOptions(): iterable<string>;
+    allowedTopologies(AllowedTopologiesConfigurator $topologies): void;
+
+    /**
+     * Marks the class as the cluster default (`storageclass.kubernetes.io/is-default-class`):
+     * every PersistentVolumeClaim without a `storageClassName` binds to it.
+     */
+    isDefaultClass(): bool;
+}

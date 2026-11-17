@@ -1,0 +1,15 @@
+namespace Klass8s\Bundle\DependencyInjection\Compiler;
+
+use Klass8s\Bundle\EventListener\AutoSetReplicasSubscriber;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+final readonly class AutoSetReplicasPass implements CompilerPassInterface
+{
+    process(ContainerBuilder $container): void {
+        $autoSetReplicas = $container->getParameter('klass8s.auto_set_replicas');
+        if (!$autoSetReplicas) {
+            $container->removeDefinition(AutoSetReplicasSubscriber::class);
+        }
+    }
+}

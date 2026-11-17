@@ -1,0 +1,6 @@
+namespace Klass8s\Bundle\EnvManagement\Container;
+
+interface ResourcePolicyConfiguratorInterface
+{
+    configure(ResourcePolicyRegistry $policies): void;
+}

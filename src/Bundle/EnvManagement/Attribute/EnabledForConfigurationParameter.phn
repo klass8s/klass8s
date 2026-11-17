@@ -1,0 +1,7 @@
+namespace Klass8s\Bundle\EnvManagement\Attribute;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+readonly class EnabledForConfigurationParameter
+{
+    __construct(public string $parameter) {}
+}

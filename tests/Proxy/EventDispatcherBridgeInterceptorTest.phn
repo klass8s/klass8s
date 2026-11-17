@@ -1,0 +1,57 @@
+namespace Klass8s\Tests\Proxy;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Event\ContainerMethodCalledEvent;
+use Klass8s\Event\ContainerMethodEvent;
+use Klass8s\Event\ManifestMethodCalledEvent;
+use Klass8s\Event\ManifestMethodEvent;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\EventDispatcherBridgeInterceptor;
+use Klass8s\Tests\Support\RecordingDispatcher;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Proximity\MethodsInterception\InterceptionContext;
+use Proximity\ProxyInterface;
+
+final class EventDispatcherBridgeInterceptorTest extends TestCase
+{
+    /** The interceptor tells a manifest's call from a container's by the interface that declares the method. */
+    testManifestAndContainerInterfacesDeclareNoMethodInCommon(): void
+        => self::assertSame([], array_values(array_intersect(self::methodNames(ManifestInterface::class), self::methodNames(ContainerInterface::class))));
+
+    #[DataProvider('calls')]
+    testACallIsTheManifestsOrTheContainers(list<class> $proxyInterfaces, string $methodName, class $before, class $after): void {
+        $dispatcher = new RecordingDispatcher();
+        $interceptor = new EventDispatcherBridgeInterceptor($dispatcher);
+        $proxy = self::createStubForIntersectionOfInterfaces([ProxyInterface::class, ...$proxyInterfaces]);
+        assert($proxy instanceof ProxyInterface);
+
+        $interceptor->beforeMethodBody($proxy, $proxy, $methodName, []);
+        $interceptor->afterMethodBody($proxy, $proxy, $methodName, [], new InterceptionContext());
+
+        self::assertSame([$before, $after], array_map(static fn(object $event): string => $event::class, $dispatcher->events));
+    }
+
+    static calls(): iterable<string, (list<class>, string, class, class)> {
+        $manifest = [ManifestMethodEvent::class, ManifestMethodCalledEvent::class];
+        $container = [ContainerMethodEvent::class, ContainerMethodCalledEvent::class];
+
+        yield 'a manifest' => [[ManifestInterface::class], 'replicas', ...$manifest];
+        yield 'a container' => [[ContainerInterface::class], 'image', ...$container];
+        yield 'a container deployment, a container method' => [[ManifestInterface::class, ContainerInterface::class], 'image', ...$container];
+        yield 'a container deployment, a manifest method' => [[ManifestInterface::class, ContainerInterface::class], 'metadata', ...$manifest];
+        yield 'a container deployment, a method neither declares' => [[ManifestInterface::class, ContainerInterface::class], 'replicas', ...$manifest];
+    }
+
+    testACallOnSomethingElseIsNoEvent(): void {
+        $dispatcher = new RecordingDispatcher();
+        $proxy = self::createStub(ProxyInterface::class);
+
+        new EventDispatcherBridgeInterceptor($dispatcher)->beforeMethodBody($proxy, $proxy, 'image', []);
+
+        self::assertSame([], $dispatcher->events);
+    }
+
+    private static methodNames(class $interface): list<string>
+        => array_map(static fn(\ReflectionMethod $method): string => strtolower($method->name), new \ReflectionClass($interface)->getMethods());
+}

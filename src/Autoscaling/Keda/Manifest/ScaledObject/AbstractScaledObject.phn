@@ -1,0 +1,37 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject;
+
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Fallback;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\ScaledObject;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
+use Klass8s\Core\Autoscaling\Configurator\BehaviorConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractScaledObject extends AbstractManifest implements ScaledObjectInterface
+{
+    pollingInterval(): int => 30;
+
+    cooldownPeriod(): int => 300;
+
+    idleReplicaCount(): ?int => null;
+
+    minReplicaCount(): int => 0;
+
+    maxReplicaCount(): int => 100;
+
+    fallback(): ?Fallback => null;
+
+    restoreToOriginalReplicaCount(): ?bool => null;
+
+    hpaName(): ?string => null;
+
+    behavior(BehaviorConfigurator $behavior): void {}
+
+    triggers(TriggerBuildersRegistry $builders): iterable<Trigger> => [];
+
+    configureScaledObject(ScaledObject $scaledObject): void {}
+
+    static apiVersion(): string => ScaledObject::API_VERSION;
+
+    static kind(): string => ScaledObject::KIND;
+}

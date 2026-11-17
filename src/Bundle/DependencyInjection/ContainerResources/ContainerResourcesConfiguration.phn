@@ -1,0 +1,69 @@
+namespace Klass8s\Bundle\DependencyInjection\ContainerResources;
+
+use Klass8s\Core\Container\Resources\CPU;
+use Klass8s\Core\Container\Resources\Memory;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+
+readonly class ContainerResourcesConfiguration implements ConfigurationInterface
+{
+    getConfigTreeBuilder(): TreeBuilder {
+        $treeBuilder = new TreeBuilder('resources');
+        /** @var ArrayNodeDefinition $root */
+        $root = $treeBuilder->getRootNode();
+
+        $root
+            ->children()
+                ->append($this->cpuNode())
+                ->append($this->memoryNode('memory'))
+                ->append($this->memoryNode('storage'))
+            ->end();
+
+        // phn 0.7 reads `new TreeBuilder(...)` as a TreeBuilder<string>, not the TreeBuilder<'array'>
+        // that ConfigurationInterface declares, and has no literal type to write the other.
+        return $treeBuilder; // @phaenon-ignore: the literal template argument, as above
+    }
+
+    private cpuNode(): ScalarNodeDefinition {
+        $node = new ScalarNodeDefinition('cpu');
+        $node
+            ->cannotBeEmpty()
+            ->beforeNormalization()
+                ->ifString()
+                ->then(static function (string $cpu): string {
+                    try {
+                        CPU::fromString($cpu);
+                    } catch (\InvalidArgumentException $e) {
+                        throw new InvalidConfigurationException($e->getMessage());
+                    }
+
+                    return $cpu;
+                })
+            ->end();
+
+        return $node;
+    }
+
+    private memoryNode(string $name): ScalarNodeDefinition {
+        $node = new ScalarNodeDefinition($name);
+        $node
+            ->cannotBeEmpty()
+            ->beforeNormalization()
+                ->ifString()
+                ->then(static function (string $memory): string {
+                    try {
+                        Memory::fromString($memory);
+                    } catch (\InvalidArgumentException $e) {
+                        throw new InvalidConfigurationException($e->getMessage());
+                    }
+
+                    return $memory;
+                })
+            ->end();
+
+        return $node;
+    }
+}

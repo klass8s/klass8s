@@ -1,0 +1,15 @@
+namespace Klass8s\Monitoring\Prometheus;
+
+use K8Schema\Collection\StringList;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Monitoring\Prometheus\Configurator\NamespaceSelectorConfigurator;
+
+interface MonitorInterface extends ManifestInterface
+{
+    jobLabel(): ?string;
+    namespaceSelector(NamespaceSelectorConfigurator $namespaceSelector): void;
+    podTargetLabels(StringList $labels): void;
+    sampleLimit(): ?int;
+    selector(SelectorConfigurator $selector): void;
+}

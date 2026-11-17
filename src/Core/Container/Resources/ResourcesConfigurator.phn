@@ -1,0 +1,37 @@
+namespace Klass8s\Core\Container\Resources;
+
+use K8Schema\Api\Core\V1\ResourceRequirements;
+use K8Schema\Collection\StringOrFloatMap;
+
+class ResourcesConfigurator implements ContainerResourcesInterface
+{
+    __construct(protected ResourceRequirements $resources) {}
+
+    requestCPU(CPU $cpu): static => $this->setCPU($cpu, $this->resources->requests());
+
+    requestMemory(Memory $memory): static
+        => $this->setMemory(ContainerResource::MEMORY, $memory, $this->resources->requests());
+
+    requestStorage(Memory $memory): static
+        => $this->setMemory(ContainerResource::EPHEMERAL_STORAGE, $memory, $this->resources->requests());
+
+    limitCPU(CPU $cpu): static => $this->setCPU($cpu, $this->resources->limits());
+
+    limitMemory(Memory $memory): static
+        => $this->setMemory(ContainerResource::MEMORY, $memory, $this->resources->limits());
+
+    limitStorage(Memory $memory): static
+        => $this->setMemory(ContainerResource::EPHEMERAL_STORAGE, $memory, $this->resources->limits());
+
+    private setCPU(CPU $cpu, StringOrFloatMap $map): static {
+        $map->add(ContainerResource::CPU->value, $cpu->toString());
+
+        return $this;
+    }
+
+    protected setMemory(ContainerResource $resource, Memory $memory, StringOrFloatMap $map): static {
+        $map->add($resource->value, $memory->toString());
+
+        return $this;
+    }
+}

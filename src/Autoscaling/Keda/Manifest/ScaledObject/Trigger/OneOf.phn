@@ -1,0 +1,16 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger;
+
+final readonly class OneOf
+{
+    public list<string> $metadataKeys;
+
+    __construct(string ...$metadataKeys) {
+        if (count($metadataKeys) < 2) {
+            throw new \InvalidArgumentException('You must provide at least 2 metadata keys');
+        }
+
+        $this->metadataKeys = array_values($metadataKeys);
+    }
+
+    static fromValues(string ...$values): self => new self(...$values);
+}

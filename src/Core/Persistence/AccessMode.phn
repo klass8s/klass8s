@@ -1,0 +1,10 @@
+namespace Klass8s\Core\Persistence;
+
+enum AccessMode: string
+{
+    case ReadWriteOnce = 'ReadWriteOnce';
+    case ReadOnlyMany = 'ReadOnlyMany';
+    case ReadWriteMany = 'ReadWriteMany';
+
+    toString(): string => $this->value;
+}

@@ -1,0 +1,30 @@
+namespace Klass8s\Tests\Checksum;
+
+use Klass8s\App\AppManager;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+/**
+ * Regression test: checksum annotations are written by a listener on ManifestsProcessedEvent,
+ * AFTER all manifests are processed. They only reach the output if OutputDirectory renders
+ * lazily (at render()/dumpTo() time). With eager rendering in addFile(), the annotations are
+ * silently lost — which is exactly what this test guards against.
+ */
+class ChecksumRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    protected static getKernelClass(): string => ChecksumTestKernel::class;
+
+    testChecksumAnnotationsReachRenderedOutput(): void {
+        self::bootKernel();
+        $yaml = self::service(AppManager::class)->generateManifests('checksum')->render()->toString();
+        $deployment = RenderedResource::in($yaml, 'Deployment');
+
+        self::assertNotEmpty(
+            $deployment->get('spec', 'template', 'metadata', 'annotations', 'klass8s.dev/env-sources-checksum'),
+            'env-sources checksum annotation is missing — mutations made on ManifestsProcessedEvent did not reach the rendered output',
+        );
+    }
+}

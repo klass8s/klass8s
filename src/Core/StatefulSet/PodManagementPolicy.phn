@@ -1,0 +1,9 @@
+namespace Klass8s\Core\StatefulSet;
+
+enum PodManagementPolicy: string
+{
+    case OrderedReady = 'OrderedReady';
+    case Parallel = 'Parallel';
+
+    toString(): string => $this->value;
+}

@@ -1,0 +1,39 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+/**
+ * Makes the Kubernetes resource of one kind of manifest: a subclass names
+ * the manifests it supports and builds the resource from one of them.
+ */
+abstract class AbstractResourceMaker<M of ManifestInterface, R of APIResourceInterface> implements ResourceMakerInterface
+{
+    protected EventDispatcherInterface $dispatcher;
+
+    abstract protected supportedClass(): class<M>;
+    abstract protected makeResource(M $manifest): R;
+
+    make(ManifestInterface $manifest): R {
+        $this->ensureSupportedInstance($manifest);
+
+        return $this->makeResource($manifest);
+    }
+
+    supports(ManifestInterface $manifest): bool {
+        $supportedClass = $this->supportedClass();
+
+        return $manifest instanceof $supportedClass;
+    }
+
+    setEventDispatcher(EventDispatcherInterface $dispatcher): void => $this->dispatcher = $dispatcher;
+
+    /** @phpstan-assert M $manifest */
+    protected ensureSupportedInstance(ManifestInterface $manifest): void {
+        $supportedClass = $this->supportedClass();
+        if (!$manifest instanceof $supportedClass) {
+            throw new \InvalidArgumentException(sprintf('%s::make() only supports instances of %s, instance of %s was given', $this::class, $supportedClass, $manifest::className()));
+        }
+    }
+}

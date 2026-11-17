@@ -1,0 +1,41 @@
+namespace Klass8s\GatewayApi\GRPCRoute\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\NestedData;
+use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPBackendRefConfigurator;
+use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteFilterConfigurator;
+
+final class GRPCRouteRuleConfigurator
+{
+    __construct(
+        private \ArrayObject<string, mixed> $data,
+        private readonly AppInterface $app,
+    ) {}
+
+    name(string $name): static {
+        $this->data['name'] = $name;
+
+        return $this;
+    }
+
+    match(): GRPCRouteMatchConfigurator {
+        $matchData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'matches')->add($matchData);
+
+        return new GRPCRouteMatchConfigurator($matchData);
+    }
+
+    filter(): HTTPRouteFilterConfigurator {
+        $filterData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'filters')->add($filterData);
+
+        return new HTTPRouteFilterConfigurator($filterData);
+    }
+
+    backendRef(): HTTPBackendRefConfigurator {
+        $refData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'backendRefs')->add($refData);
+
+        return new HTTPBackendRefConfigurator($refData, $this->app);
+    }
+}

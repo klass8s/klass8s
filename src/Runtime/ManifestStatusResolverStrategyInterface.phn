@@ -1,0 +1,6 @@
+namespace Klass8s\Runtime;
+
+interface ManifestStatusResolverStrategyInterface
+{
+    isClassEnabled(\ReflectionClass $class): bool;
+}

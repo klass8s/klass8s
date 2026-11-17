@@ -1,0 +1,26 @@
+namespace Klass8s\Core\LabelSelector;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
+
+class SelectorConfigurator
+{
+    __construct(private LabelSelector $labelSelector) {}
+
+    addExpression(LabelSelectorExpression $expression): static {
+        $this->labelSelector->matchExpressions()->add($expression->toLabelSelectorRequirement());
+
+        return $this;
+    }
+
+    addLabel(string $labelName, string $labelValue): static {
+        $this->labelSelector->matchLabels()->add($labelName, $labelValue);
+
+        return $this;
+    }
+
+    addLabels(map<string, string> $labels): static {
+        $this->labelSelector->matchLabels()->addAll($labels);
+
+        return $this;
+    }
+}

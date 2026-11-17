@@ -1,0 +1,28 @@
+namespace Klass8s\Tests\Autoscaling;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use Klass8s\App\AppInterface;
+use Klass8s\Autoscaling\Attribute\ScalingTriggerAttributeInterface;
+use Klass8s\Autoscaling\AutoscaleContext;
+use Klass8s\Autoscaling\ScalingTriggerResolversRegistry;
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Tests\Autoscaling\Fixture\LooseTriggerResolver;
+use PHPUnit\Framework\TestCase;
+
+final class ScalingTriggerResolversRegistryTest extends TestCase
+{
+    testWhatAResolverReturnsIsHeldToTheTriggerType(): void {
+        $registry = new ScalingTriggerResolversRegistry([new LooseTriggerResolver()]);
+        $context = new AutoscaleContext(
+            self::createStub(DeploymentInterface::class),
+            new Deployment(),
+            self::createStub(AppInterface::class),
+            'test',
+        );
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessageIs(sprintf('Resolver "%s" must return Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger instances, stdClass given.', LooseTriggerResolver::class));
+
+        $registry->resolve(self::createStub(ScalingTriggerAttributeInterface::class), $context);
+    }
+}

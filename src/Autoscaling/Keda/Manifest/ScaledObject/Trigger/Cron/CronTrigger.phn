@@ -1,0 +1,28 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Cron;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+
+class CronTrigger extends AbstractTriggerBuilder
+{
+    private const string TIMEZONE = 'timezone';
+    private const string START = 'start';
+    private const string END = 'end';
+    private const string DESIRED_REPLICAS = 'desiredReplicas';
+
+    timezone(\DateTimeZone $timezone): static => $this->set(self::TIMEZONE, $timezone->getName());
+
+    start(string $cronSchedule): static => $this->set(self::START, $cronSchedule);
+
+    end(string $cronSchedule): static => $this->set(self::END, $cronSchedule);
+
+    desiredReplicas(int $desiredReplicas): static => $this->set(self::DESIRED_REPLICAS, strval($desiredReplicas));
+
+    protected requiredKeys(): list<string> => [
+        self::TIMEZONE,
+        self::START,
+        self::END,
+        self::DESIRED_REPLICAS,
+    ];
+
+    protected static type(): string => 'cron';
+}

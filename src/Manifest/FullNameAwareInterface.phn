@@ -1,0 +1,6 @@
+namespace Klass8s\Manifest;
+
+interface FullNameAwareInterface
+{
+    fullName(): string;
+}

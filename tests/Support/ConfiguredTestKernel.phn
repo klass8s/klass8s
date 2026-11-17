@@ -1,0 +1,51 @@
+namespace Klass8s\Tests\Support;
+
+use Klass8s\Bundle\Klass8sBundle;
+use Proximity\Bundle\ProximityBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Kernel;
+
+/** A kernel with no apps, for a test that needs the bundle under a configuration of its own. */
+class ConfiguredTestKernel extends Kernel
+{
+    /** @param $parameters - Container parameters the configuration may refer to */
+    __construct(private readonly map<string, mixed> $klass8sConfig, private readonly map<string, bool|int|float|string|null> $parameters = []) {
+        parent::__construct('test', true);
+    }
+
+    registerBundles(): iterable => [
+        new FrameworkBundle(),
+        new ProximityBundle(),
+        new Klass8sBundle(),
+    ];
+
+    getCacheDir(): string => TestDirectory::path('configured-test-cache-' . md5(serialize([$this->klass8sConfig, $this->parameters])));
+
+    getLogDir(): string => TestDirectory::path('configured-test-logs');
+
+    /** @phpstan-ignore missingType.iterableValue */
+    protected getKernelParameters(): array => array_replace(parent::getKernelParameters(), [
+        'kernel.project_dir' => __DIR__,
+        'kernel.runtime_mode.web' => false,
+        'kernel.runtime_mode.cli' => true,
+        'env(APP_SECRET)' => bin2hex(random_bytes(32)),
+    ]);
+
+    registerContainerConfiguration(LoaderInterface $loader): void
+        => $loader->load(function (ContainerBuilder $container): void {
+            foreach ($this->parameters as $name => $value) {
+                $container->setParameter($name, $value);
+            }
+            $container->loadFromExtension('framework', [
+                'test' => true,
+                'secret' => '%env(APP_SECRET)%',
+            ]);
+            $container->loadFromExtension('klass8s', [
+                'code_dir' => TestDirectory::path('configured-test-code'),
+                'manifests_dir' => TestDirectory::path('configured-test-manifests'),
+                ...$this->klass8sConfig,
+            ]);
+        });
+}

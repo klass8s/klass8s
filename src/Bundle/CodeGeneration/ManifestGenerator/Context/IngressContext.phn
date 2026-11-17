@@ -1,0 +1,10 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Core\Ingress\IngressInterface;
+
+class IngressContext extends AbstractContext
+{
+    kind(): string => 'Ingress';
+
+    static interfaceName(): class<IngressInterface> => IngressInterface::class;
+}

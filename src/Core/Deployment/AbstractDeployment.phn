@@ -1,0 +1,63 @@
+namespace Klass8s\Core\Deployment;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Core\V1\PodSpec;
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
+use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
+use Klass8s\Core\Pod\Policy\RestartPolicy;
+use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
+use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
+use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+abstract class AbstractDeployment extends AbstractManifest implements DeploymentInterface
+{
+    affinity(AffinityConfigurator $affinity): void {}
+
+    initContainers(): iterable<ContainerInterface> => [];
+
+    imagePullSecrets(ImagePullSecretsConfigurator $secrets): void {}
+
+    nodeSelector(StringMap $nodeSelector): void {}
+
+    tolerations(TolerationsConfigurator $tolerations): void {}
+
+    volumes(VolumesConfigurator $volumes): void {}
+
+    restartPolicy(): ?RestartPolicy => null;
+
+    configurePodSpec(PodSpec $spec): void {}
+
+    replicas(): int => 1;
+
+    revisionHistoryLimit(): int => 1;
+
+    selector(SelectorConfigurator $selector): void {}
+
+    strategy(StrategyConfigurator $strategy): void {}
+
+    minReadySeconds(): ?int => null;
+
+    progressDeadlineSeconds(): ?int => null;
+
+    priorityClass(PriorityClassConfigurator $priorityClass): void {}
+
+    serviceAccountName(): ?string => null;
+
+    serviceAccount(): ?ManifestClassReference => null;
+
+    terminationGracePeriodSeconds(): ?int => null;
+
+    topologySpreadConstraints(TopologySpreadConstraintsConfigurator $constraints): void {}
+
+    configureDeployment(Deployment $deployment): void {}
+
+    final static kind(): string => Deployment::KIND;
+
+    final static apiVersion(): string => Deployment::API_VERSION;
+}

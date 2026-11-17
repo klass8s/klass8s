@@ -1,0 +1,11 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Core\V1\Container;
+use Klass8s\Core\Container\ContainerInterface;
+
+final readonly class ContainerGeneratedEvent
+{
+    const string NAME = 'klass8s.container.generated';
+
+    __construct(public Container $container, public ContainerInterface $builder) {}
+}

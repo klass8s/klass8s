@@ -1,0 +1,30 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Bundle\CodeGeneration\ClassDetails;
+use Klass8s\Manifest\ManifestInterface;
+
+abstract class AbstractContext implements ContextInterface
+{
+    /** The manifest interface the generated class implements. */
+    abstract protected static interfaceName(): class<ManifestInterface>;
+
+    createDedicatedDir(): bool => false;
+
+    parentInterface(): class<ManifestInterface> {
+        $interfaceName = static::interfaceName();
+        if (!interface_exists($interfaceName)) {
+            throw new \LogicException(sprintf('"%s", returned by %s::interfaceName(), must be an interface', $interfaceName, static::class));
+        }
+
+        return $interfaceName;
+    }
+
+    templateName(): string => $this->kind() . '.tpl.php';
+
+    templateVariables(ClassDetails $details, string $manifestName): map<string, string> => [
+        'namespace' => $details->namespace,
+        'className' => $details->className,
+        'manifestName' => $manifestName,
+        'fileName' => $manifestName,
+    ];
+}

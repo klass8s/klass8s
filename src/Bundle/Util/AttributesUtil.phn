@@ -1,0 +1,37 @@
+namespace Klass8s\Bundle\Util;
+
+/** Reads the attributes of a class or a function as the instances they declare. */
+class AttributesUtil
+{
+    static getClassAttributes<T of object>(\ReflectionClass<object> $class, class<T> $attributeClass, bool $multipleAllowed = false): list<\ReflectionAttribute<T>> {
+        $attributes = $class->getAttributes($attributeClass);
+        if (count($attributes) > 1 && !$multipleAllowed) {
+            throw new \LogicException(sprintf('Class "%s" has multiple attributes "%s", but only one such attribute per class is allowed', $class->getName(), $attributeClass));
+        }
+
+        return $attributes;
+    }
+
+    static getFunctionAttributes<T of object>(\ReflectionFunctionAbstract $func, class<T> $attributeClass, bool $multipleAllowed = false): list<\ReflectionAttribute<T>> {
+        $attributes = $func->getAttributes($attributeClass);
+        if (count($attributes) > 1 && !$multipleAllowed) {
+            throw new \LogicException(sprintf('Method/function "%s", defined in file "%s", has multiple attributes "%s", but only one such attribute per function is allowed', $func->getName(), $func->getFileName(), $attributeClass));
+        }
+
+        return $attributes;
+    }
+
+    static fromClass<T of object>(\ReflectionClass<object> $class, class<T> $attributeClass): ?T
+        => (self::getClassAttributes($class, $attributeClass)[0] ?? null)?->newInstance();
+
+    /** The attribute of the class, or else of its nearest parent that declares one. */
+    static fromClassOrParents<T of object>(\ReflectionClass<object> $class, class<T> $attributeClass): ?T {
+        $attribute = self::fromClass($class, $attributeClass);
+        if (null !== $attribute) {
+            return $attribute;
+        }
+        $parent = $class->getParentClass();
+
+        return false === $parent ? null : self::fromClassOrParents($parent, $attributeClass);
+    }
+}

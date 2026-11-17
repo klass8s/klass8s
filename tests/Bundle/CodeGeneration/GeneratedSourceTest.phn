@@ -1,0 +1,95 @@
+namespace Klass8s\Tests\Bundle\CodeGeneration;
+
+use Klass8s\Bundle\CodeGeneration\GeneratedSource;
+use Klass8s\Bundle\CodeGeneration\TemplateRenderer;
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+
+final class GeneratedSourceTest extends TestCase
+{
+    private const list<string> TEMPLATES = ['App', 'ConfigMap', 'CronJob', 'Deployment', 'Ingress', 'Job', 'Secret', 'Service'];
+
+    testAPhpProjectGetsItsPhpFileAsAsked(): void {
+        $project = self::project('php', ['composer.json' => '{}']);
+
+        $source = GeneratedSource::for($project . '/src/K8S/Shop/ShopApp.php');
+
+        self::assertFalse($source->phaenon);
+        self::assertSame($project . '/src/K8S/Shop/ShopApp.php', $source->path);
+        self::assertSame('App.tpl.php', $source->template('App.tpl.php'));
+    }
+
+    #[DataProvider('rootsOfAPhaenonProject')]
+    testAPhaenonProjectGetsItsSourceFile(string $codeDir): void {
+        $project = self::project('phaenon-' . strtr($codeDir, '/.', '__'), [
+            'composer.json' => '{}',
+            'phaenon.json' => '{"roots": {"src": ".src"}}',
+        ]);
+
+        $source = GeneratedSource::for("{$project}/{$codeDir}/Shop/ShopApp.php");
+
+        self::assertTrue($source->phaenon);
+        self::assertSame($project . '/src/K8S/Shop/ShopApp.phn', $source->path);
+        self::assertSame('phn/App.tpl.php', $source->template('App.tpl.php'));
+    }
+
+    static rootsOfAPhaenonProject(): iterable<string, list<string>> {
+        yield 'a code dir in the output root' => ['.src/K8S'];
+        yield 'a code dir in the source root' => ['src/K8S'];
+    }
+
+    testAPhpProjectInsideAPhaenonOneStaysPhp(): void {
+        $outer = self::project('nested', [
+            'composer.json' => '{}',
+            'phaenon.json' => '{"roots": {"src": ".src"}}',
+            'src/k8s/composer.json' => '{}',
+        ]);
+
+        $source = GeneratedSource::for($outer . '/src/k8s/src/K8S/Shop/ShopApp.php');
+
+        self::assertFalse($source->phaenon, 'The nearer composer.json makes it a project of its own');
+        self::assertSame($outer . '/src/k8s/src/K8S/Shop/ShopApp.php', $source->path);
+    }
+
+    /** Every class the make commands write in a Phaenon project is laid out as `phn fmt` leaves it. */
+    testThePhaenonTemplatesWriteWhatTheFormatterLeavesAlone(): void {
+        $phn = dirname(__DIR__, 3) . '/vendor/bin/phn';
+        if (!is_executable($phn)) {
+            self::markTestSkipped('phn is not installed');
+        }
+        $project = self::project('templates', [
+            'composer.json' => '{}',
+            'phaenon.json' => '{"roots": {"src": ".src"}}',
+        ]);
+        $renderer = new TemplateRenderer(dirname(__DIR__, 3) . '/templates');
+
+        $files = [];
+        foreach (self::TEMPLATES as $kind) {
+            $source = GeneratedSource::for("{$project}/.src/K8S/Shop/Shop{$kind}.php");
+            $source->write($renderer->render($source->template($kind . '.tpl.php'), [
+                'namespace' => 'Shop\K8S\Shop',
+                'className' => 'Shop' . $kind,
+                'appName' => 'shop',
+                'manifestName' => 'shop',
+            ]));
+            $files[] = $source->path;
+        }
+
+        $check = new Process([$phn, 'fmt', '--check', ...$files], $project);
+        $check->run();
+        self::assertSame(0, $check->getExitCode(), $check->getOutput() . $check->getErrorOutput());
+        self::assertStringContainsString('8 files checked, 0 not in Phaenon\'s layout', $check->getOutput() . $check->getErrorOutput());
+    }
+
+    private static project(string $name, map<string, string> $files): string {
+        $dir = TestDirectory::path('generated-source-' . $name);
+        foreach ($files as $file => $contents) {
+            new Filesystem()->dumpFile($dir . '/' . $file, $contents);
+        }
+
+        return $dir;
+    }
+}

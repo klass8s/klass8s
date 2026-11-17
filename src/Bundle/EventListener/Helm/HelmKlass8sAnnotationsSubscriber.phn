@@ -1,0 +1,21 @@
+namespace Klass8s\Bundle\EventListener\Helm;
+
+use Klass8s\Bundle\EventListener\Klass8sAnnotationsSubscriber;
+use Klass8s\Event\Helm\HelmManifestProcessedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+final readonly class HelmKlass8sAnnotationsSubscriber implements EventSubscriberInterface
+{
+    onManifestProcessed(HelmManifestProcessedEvent $event): void {
+        $metadata = $event->resource->metadata;
+        assert($metadata instanceof \stdClass);
+        $annotations = $metadata->annotations ??= new \stdClass();
+        assert($annotations instanceof \stdClass);
+        $annotations->{Klass8sAnnotationsSubscriber::ANNOTATION_APP} = $event->release->name;
+        $annotations->{Klass8sAnnotationsSubscriber::ANNOTATION_DEPLOY_PRIORITY} = (string) $event->release->deployPriority;
+    }
+
+    static getSubscribedEvents(): map<string, string> => [
+        HelmManifestProcessedEvent::NAME => 'onManifestProcessed',
+    ];
+}

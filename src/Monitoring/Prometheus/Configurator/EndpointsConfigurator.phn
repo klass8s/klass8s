@@ -1,0 +1,15 @@
+namespace Klass8s\Monitoring\Prometheus\Configurator;
+
+use Klass8s\Collection\GenericList;
+
+final readonly class EndpointsConfigurator
+{
+    __construct(private GenericList<\ArrayObject<string, mixed>> $data) {}
+
+    add(): EndpointConfigurator {
+        $endpointData = new \ArrayObject<string, mixed>();
+        $this->data->add($endpointData);
+
+        return new EndpointConfigurator($endpointData);
+    }
+}

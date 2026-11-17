@@ -1,0 +1,35 @@
+namespace Klass8s\Tests\Bridge\Helm\Chart;
+
+use Klass8s\Bridge\Helm\Chart\ChartCacheDir;
+use PHPUnit\Framework\TestCase;
+
+/** The chart cache lives outside the checkout: configured, else the process's cache home, else the kernel cache. */
+class ChartCacheDirTest extends TestCase
+{
+    private string $tmp;
+
+    protected setUp(): void {
+        $this->tmp = sys_get_temp_dir() . '/klass8s-chart-cache-' . bin2hex(random_bytes(4));
+        mkdir($this->tmp . '/home', 0o755, true);
+        mkdir($this->tmp . '/xdg', 0o755, true);
+    }
+
+    protected tearDown(): void => exec('rm -rf ' . escapeshellarg($this->tmp));
+
+    testTheConfiguredDirectoryWins(): void
+        => self::assertSame('/etc/charts', ChartCacheDir::resolve('/etc/charts/', '/var/cache/dev', ['KLASS8S_CHART_CACHE_DIR' => '/from-env', 'HOME' => $this->tmp . '/home']));
+
+    testThenTheEnvironmentVariable(): void
+        => self::assertSame('/from-env', ChartCacheDir::resolve(null, '/var/cache/dev', ['KLASS8S_CHART_CACHE_DIR' => '/from-env', 'HOME' => $this->tmp . '/home']));
+
+    testThenXdgCacheHomeThenHome(): void {
+        self::assertSame($this->tmp . '/xdg/klass8s/charts', ChartCacheDir::resolve(null, '/var/cache/dev', ['XDG_CACHE_HOME' => $this->tmp . '/xdg', 'HOME' => $this->tmp . '/home']));
+        self::assertSame($this->tmp . '/home/.cache/klass8s/charts', ChartCacheDir::resolve(null, '/var/cache/dev', ['HOME' => $this->tmp . '/home']));
+        self::assertSame($this->tmp . '/home/.cache/klass8s/charts', ChartCacheDir::resolve('', '/var/cache/dev', ['XDG_CACHE_HOME' => $this->tmp . '/absent', 'HOME' => $this->tmp . '/home']), 'an XDG dir that does not exist is skipped');
+    }
+
+    testTheKernelCacheIsTheLastResort(): void {
+        self::assertSame('/var/cache/dev/helm', ChartCacheDir::resolve(null, '/var/cache/dev/', ['HOME' => $this->tmp . '/nowhere']));
+        self::assertSame('/var/cache/dev/helm', ChartCacheDir::resolve(null, '/var/cache/dev', []));
+    }
+}

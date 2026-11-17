@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\GatewayApi\Gateway\GatewayApiResource;
+use Klass8s\GatewayApi\Gateway\GatewayInterface;
+
+final readonly class GatewayGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.gateway';
+
+    __construct(
+        private GatewayInterface $manifest,
+        private GatewayApiResource $resource,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): GatewayInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->resource;
+
+    gateway(): GatewayApiResource => $this->resource;
+
+    app(): AppInterface => $this->app;
+}

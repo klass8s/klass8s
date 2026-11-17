@@ -1,0 +1,10 @@
+namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
+
+use Klass8s\GatewayApi\HTTPRoute\AbstractHttpsRedirectRoute;
+
+class TestHttpsRedirectRoute extends AbstractHttpsRedirectRoute
+{
+    gatewayName(): string => 'gateway-main';
+
+    gatewayNamespace(): ?string => 'edge';
+}

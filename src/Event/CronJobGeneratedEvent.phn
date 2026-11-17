@@ -1,0 +1,21 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\CronJob\CronJobInterface;
+
+readonly class CronJobGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.cron_job';
+
+    __construct(private CronJobInterface $manifest, private CronJob $cronJob, private AppInterface $app) {}
+
+    manifest(): CronJobInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->cronJob;
+
+    cronJob(): CronJob => $this->cronJob;
+
+    app(): AppInterface => $this->app;
+}

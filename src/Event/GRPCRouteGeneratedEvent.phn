@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\GatewayApi\GRPCRoute\GRPCRouteApiResource;
+use Klass8s\GatewayApi\GRPCRoute\GRPCRouteInterface;
+
+final readonly class GRPCRouteGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.grpc_route';
+
+    __construct(
+        private GRPCRouteInterface $manifest,
+        private GRPCRouteApiResource $resource,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): GRPCRouteInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->resource;
+
+    grpcRoute(): GRPCRouteApiResource => $this->resource;
+
+    app(): AppInterface => $this->app;
+}

@@ -1,0 +1,46 @@
+namespace Klass8s\Tests\Checksum\Fixture\VolumeApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+
+/**
+ * One volume from a ConfigMap this project renders, one volume from a Secret it does NOT render
+ * (an External Secrets Operator target), and an init container whose env comes from a third
+ * rendered ConfigMap: the mix in which a changed mounted ConfigMap must still roll the pods.
+ */
+class VolumeDeployment extends AbstractContainerDeployment
+{
+    private const string VOLUME_CONFIG = 'config';
+    private const string VOLUME_TLS = 'tls';
+
+    /**
+     * @param $esoSecretName - The name ESO materialises — no manifest of this project produces
+     *                              it. A test parameter, so a test can change it and watch the
+     *                              checksum stay put.
+     */
+    __construct(
+        private readonly MigrateInitContainer $initContainer,
+        private readonly string $esoSecretName,
+        private readonly bool $markSecretExternal,
+    ) {}
+
+    static shortName(): string => 'api';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    initContainers(): iterable {
+        yield $this->initContainer;
+    }
+
+    volumes(VolumesConfigurator $volumes): void {
+        $volumes->fromConfigMapClass(self::VOLUME_CONFIG, MountedConfigMap::class);
+        $volumes->fromSecret(self::VOLUME_TLS, $this->esoSecretName, external: $this->markSecretExternal);
+    }
+
+    volumeMounts(VolumeMountsConfigurator $mounts): void {
+        $mounts->add(self::VOLUME_CONFIG, '/etc/app')->setReadOnly(true);
+        $mounts->add(self::VOLUME_TLS, '/etc/tls')->setReadOnly(true);
+    }
+}

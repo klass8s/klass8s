@@ -1,0 +1,36 @@
+namespace Klass8s\GatewayApi\Configurator;
+
+final class ParentRefConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    group(string $group): static {
+        $this->data['group'] = $group;
+
+        return $this;
+    }
+
+    kind(string $kind): static {
+        $this->data['kind'] = $kind;
+
+        return $this;
+    }
+
+    namespace(string $namespace): static {
+        $this->data['namespace'] = $namespace;
+
+        return $this;
+    }
+
+    sectionName(string $sectionName): static {
+        $this->data['sectionName'] = $sectionName;
+
+        return $this;
+    }
+
+    port(int $port): static {
+        $this->data['port'] = $port;
+
+        return $this;
+    }
+}

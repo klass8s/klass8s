@@ -1,0 +1,40 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledJob;
+
+use K8Schema\Api\Batch\V1\JobSpec;
+use Klass8s\Autoscaling\Keda\API\ScaledJob\ScaledJob;
+use Klass8s\Autoscaling\Keda\API\ScaledObject\Trigger;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\RolloutConfigurator;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator\ScalingStrategyConfigurator;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\TriggerBuildersRegistry;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractScaledJob extends AbstractManifest implements ScaledJobInterface
+{
+    __construct(private readonly JobSpec $jobTargetRef) {}
+
+    jobTargetRef(): JobSpec => $this->jobTargetRef;
+
+    pollingInterval(): int => 30;
+
+    successfulJobsHistoryLimit(): int => 5;
+
+    failedJobsHistoryLimit(): int => 5;
+
+    envSourceContainerName(): ?string => null;
+
+    minReplicaCount(): int => 0;
+
+    maxReplicaCount(): int => 100;
+
+    rollout(RolloutConfigurator $rollout): void {}
+
+    scalingStrategy(ScalingStrategyConfigurator $strategy): void {}
+
+    triggers(TriggerBuildersRegistry $builders): iterable<Trigger> => [];
+
+    configureScaledJob(ScaledJob $scaledJob): void {}
+
+    static apiVersion(): string => ScaledJob::API_VERSION;
+
+    static kind(): string => ScaledJob::KIND;
+}

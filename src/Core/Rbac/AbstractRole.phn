@@ -1,0 +1,13 @@
+namespace Klass8s\Core\Rbac;
+
+use K8Schema\Api\Rbac\V1\Role;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractRole extends AbstractManifest implements RoleInterface
+{
+    configureRole(Role $role): void {}
+
+    static apiVersion(): string => Role::API_VERSION;
+
+    static kind(): string => Role::KIND;
+}

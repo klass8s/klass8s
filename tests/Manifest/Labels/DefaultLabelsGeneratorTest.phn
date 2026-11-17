@@ -1,0 +1,83 @@
+namespace Klass8s\Tests\Manifest\Labels;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Manifest\AbstractSelfMakingManifest;
+use Klass8s\Manifest\FullNameAwareInterface;
+use Klass8s\Manifest\Labels\DefaultLabelsGenerator;
+use Klass8s\Manifest\ManifestTemplateInterface;
+use Klass8s\Manifest\ManifestTemplateTrait;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * The component label is the manifest's short name in every shape a manifest
+ * comes in — the static one, a full-name-aware one, a template's dynamic one,
+ * and a template that is ALSO full-name aware (a data-driven set whose instances
+ * carry fixed names: one runner set per GitHub org, named after the org).
+ */
+final class DefaultLabelsGeneratorTest extends TestCase
+{
+    private app(): AppInterface {
+        $app = $this->createStub(AppInterface::class);
+        $app->method('alias')->willReturn('plane');
+        $app->method('resourceNameFromShortName')->willReturnCallback(static fn(string $short): string => 'plane-' . $short);
+
+        return $app;
+    }
+
+    testAStaticallyNamedManifest(): void {
+        $manifest = new class extends AbstractSelfMakingManifest {
+            static shortName(): string => 'server';
+
+            static apiVersion(): string => 'v1';
+
+            static kind(): string => 'ConfigMap';
+
+            spec(): array<mixed> => [];
+        };
+        $manifest->setApp($this->app());
+
+        self::assertSame(['app.kubernetes.io/name' => 'plane', 'app.kubernetes.io/component' => 'server'], new DefaultLabelsGenerator()->forManifest($manifest));
+    }
+
+    testATemplateUsesItsDynamicShortName(): void {
+        $manifest = new class ('acme') extends AbstractSelfMakingManifest implements ManifestTemplateInterface {
+            use ManifestTemplateTrait;
+
+            __construct(string $name) {
+                $this->dynamicShortName = 'set-' . $name;
+            }
+
+            static apiVersion(): string => 'v1';
+
+            static kind(): string => 'ConfigMap';
+
+            spec(): array<mixed> => [];
+        };
+        $manifest->setApp($this->app());
+
+        self::assertSame('set-acme', new DefaultLabelsGenerator()->forManifest($manifest)['app.kubernetes.io/component']);
+    }
+
+    testAFullNameAwareTemplateUsesItsDynamicShortNameNotTheStaticOne(): void {
+        $manifest = new class ('acme') extends AbstractSelfMakingManifest implements ManifestTemplateInterface, FullNameAwareInterface {
+            use ManifestTemplateTrait;
+
+            __construct(private readonly string $org) {
+                $this->dynamicShortName = $org;
+            }
+
+            fullName(): string => $this->org;
+
+            static apiVersion(): string => 'actions.github.com/v1alpha1';
+
+            static kind(): string => 'AutoscalingRunnerSet';
+
+            spec(): array<mixed> => [];
+        };
+        $manifest->setApp($this->app());
+
+        // Before the fix this reached the trait's static shortName(), which throws by design.
+        self::assertSame(['app.kubernetes.io/name' => 'plane', 'app.kubernetes.io/component' => 'acme'], new DefaultLabelsGenerator()->forManifest($manifest));
+        self::assertSame('acme', $manifest->computedFullName, 'the full name names the resource');
+    }
+}

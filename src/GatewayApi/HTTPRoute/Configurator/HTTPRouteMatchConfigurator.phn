@@ -1,0 +1,53 @@
+namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
+
+use Klass8s\Collection\NestedData;
+use Klass8s\GatewayApi\Enum\HeaderMatchType;
+use Klass8s\GatewayApi\Enum\HTTPMethod;
+use Klass8s\GatewayApi\Enum\PathMatchType;
+use Klass8s\GatewayApi\Enum\QueryParamMatchType;
+
+final class HTTPRouteMatchConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    path(PathMatchType $type, string $value): static {
+        $this->data['path'] = [
+            'type' => $type->value,
+            'value' => $value,
+        ];
+
+        return $this;
+    }
+
+    pathPrefix(string $value): static => $this->path(PathMatchType::PathPrefix, $value);
+
+    pathExact(string $value): static => $this->path(PathMatchType::Exact, $value);
+
+    pathRegex(string $value): static => $this->path(PathMatchType::RegularExpression, $value);
+
+    header(string $name, string $value, HeaderMatchType $type = HeaderMatchType::Exact): static {
+        NestedData::append($this->data, 'headers', [
+            'type' => $type->value,
+            'name' => $name,
+            'value' => $value,
+        ]);
+
+        return $this;
+    }
+
+    queryParam(string $name, string $value, QueryParamMatchType $type = QueryParamMatchType::Exact): static {
+        NestedData::append($this->data, 'queryParams', [
+            'type' => $type->value,
+            'name' => $name,
+            'value' => $value,
+        ]);
+
+        return $this;
+    }
+
+    method(HTTPMethod $method): static {
+        $this->data['method'] = $method->value;
+
+        return $this;
+    }
+}

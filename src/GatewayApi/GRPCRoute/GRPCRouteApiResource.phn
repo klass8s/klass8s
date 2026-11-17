@@ -1,0 +1,8 @@
+namespace Klass8s\GatewayApi\GRPCRoute;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+
+class GRPCRouteApiResource extends AbstractGatewayApiResource
+{
+    const string KIND = 'GRPCRoute';
+}

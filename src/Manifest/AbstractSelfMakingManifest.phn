@@ -1,0 +1,21 @@
+namespace Klass8s\Manifest;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Core\GenericApiResource;
+
+abstract class AbstractSelfMakingManifest extends AbstractManifest implements SelfMakingManifestInterface
+{
+    abstract spec(): map<string, mixed>|\JsonSerializable;
+    abstract static apiVersion(): string;
+    abstract static kind(): string;
+
+    make(): APIResourceInterface {
+        $spec = $this->spec();
+        if ($spec instanceof \JsonSerializable) {
+            /** @var map<string, mixed> $spec A spec encodes to a JSON object. */
+            $spec = json_decode(json_encode($spec, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
+        }
+
+        return new GenericApiResource(static::apiVersion(), static::kind(), $spec);
+    }
+}

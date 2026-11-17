@@ -1,0 +1,84 @@
+namespace Klass8s\Proxy;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Event\ContainerMethodCalledEvent;
+use Klass8s\Event\ContainerMethodEvent;
+use Klass8s\Event\Events;
+use Klass8s\Event\ManifestMethodCalledEvent;
+use Klass8s\Event\ManifestMethodEvent;
+use Klass8s\Manifest\ManifestInterface;
+use Proximity\MethodsInterception\BodyInterceptionResult;
+use Proximity\MethodsInterception\BodyInterceptorInterface;
+use Proximity\MethodsInterception\InterceptionContext;
+use Proximity\MethodsInterception\ResultInterceptorInterface;
+use Proximity\ProxyInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+/**
+ * Turns every call on a proxied manifest or container into events: one before the method body,
+ * whose listeners may answer in its place, and one after it, whose listeners may change what it
+ * returned.
+ */
+class EventDispatcherBridgeInterceptor implements BodyInterceptorInterface, ResultInterceptorInterface
+{
+    private readonly \ReflectionClass $containerInterface;
+
+    __construct(private readonly EventDispatcherInterface $dispatcher) {
+        $this->containerInterface = new \ReflectionClass(ContainerInterface::class);
+    }
+
+    beforeMethodBody(ProxyInterface $proxy, object $object, string $methodName, array $methodArgs): ?BodyInterceptionResult {
+        $event = $this->event(
+            $proxy,
+            $methodName,
+            static fn(ManifestInterface&ProxyInterface $manifest): ManifestMethodEvent => new ManifestMethodEvent($manifest, $methodName, $methodArgs),
+            static fn(ContainerInterface&ProxyInterface $container): ContainerMethodEvent => new ContainerMethodEvent($container, $methodName, $methodArgs),
+        );
+        if (null === $event) {
+            return null;
+        }
+
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+
+        return $event->returnValueHasChanged() ? new BodyInterceptionResult(true, $event->getReturnValue()) : null;
+    }
+
+    afterMethodBody(ProxyInterface $proxy, object $object, string $methodName, array $methodArgs, InterceptionContext $context): void {
+        $returnValue = $context->returnValue;
+        $event = $this->event(
+            $proxy,
+            $methodName,
+            static fn(ManifestInterface&ProxyInterface $manifest): ManifestMethodCalledEvent => new ManifestMethodCalledEvent($manifest, $methodName, $methodArgs, $returnValue),
+            static fn(ContainerInterface&ProxyInterface $container): ContainerMethodCalledEvent => new ContainerMethodCalledEvent($container, $methodName, $methodArgs, $returnValue),
+        );
+        if (null === $event) {
+            return;
+        }
+
+        Events::dispatch($this->dispatcher, $event, $event::NAME);
+        if ($event->returnValueHasChanged()) {
+            $context->returnValue = $event->getReturnValue();
+        }
+    }
+
+    /**
+     * The event of a call on the proxy, as a manifest's or as a container's. A container
+     * deployment is both: a method ContainerInterface declares belongs to the container, any
+     * other to the manifest. ManifestInterface and ContainerInterface declare no method in
+     * common, which the library's tests hold them to.
+     */
+    private event<E of ManifestMethodEvent|ContainerMethodEvent>(
+        ProxyInterface $proxy,
+        string $methodName,
+        Closure(ManifestInterface&ProxyInterface): E $manifestEvent,
+        Closure(ContainerInterface&ProxyInterface): E $containerEvent,
+    ): ?E {
+        $containerHasMethod = $this->containerInterface->hasMethod($methodName);
+
+        return match (true) {
+            $proxy instanceof ManifestInterface && !($containerHasMethod && $proxy instanceof ContainerInterface) => $manifestEvent($proxy),
+            $proxy instanceof ContainerInterface => $containerEvent($proxy),
+            default => null,
+        };
+    }
+}

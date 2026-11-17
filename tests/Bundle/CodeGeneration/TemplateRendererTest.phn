@@ -1,0 +1,28 @@
+namespace Klass8s\Tests\Bundle\CodeGeneration;
+
+use Klass8s\Bundle\CodeGeneration\TemplateRenderer;
+use PHPUnit\Framework\TestCase;
+
+final class TemplateRendererTest extends TestCase
+{
+    testRenderingLeavesTheCallersOutputAlone(): void {
+        $renderer = new TemplateRenderer(dirname(__DIR__, 3) . '/templates');
+
+        ob_start();
+        echo 'before ';
+        $code = $renderer->render('App.tpl.php', ['namespace' => 'Shop\K8S\Shop', 'className' => 'ShopApp', 'appName' => 'shop']);
+        echo 'after';
+        $output = ob_get_clean();
+
+        self::assertSame('before after', $output);
+        self::assertStringContainsString("class ShopApp extends AbstractApp\n", $code);
+        self::assertStringContainsString("return 'shop';", $code);
+    }
+
+    testAMissingTemplateIsNamed(): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Template "Missing.tpl.php" does not exists');
+
+        new TemplateRenderer(dirname(__DIR__, 3) . '/templates')->render('Missing.tpl.php', []);
+    }
+}

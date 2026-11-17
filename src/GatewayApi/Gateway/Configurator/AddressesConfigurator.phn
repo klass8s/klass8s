@@ -1,0 +1,24 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\Collection\GenericList;
+use Klass8s\GatewayApi\Enum\AddressType;
+
+final readonly class AddressesConfigurator
+{
+    __construct(private GenericList<map<string, string>> $data) {}
+
+    add(AddressType $type, string $value): static {
+        $this->data->add([
+            'type' => $type->value,
+            'value' => $value,
+        ]);
+
+        return $this;
+    }
+
+    addIPAddress(string $value): static => $this->add(AddressType::IPAddress, $value);
+
+    addHostname(string $value): static => $this->add(AddressType::Hostname, $value);
+
+    addNamedAddress(string $value): static => $this->add(AddressType::NamedAddress, $value);
+}

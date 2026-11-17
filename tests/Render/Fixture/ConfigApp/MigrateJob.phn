@@ -1,0 +1,11 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Job\AbstractContainerJob;
+
+class MigrateJob extends AbstractContainerJob
+{
+    static shortName(): string => 'migrate';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+}

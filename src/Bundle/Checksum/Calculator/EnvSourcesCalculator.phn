@@ -1,0 +1,120 @@
+namespace Klass8s\Bundle\Checksum\Calculator;
+
+use Klass8s\Bundle\Checksum\ChecksumAnnotation;
+use Klass8s\Bundle\Checksum\PodTemplateGetter\PodTemplateGetter;
+use Klass8s\Bundle\Registry\APIResourceRegistry;
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Api\Core\V1\ConfigMap;
+use K8Schema\Api\Core\V1\Container;
+use K8Schema\Api\Core\V1\Secret;
+use Klass8s\Core\Container\Env\ExternalConfigurationRegistry;
+use Klass8s\Renderer\JsonRenderer;
+
+readonly class EnvSourcesCalculator implements ChecksumCalculatorInterface
+{
+    use ChecksumTrait;
+
+    private const string ANNOTATION_NAME = 'env-sources-checksum';
+
+    __construct(
+        private PodTemplateGetter $podTemplateGetter,
+        private APIResourceRegistry $registry,
+        private JsonRenderer $renderer,
+        private ExternalConfigurationRegistry $externalConfigurations,
+    ) {}
+
+    calculate(Job|CronJob|Deployment|StatefulSet $workload): ChecksumAnnotation {
+        $podSpec = $this->podTemplateGetter->get($workload)->spec();
+
+        $envSources = [];
+        // Init containers count: a setup step that reads a rendered ConfigMap is as stale after a
+        // config change as the main container is, and it is the pod template it rides in that has
+        // to change for Kubernetes to roll anything at all.
+        foreach ([...$podSpec->containers()->all(), ...$podSpec->initContainers()->all()] as $container) {
+            $envSources += $this->envVarSources($container);
+            $envSources += $this->envFromSources($container);
+        }
+
+        return new ChecksumAnnotation(self::ANNOTATION_NAME, $this->checksum($envSources));
+    }
+
+    private envFromSources(Container $container): map<int, ConfigMap|Secret> {
+        $sources = [];
+        foreach ($container->envFrom()->all() as $envSource) {
+            if ($name = $envSource->getConfigMapRef()?->getName()) {
+                $kind = ConfigMap::KIND;
+            } elseif ($name = $envSource->getSecretRef()?->getName()) {
+                $kind = Secret::KIND;
+            } else {
+                throw new \LogicException('EnvFromSource instance must contain either "configMapRef" or "secretRef" field');
+            }
+
+            if ($this->isExternal($name, $kind)) {
+                continue;
+            }
+
+            $source = $this->getSource($name, $kind);
+            $sources[spl_object_id($source)] = $source;
+        }
+
+        return $sources;
+    }
+
+    private envVarSources(Container $container): map<int, ConfigMap|Secret> {
+        $sources = [];
+        foreach ($container->env()->all() as $envVar) {
+            $envVarSource = $envVar->getValueFrom();
+            if ($name = $envVarSource?->getConfigMapKeyRef()?->getName()) {
+                $kind = ConfigMap::KIND;
+            } elseif ($name = $envVarSource?->getSecretKeyRef()?->getName()) {
+                $kind = Secret::KIND;
+            } else {
+                continue;
+            }
+
+            if ($this->isExternal($name, $kind)) {
+                continue;
+            }
+
+            $source = $this->getSource($name, $kind);
+            $sources[spl_object_id($source)] = $source;
+        }
+
+        return $sources;
+    }
+
+    /**
+     * A source declared `external: true` is a name without bytes: the object is created outside
+     * this project (an ExternalSecret target, an operator, another chart), so the render has
+     * nothing to fingerprint and the checksum leaves it out.
+     */
+    private isExternal(string $name, string $kind): bool => match ($kind) {
+        ConfigMap::KIND => $this->externalConfigurations->hasConfigMap($name),
+        Secret::KIND => $this->externalConfigurations->hasSecret($name),
+        default => throw new \LogicException(sprintf('Env source must be either ConfigMap or Secret, but got env source with kind "%s".', $kind)),
+    };
+
+    private getSource(string $name, string $kind): ConfigMap|Secret {
+        if (!$this->registry->has($name, $kind)) {
+            throw new \LogicException(sprintf(
+                'One of manifests uses "%s" as an env source, but no %s with such name is rendered by this project. '
+                . 'If the %s is created outside the project (an ExternalSecret target, an operator, another chart), declare '
+                . 'it as external — $env->%s("%s", external: true) — so the render stops looking for it and the '
+                . 'env-sources checksum leaves it out.',
+                $name,
+                $kind,
+                $kind,
+                ConfigMap::KIND === $kind ? 'addConfigMap' : 'addSecret',
+                $name,
+            ));
+        }
+
+        $apiResource = $this->registry->get($name, $kind);
+        assert($apiResource instanceof ConfigMap || $apiResource instanceof Secret);
+
+        return $apiResource;
+    }
+}

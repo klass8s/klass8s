@@ -1,0 +1,19 @@
+namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
+
+final readonly class HTTPRouteRulesConfigurator
+{
+    __construct(
+        private GenericList<\ArrayObject<string, mixed>> $data,
+        private AppInterface $app,
+    ) {}
+
+    add(): HTTPRouteRuleConfigurator {
+        $ruleData = new \ArrayObject<string, mixed>();
+        $this->data->add($ruleData);
+
+        return new HTTPRouteRuleConfigurator($ruleData, $this->app);
+    }
+}

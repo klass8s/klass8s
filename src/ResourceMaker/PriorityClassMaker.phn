@@ -1,0 +1,26 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Scheduling\V1\PriorityClass;
+use Klass8s\Core\PriorityClass\PriorityClassInterface;
+use Klass8s\Util\K8SchemaObjects;
+
+final class PriorityClassMaker extends AbstractResourceMaker<PriorityClassInterface, PriorityClass>
+{
+    protected supportedClass(): class<PriorityClassInterface> => PriorityClassInterface::class;
+
+    protected makeResource(PriorityClassInterface $manifest): PriorityClass {
+        $priorityClass = K8SchemaObjects::construct(PriorityClass::class, ['value' => $manifest->value()]);
+        $priorityClass->setValue($manifest->value());
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $priorityClass);
+        if ($description = $manifest->description()) {
+            $priorityClass->setDescription($description);
+        }
+        $priorityClass->setGlobalDefault($manifest->globalDefault());
+        if ($preemptionPolicy = $manifest->preemptionPolicy()) {
+            $priorityClass->setPreemptionPolicy($preemptionPolicy->toString());
+        }
+
+        return $priorityClass;
+    }
+}

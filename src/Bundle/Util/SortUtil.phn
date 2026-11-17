@@ -1,0 +1,13 @@
+namespace Klass8s\Bundle\Util;
+
+class SortUtil
+{
+    static ksortRecursive(array<mixed> &$array): void {
+        ksort($array);
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                self::ksortRecursive($array[$key]);
+            }
+        }
+    }
+}

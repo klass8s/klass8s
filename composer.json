@@ -2,7 +2,7 @@
     "name": "tequila/klass8s",
     "description": "Define Kubernetes manifests as PHP classes",
     "type": "symfony-bundle",
-    "license": "proprietary",
+    "license": "MIT",
     "minimum-stability": "dev",
     "prefer-stable": true,
     "authors": [
@@ -23,21 +23,47 @@
         "symfony/http-kernel": ">=8.0",
         "symfony/string": ">=8.0",
         "symfony/process": "^8.0",
+        "symfony/event-dispatcher-contracts": "^3.0",
         "tequila/k8schema": "~1.34.8 || ~1.35.8 || ~1.36.1 || ~1.37.1",
         "tequila/proximity": "dev-main"
     },
     "autoload": {
         "psr-4": {
-            "Klass8s\\": "src/",
-            "Klass8s\\Tests\\": "tests/"
+            "Klass8s\\": ".src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Klass8s\\Tests\\": ".tests/"
         }
     },
     "scripts": {
-        "cs": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer fix",
-        "cs:check": "./tools/php-cs-fixer/vendor/bin/php-cs-fixer check",
+        "build": "phn build",
+        "build:check": [
+            "phn build",
+            "git diff --exit-code -- .src",
+            "test -z \"$(git ls-files --others --exclude-standard -- .src)\"",
+            "tools/check-archive.sh"
+        ],
+        "check": "phn check",
+        "cs": "phn fmt",
+        "cs:check": [
+            "phn fmt --check",
+            "@build:check"
+        ],
         "tools:update": "composer update -d tools/php-cs-fixer --no-scripts",
-        "test": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests",
-        "test:bundle": "./vendor/bin/phpunit --bootstrap=tests/bootstrap.php tests/Bundle"
+        "test": "./vendor/bin/phpunit --bootstrap=.tests/bootstrap.php .tests",
+        "test:bundle": "./vendor/bin/phpunit --bootstrap=.tests/bootstrap.php .tests/Bundle"
+    },
+    "scripts-descriptions": {
+        "build": "Compile src/ and tests/ (.phn) into .src/ and .tests/, as every autoload dump does through the phaenon/phn plugin",
+        "build:check": "Build, then fail when the committed .src/ differs from what the build wrote (an output stale, missing or without a source), or when the archive Composer would install from leaves out a file the package needs or carries the tests",
+        "check": "Type-check the .phn sources and write nothing",
+        "cs": "Format the .phn: Phaenon's layout, then php-cs-fixer on the outputs with its changes carried back to the sources",
+        "cs:check": "Report what composer cs would change, then run build:check",
+        "tools:update": "Update php-cs-fixer and rewrite its lock",
+        "test": "Run the suite on the compiled tests",
+        "test:bundle": "Run the bundle's part of the suite"
     },
     "repositories": [
         {
@@ -46,8 +72,17 @@
         }
     ],
     "require-dev": {
+        "phaenon/phn": "0.7.0",
         "phpunit/phpunit": "^13.0",
         "symfony/browser-kit": "^8.0",
         "symfony/css-selector": "^8.0"
+    },
+    "conflict": {
+        "phaenon/phn": "<0.5.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "phaenon/phn": true
+        }
     }
 }

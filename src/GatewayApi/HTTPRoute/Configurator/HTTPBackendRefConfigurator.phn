@@ -1,0 +1,57 @@
+namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\NestedData;
+use Klass8s\Core\Service\ServiceInterface;
+
+final class HTTPBackendRefConfigurator
+{
+    __construct(
+        private \ArrayObject<string, mixed> $data,
+        private AppInterface $app,
+    ) {}
+
+    service(string $name, int $port): static {
+        $this->data['name'] = $name;
+        $this->data['port'] = $port;
+
+        return $this;
+    }
+
+    serviceClass(class<ServiceInterface> $serviceClass, int $port): static {
+        $name = $this->app->resourceNameFromManifestClass($serviceClass, ServiceInterface::class);
+
+        return $this->service($name, $port);
+    }
+
+    group(string $group): static {
+        $this->data['group'] = $group;
+
+        return $this;
+    }
+
+    kind(string $kind): static {
+        $this->data['kind'] = $kind;
+
+        return $this;
+    }
+
+    namespace(string $namespace): static {
+        $this->data['namespace'] = $namespace;
+
+        return $this;
+    }
+
+    weight(int $weight): static {
+        $this->data['weight'] = $weight;
+
+        return $this;
+    }
+
+    filter(): HTTPRouteFilterConfigurator {
+        $filterData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'filters')->add($filterData);
+
+        return new HTTPRouteFilterConfigurator($filterData);
+    }
+}

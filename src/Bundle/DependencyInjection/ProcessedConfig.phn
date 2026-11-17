@@ -1,0 +1,64 @@
+namespace Klass8s\Bundle\DependencyInjection;
+
+// The klass8s configuration as Configuration's tree leaves it: what Klass8sExtension
+// reads from the processed klass8s.yaml and what the compiler passes read back from the
+// container parameters it sets. The tree is the guarantee: a value of one of these types
+// is the output of the processor, typed with @var where it is read from a parameter.
+
+type Klass8sConfig = array{
+    apps: map<string, AppConfig>,
+    helm: HelmConfig,
+    env_management: array{env_suffixed_methods: list<EnvSuffixedMethodConfig>},
+    code_dir: ?string,
+    namespace_prefix: string,
+    manifests_dir: ?string,
+    auto_set_resources: bool,
+    auto_set_replicas: bool,
+    auto_generate_checksums: bool,
+    set_default_selector_labels: bool,
+    set_default_metadata_labels: bool,
+    set_default_service_selector: bool,
+    strip_namespace: bool,
+};
+
+/** An app under `apps`: the keys the tree knows, and any other key the app reads itself. */
+type AppConfig = array{
+    class?: string,
+    enabled: bool,
+    deploy_priority: int,
+    manifests: map<string, ManifestConfig>,
+    ...
+};
+
+/** A manifest under `apps.<alias>.manifests`, and the config a manifest is given. */
+type ManifestConfig = array{
+    virtual?: bool,
+    replicas?: int,
+    resources?: array{requests?: ResourcesConfig|string, limits?: ResourcesConfig|string},
+    ...
+};
+
+/** A container's requests or limits; a string refers to another manifest's (ResourcesReferenceResolver). */
+type ResourcesConfig = array{cpu?: string|int|float, memory?: string|int|float, storage?: string|int|float};
+
+type HelmConfig = array{
+    chart_cache_dir: ?string,
+    repositories: map<string, string>,
+    releases: map<string, HelmReleaseConfig>,
+};
+
+type HelmReleaseConfig = array{
+    chart: string,
+    version: ?string,
+    values: mixed,
+    values_from: ?string,
+    deploy_priority: int,
+    namespace: ?string,
+    enabled: bool|string,
+};
+
+/**
+ * A method that has env-suffixed variants (`replicasProd()`), and the proxyables it is looked for on.
+ * The tree's default methods are not normalized by the prototype, and have no conditions.
+ */
+type EnvSuffixedMethodConfig = array{name: string, for: list<string>, if?: bool|string|null, if_not?: bool|string|null};

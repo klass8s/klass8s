@@ -1,0 +1,11 @@
+namespace Klass8s\Core\Rbac;
+
+use Klass8s\Core\Rbac\Configurator\Binding\RoleRefConfigurator;
+use Klass8s\Core\Rbac\Configurator\Binding\SubjectsConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface RoleBindingInterface extends ManifestInterface
+{
+    roleRef(RoleRefConfigurator $ref): void;
+    subjects(SubjectsConfigurator $subjects): void;
+}

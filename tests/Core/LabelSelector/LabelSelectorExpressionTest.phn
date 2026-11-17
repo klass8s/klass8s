@@ -1,0 +1,23 @@
+namespace Klass8s\Tests\Core\LabelSelector;
+
+use Klass8s\Core\LabelSelector\LabelSelectorExpression;
+use PHPUnit\Framework\TestCase;
+
+final class LabelSelectorExpressionTest extends TestCase
+{
+    testEachOperatorIsWrittenAsKubernetesSpellsIt(): void {
+        $in = LabelSelectorExpression::withKey('tier')->in(['web', 'api'])->toLabelSelectorRequirement();
+        $notIn = LabelSelectorExpression::withKey('tier')->notIn(['batch'])->toLabelSelectorRequirement();
+
+        self::assertSame(['tier', 'In', ['web', 'api']], [$in->getKey(), $in->getOperator(), $in->values()->all()]);
+        self::assertSame(['tier', 'NotIn', ['batch']], [$notIn->getKey(), $notIn->getOperator(), $notIn->values()->all()]);
+        self::assertSame('Exists', LabelSelectorExpression::withKey('tier')->exists()->toLabelSelectorRequirement()->getOperator());
+        self::assertSame('DoesNotExist', LabelSelectorExpression::withKey('tier')->doesNotExist()->toLabelSelectorRequirement()->getOperator());
+    }
+
+    testAnOperatorIsSetOnce(): void {
+        $this->expectException(\LogicException::class);
+
+        LabelSelectorExpression::withKey('tier')->exists()->doesNotExist();
+    }
+}

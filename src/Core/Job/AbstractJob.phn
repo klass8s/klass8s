@@ -1,0 +1,70 @@
+namespace Klass8s\Core\Job;
+
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Api\Core\V1\PodSpec;
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\Job\FailurePolicy\PodFailurePolicyConfigurator;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
+use Klass8s\Core\Pod\ImagePullSecrets\ImagePullSecretsConfigurator;
+use Klass8s\Core\Pod\Policy\RestartPolicy;
+use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
+use Klass8s\Core\Pod\Toleration\TolerationsConfigurator;
+use Klass8s\Core\Pod\Topology\TopologySpreadConstraintsConfigurator;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+abstract class AbstractJob extends AbstractManifest implements JobInterface
+{
+    selector(SelectorConfigurator $selector): void {}
+
+    backoffLimit(): ?int => null;
+
+    activeDeadlineSeconds(): ?int => null;
+
+    ttlSecondsAfterFinished(): ?int => null;
+
+    completions(): ?int => null;
+
+    manualSelector(): ?bool => null;
+
+    parallelism(): ?int => null;
+
+    affinity(AffinityConfigurator $affinity): void {}
+
+    initContainers(): iterable<ContainerInterface> => [];
+
+    imagePullSecrets(ImagePullSecretsConfigurator $secrets): void {}
+
+    nodeSelector(StringMap $nodeSelector): void {}
+
+    tolerations(TolerationsConfigurator $tolerations): void {}
+
+    volumes(VolumesConfigurator $volumes): void {}
+
+    priorityClass(PriorityClassConfigurator $priorityClass): void {}
+
+    restartPolicy(): ?RestartPolicy => null;
+
+    suspend(): bool => false;
+
+    podFailurePolicy(PodFailurePolicyConfigurator $policy): void {}
+
+    serviceAccountName(): ?string => null;
+
+    serviceAccount(): ?ManifestClassReference => null;
+
+    terminationGracePeriodSeconds(): ?int => null;
+
+    topologySpreadConstraints(TopologySpreadConstraintsConfigurator $constraints): void {}
+
+    configurePodSpec(PodSpec $spec): void {}
+
+    configureJob(Job $job): void {}
+
+    static kind(): string => Job::KIND;
+
+    static apiVersion(): string => Job::API_VERSION;
+}

@@ -1,0 +1,6 @@
+namespace Klass8s\Core\Container;
+
+abstract class AbstractContainer implements ContainerInterface
+{
+    use ContainerTrait;
+}

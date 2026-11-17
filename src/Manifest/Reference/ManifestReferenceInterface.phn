@@ -1,0 +1,8 @@
+namespace Klass8s\Manifest\Reference;
+
+interface ManifestReferenceInterface
+{
+    appAlias(): string;
+    apiGroup(): ?string;
+    className(): string;
+}

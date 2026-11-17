@@ -1,0 +1,27 @@
+namespace Klass8s\Monitoring\Prometheus\Configurator;
+
+use Klass8s\Collection\GenericList;
+
+final class RuleGroupConfigurator
+{
+    private readonly GenericList<\ArrayObject<string, mixed>> $rules;
+
+    __construct(private \ArrayObject<string, mixed> $data) {
+        $this->rules = new GenericList<\ArrayObject<string, mixed>>();
+        $this->data['rules'] = $this->rules;
+    }
+
+    partialResponseStrategy(string $strategy): static {
+        $this->data['partial_response_strategy'] = $strategy;
+
+        return $this;
+    }
+
+    interval(string $interval): static {
+        $this->data['interval'] = $interval;
+
+        return $this;
+    }
+
+    rules(): GroupRulesConfigurator => new GroupRulesConfigurator($this->rules);
+}

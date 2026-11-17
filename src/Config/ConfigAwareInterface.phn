@@ -1,0 +1,11 @@
+namespace Klass8s\Config;
+
+interface ConfigAwareInterface
+{
+    protected(set) map<string, mixed> $config {
+        get;
+        set;
+    }
+
+    setConfig(map<string, mixed> $config): void;
+}

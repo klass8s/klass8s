@@ -1,0 +1,46 @@
+namespace Klass8s\Bundle\EventListener;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Api\Core\V1\ConfigMap;
+use K8Schema\Api\Core\V1\Secret;
+use Klass8s\Bundle\Registry\APIResourceRegistry;
+use Klass8s\Event\ConfigMapGeneratedEvent;
+use Klass8s\Event\CronJobGeneratedEvent;
+use Klass8s\Event\DeploymentGeneratedEvent;
+use Klass8s\Event\JobGeneratedEvent;
+use Klass8s\Event\ManifestGeneratedEventInterface;
+use Klass8s\Event\SecretGeneratedEvent;
+use Klass8s\Event\StatefulSetGeneratedEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class TrackAPIResourcesSubscriber implements EventSubscriberInterface
+{
+    private const list<string> EVENTS = [
+        ConfigMapGeneratedEvent::NAME,
+        CronJobGeneratedEvent::NAME,
+        DeploymentGeneratedEvent::NAME,
+        JobGeneratedEvent::NAME,
+        SecretGeneratedEvent::NAME,
+        StatefulSetGeneratedEvent::NAME,
+    ];
+
+    __construct(private APIResourceRegistry $registry) {}
+
+    /** The six events it hears carry the six kinds the registry keeps, each typed to its class, so no other arm is needed. */
+    onManifestGenerated(ManifestGeneratedEventInterface $event): void {
+        $resource = $event->apiResource();
+        $this->registry->add(match (true) {
+            $resource instanceof Deployment,
+            $resource instanceof StatefulSet,
+            $resource instanceof Job,
+            $resource instanceof CronJob,
+            $resource instanceof ConfigMap,
+            $resource instanceof Secret => $resource,
+        });
+    }
+
+    static getSubscribedEvents(): array => array_fill_keys(self::EVENTS, ['onManifestGenerated', -1024]);
+}

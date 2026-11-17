@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyApiResource;
+use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyInterface;
+
+final readonly class BackendTLSPolicyGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.backend_tls_policy';
+
+    __construct(
+        private BackendTLSPolicyInterface $manifest,
+        private BackendTLSPolicyApiResource $resource,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): BackendTLSPolicyInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->resource;
+
+    backendTLSPolicy(): BackendTLSPolicyApiResource => $this->resource;
+
+    app(): AppInterface => $this->app;
+}

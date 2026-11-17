@@ -1,0 +1,84 @@
+namespace Klass8s\Core\Container\Resources;
+
+use LogicException;
+
+final readonly class CPU implements \JsonSerializable
+{
+    private const string MILLICORES_SUFFIX = 'm';
+    private const int MILLICORES_NUMBER_IN_CORE = 1000;
+
+    private __construct(private string $value) {}
+
+    add(CPU $cpu): CPU {
+        $totalMillicores = $this->millicoresNumber() + $cpu->millicoresNumber();
+
+        return new self(self::format($totalMillicores));
+    }
+
+    toString(): string => $this->value;
+
+    greaterThan(CPU $cpu): bool => $this->millicoresNumber() > $cpu->millicoresNumber();
+
+    lowerThan(CPU $cpu): bool => $this->millicoresNumber() < $cpu->millicoresNumber();
+
+    equals(CPU $cpu): bool => $this->millicoresNumber() === $cpu->millicoresNumber();
+
+    millicoresNumber(): int {
+        if (str_ends_with($this->value, self::MILLICORES_SUFFIX)) {
+            return (int) rtrim($this->value, self::MILLICORES_SUFFIX);
+        } elseif (is_numeric($this->value)) {
+            return (int) $this->value * self::MILLICORES_NUMBER_IN_CORE;
+        }
+
+        throw new LogicException(
+            sprintf(
+                'Invalid value format for CPU: "%s"',
+                $this->value,
+            ),
+        );
+    }
+
+    prettify(): self => new self(self::format($this->millicoresNumber()));
+
+    static millicores(int $millicoresNumber): self {
+        $value = strval($millicoresNumber) . self::MILLICORES_SUFFIX;
+
+        return new self($value);
+    }
+
+    static cores(int $coresNumber): self => new self(strval($coresNumber));
+
+    static fromString(string $string): self {
+        if (is_numeric($string)) {
+            return static::cores((int) $string);
+        }
+
+        $exception = new \InvalidArgumentException(
+            sprintf('Invalid CPU string "%s"', $string),
+        );
+        if (str_ends_with($string, self::MILLICORES_SUFFIX)) {
+            $millicoresNumber = rtrim($string, self::MILLICORES_SUFFIX);
+            if (!is_numeric($millicoresNumber)) {
+                throw $exception;
+            }
+
+            return self::millicores((int) $millicoresNumber);
+        }
+
+        throw $exception;
+    }
+
+    private static format(int $millicoresNumber): string {
+        if ($millicoresNumber <= 0) {
+            throw new \InvalidArgumentException('$millicoresNumber must be greater than 0');
+        }
+
+        if (0 === $millicoresNumber % self::MILLICORES_NUMBER_IN_CORE) {
+            return strval($millicoresNumber / self::MILLICORES_NUMBER_IN_CORE);
+        }
+
+        return strval($millicoresNumber) . self::MILLICORES_SUFFIX;
+    }
+
+    jsonSerialize(): string => $this->toString();
+}

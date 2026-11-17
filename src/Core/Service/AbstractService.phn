@@ -1,0 +1,26 @@
+namespace Klass8s\Core\Service;
+
+use K8Schema\Api\Core\V1\Service;
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
+use Klass8s\Core\Service\Configurator\ServiceTypeConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractService extends AbstractManifest implements ServiceInterface
+{
+    clusterIP(): ?string => null;
+
+    ports(ServicePortsConfigurator $ports): void {}
+
+    selector(StringMap $selector): void {}
+
+    type(ServiceTypeConfigurator $type): void {}
+
+    configureService(Service $service): void {}
+
+    trafficDistribution(): ?TrafficDistribution => TrafficDistribution::PreferClose;
+
+    final static kind(): string => Service::KIND;
+
+    final static apiVersion(): string => Service::API_VERSION;
+}

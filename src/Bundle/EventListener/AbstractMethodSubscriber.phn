@@ -1,0 +1,30 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Event\ProxyableMethodEventInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+abstract class AbstractMethodSubscriber implements EventSubscriberInterface
+{
+    abstract protected supports(ProxyableMethodEventInterface $event): bool;
+
+    abstract protected beforeMethod(ProxyableMethodEventInterface $event): void;
+
+    abstract protected static eventNames(): iterable<string>;
+
+    handleEvent(ProxyableMethodEventInterface $event): void {
+        if ($this->supports($event)) {
+            $this->beforeMethod($event);
+        }
+    }
+
+    static getSubscribedEvents(): array {
+        $events = [];
+        foreach (static::eventNames() as $eventName) {
+            $events[$eventName] = ['handleEvent', static::priority()];
+        }
+
+        return $events;
+    }
+
+    protected static priority(): int => 0;
+}

@@ -1,0 +1,40 @@
+namespace Klass8s\Bridge\Helm\Release;
+
+use Klass8s\Runtime\ManifestRuntimeStatusResolverInterface;
+
+final class HelmReleaseRegistry
+{
+    private(set) map<string, HelmReleaseInterface> $releases = [];
+
+    public list<string> $releaseNames {
+        get => array_keys($this->releases);
+    }
+
+    __construct(private readonly ManifestRuntimeStatusResolverInterface $statusResolver) {}
+
+    add(HelmReleaseInterface $release): void {
+        if (array_key_exists($release->name, $this->releases)) {
+            if ($this->releases[$release->name] === $release) {
+                return;
+            }
+
+            throw new \LogicException(sprintf('Release "%s" already exists in the registry.', $release->name));
+        }
+
+        if (!$release->enabled || !$this->statusResolver->isClassEnabled(new \ReflectionClass($release))) {
+            return;
+        }
+
+        $this->releases[$release->name] = $release;
+    }
+
+    get(string $name): HelmReleaseInterface {
+        if (!$this->has($name)) {
+            throw new \OutOfBoundsException(sprintf('Release "%s" does not exist in the registry.', $name));
+        }
+
+        return $this->releases[$name];
+    }
+
+    has(string $name): bool => array_key_exists($name, $this->releases);
+}

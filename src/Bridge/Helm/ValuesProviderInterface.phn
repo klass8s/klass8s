@@ -1,0 +1,6 @@
+namespace Klass8s\Bridge\Helm;
+
+interface ValuesProviderInterface
+{
+    values(): map<string, mixed>;
+}

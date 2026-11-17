@@ -1,0 +1,31 @@
+namespace Klass8s\Autoscaling;
+
+/**
+ * The effective autoscaling verdict for one workload, produced by an
+ * {@see AutoscalePolicyInterface}: whether a ScaledObject is rendered at all, and with
+ * which replica bounds.
+ */
+final readonly class AutoscaleDecision
+{
+    private __construct(
+        public bool $enabled,
+        public int $minReplicas,
+        public int $maxReplicas,
+    ) {}
+
+    static enabled(int $minReplicas, int $maxReplicas): self {
+        if ($maxReplicas < 1) {
+            throw new \LogicException(sprintf('Autoscale maxReplicas must be at least 1, %d given.', $maxReplicas));
+        }
+        if ($minReplicas < 0) {
+            throw new \LogicException(sprintf('Autoscale minReplicas must not be negative, %d given.', $minReplicas));
+        }
+        if ($minReplicas > $maxReplicas) {
+            throw new \LogicException(sprintf('Autoscale minReplicas (%d) must not exceed maxReplicas (%d).', $minReplicas, $maxReplicas));
+        }
+
+        return new self(true, $minReplicas, $maxReplicas);
+    }
+
+    static disabled(): self => new self(false, 0, 0);
+}

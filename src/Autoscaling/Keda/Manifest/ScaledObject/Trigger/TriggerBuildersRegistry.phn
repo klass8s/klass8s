@@ -1,0 +1,19 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger;
+
+final class TriggerBuildersRegistry
+{
+    /** The trigger builders by their class. */
+    private map<class<TriggerBuilderInterface>, TriggerBuilderInterface> $map = [];
+
+    __construct(iterable<TriggerBuilderInterface> $builders) {
+        foreach ($builders as $builder) {
+            $this->map[$builder::class] = $builder;
+        }
+    }
+
+    get<T of TriggerBuilderInterface>(class<T> $builderClass): ?T {
+        $builder = $this->map[$builderClass] ?? null;
+
+        return $builder instanceof $builderClass ? $builder : null;
+    }
+}

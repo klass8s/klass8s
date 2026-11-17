@@ -1,0 +1,16 @@
+namespace Klass8s\Runtime;
+
+final readonly class DelegatingRuntimeStatusResolver implements ManifestRuntimeStatusResolverInterface
+{
+    __construct(private iterable<ManifestStatusResolverStrategyInterface> $strategies) {}
+
+    isClassEnabled(\ReflectionClass $class): bool {
+        foreach ($this->strategies as $strategy) {
+            if (!$strategy->isClassEnabled($class)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}

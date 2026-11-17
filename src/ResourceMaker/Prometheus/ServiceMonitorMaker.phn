@@ -1,0 +1,24 @@
+namespace Klass8s\ResourceMaker\Prometheus;
+
+use K8Schema\Collection\StringList;
+use Klass8s\Collection\GenericList;
+use Klass8s\Monitoring\Prometheus\Configurator\EndpointsConfigurator;
+use Klass8s\Monitoring\Prometheus\ServiceMonitor\ServiceMonitorInterface;
+
+class ServiceMonitorMaker extends AbstractMonitorMaker<ServiceMonitorInterface>
+{
+    protected supportedClass(): class<ServiceMonitorInterface> => ServiceMonitorInterface::class;
+
+    protected configureMonitor(ServiceMonitorInterface $manifest, \ArrayObject<string, mixed> $spec): void {
+        $targetLabels = new StringList();
+        $manifest->targetLabels($targetLabels);
+
+        if ($targetLabels->count() > 0) {
+            $spec['targetLabels'] = $targetLabels;
+        }
+
+        $endpoints = new GenericList<\ArrayObject<string, mixed>>();
+        $spec['endpoints'] = $endpoints;
+        $manifest->endpoints(new EndpointsConfigurator($endpoints));
+    }
+}

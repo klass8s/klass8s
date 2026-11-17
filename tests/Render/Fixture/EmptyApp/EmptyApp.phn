@@ -1,0 +1,8 @@
+namespace Klass8s\Tests\Render\Fixture\EmptyApp;
+
+use Klass8s\App\AbstractApp;
+
+class EmptyApp extends AbstractApp
+{
+    static name(): string => 'empty';
+}

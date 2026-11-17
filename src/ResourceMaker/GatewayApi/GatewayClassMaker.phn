@@ -1,0 +1,43 @@
+namespace Klass8s\ResourceMaker\GatewayApi;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use Klass8s\Event\Events;
+use Klass8s\Event\GatewayClassGeneratedEvent;
+use Klass8s\GatewayApi\GatewayClass\GatewayClassApiResource;
+use Klass8s\GatewayApi\GatewayClass\GatewayClassInterface;
+use Klass8s\ResourceMaker\AbstractResourceMaker;
+
+final class GatewayClassMaker extends AbstractResourceMaker<GatewayClassInterface, GatewayClassApiResource>
+{
+    protected supportedClass(): class<GatewayClassInterface> => GatewayClassInterface::class;
+
+    protected makeResource(GatewayClassInterface $manifest): GatewayClassApiResource {
+        $data = new \ArrayObject<string, mixed>();
+        $data['apiVersion'] = $manifest::apiVersion();
+        $data['kind'] = $manifest::kind();
+        $data['metadata'] = new ObjectMeta();
+        $data['spec'] = new \ArrayObject<string, mixed>();
+
+        $data['spec']['controllerName'] = $manifest->controllerName();
+
+        if (null !== $description = $manifest->description()) {
+            $data['spec']['description'] = $description;
+        }
+
+        if (null !== $parametersRef = $manifest->parametersRef()) {
+            $data['spec']['parametersRef'] = $parametersRef->toArray();
+        }
+
+        $resource = new GatewayClassApiResource($data);
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $resource);
+
+        Events::dispatch(
+            $this->dispatcher,
+            new GatewayClassGeneratedEvent($manifest, $resource, $app),
+            GatewayClassGeneratedEvent::NAME,
+        );
+
+        return $resource;
+    }
+}

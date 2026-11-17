@@ -1,0 +1,50 @@
+namespace Klass8s\Value;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Util\StringUtil;
+
+final class StringMapProxy extends StringMap
+{
+    __construct(private readonly StringMap $map) {
+        parent::__construct();
+    }
+
+    add(string $name, mixed $value): static {
+        $value = StringUtil::stringify($value);
+        $this->map->add($name, $value);
+
+        return $this;
+    }
+
+    addAll(array<mixed> $items): static {
+        foreach ($items as $key => $value) {
+            $this->add((string) $key, $value);
+        }
+
+        return $this;
+    }
+
+    all(): \ArrayObject => $this->map->all();
+
+    clear(): static {
+        $this->map->clear();
+
+        return $this;
+    }
+
+    count(): int => $this->map->count();
+
+    get(string $name): string => $this->map->get($name);
+
+    has(string $name): bool => $this->map->has($name);
+
+    remove(string $name): static {
+        $this->map->remove($name);
+
+        return $this;
+    }
+
+    jsonSerialize(): ?\ArrayObject => $this->map->jsonSerialize();
+
+    static make(StringMap $map): self => new self($map);
+}

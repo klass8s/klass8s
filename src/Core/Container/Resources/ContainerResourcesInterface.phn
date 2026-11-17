@@ -1,0 +1,11 @@
+namespace Klass8s\Core\Container\Resources;
+
+interface ContainerResourcesInterface
+{
+    requestCPU(CPU $cpu): static;
+    requestMemory(Memory $memory): static;
+    requestStorage(Memory $memory): static;
+    limitCPU(CPU $cpu): static;
+    limitMemory(Memory $memory): static;
+    limitStorage(Memory $memory): static;
+}

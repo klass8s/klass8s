@@ -1,0 +1,18 @@
+namespace Klass8s\Monitoring\Prometheus;
+
+use K8Schema\Collection\StringList;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Monitoring\Prometheus\Configurator\NamespaceSelectorConfigurator;
+
+abstract class AbstractMonitor extends AbstractManifest implements MonitorInterface
+{
+    static apiVersion(): string => 'monitoring.coreos.com/v1';
+
+    jobLabel(): ?string => null;
+
+    namespaceSelector(NamespaceSelectorConfigurator $namespaceSelector): void {}
+
+    podTargetLabels(StringList $labels): void {}
+
+    sampleLimit(): ?int => null;
+}

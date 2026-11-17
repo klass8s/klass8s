@@ -1,0 +1,22 @@
+namespace Klass8s\Proxy;
+
+use Proximity\ProxyInterface;
+
+final readonly class ProxyManager
+{
+    private __construct() {}
+
+    /** Gets the object's class, unwrapping it from a proxy if needed. */
+    static unwrapClassName<T of object>(T $object): class<T> {
+        $class = $object::class;
+        if ($object instanceof ProxyInterface) {
+            /** @var class<T> $class A proxy is an instance of a subclass of its object's class. */
+            $class = get_parent_class($object);
+        }
+
+        return $class;
+    }
+
+    /** The class of the object, unwrapped from a proxy if needed: the class its author wrote. */
+    static unwrapClass<T of object>(T $object): \ReflectionClass<T> => new \ReflectionClass(self::unwrapClassName($object));
+}

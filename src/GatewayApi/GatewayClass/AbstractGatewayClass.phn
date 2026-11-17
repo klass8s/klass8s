@@ -1,0 +1,15 @@
+namespace Klass8s\GatewayApi\GatewayClass;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractGatewayClass extends AbstractManifest implements GatewayClassInterface
+{
+    final static kind(): string => GatewayClassApiResource::KIND;
+
+    static apiVersion(): string => AbstractGatewayApiResource::API_VERSION;
+
+    description(): ?string => null;
+
+    parametersRef(): ?ParametersRef => null;
+}

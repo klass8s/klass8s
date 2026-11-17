@@ -1,0 +1,34 @@
+namespace Klass8s\GatewayApi\GRPCRoute\Configurator;
+
+use Klass8s\Collection\NestedData;
+use Klass8s\GatewayApi\Enum\GRPCMethodMatchType;
+use Klass8s\GatewayApi\Enum\HeaderMatchType;
+
+final class GRPCRouteMatchConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    method(
+        ?string $service = null,
+        ?string $method = null,
+        GRPCMethodMatchType $type = GRPCMethodMatchType::Exact,
+    ): static {
+        $this->data['method'] = array_filter([
+            'type' => $type->value,
+            'service' => $service,
+            'method' => $method,
+        ], static fn(mixed $v): bool => null !== $v);
+
+        return $this;
+    }
+
+    header(string $name, string $value, HeaderMatchType $type = HeaderMatchType::Exact): static {
+        NestedData::append($this->data, 'headers', [
+            'type' => $type->value,
+            'name' => $name,
+            'value' => $value,
+        ]);
+
+        return $this;
+    }
+}

@@ -1,0 +1,45 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\Collection\NestedData;
+use Klass8s\GatewayApi\Enum\RouteNamespaceFrom;
+
+/** A kind of route a listener allows, of the Gateway API's group unless it says otherwise. */
+type RouteGroupKind = array{group?: string, kind: string};
+
+final class AllowedRoutesConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    fromSameNamespace(): static => $this->fromNamespaces(RouteNamespaceFrom::Same);
+
+    fromAllNamespaces(): static => $this->fromNamespaces(RouteNamespaceFrom::All);
+
+    fromSelector(map<string, string> $matchLabels): static {
+        $this->fromNamespaces(RouteNamespaceFrom::Selector);
+        NestedData::object($this->data, 'namespaces')['selector'] = ['matchLabels' => $matchLabels];
+
+        return $this;
+    }
+
+    allowKinds(list<RouteGroupKind> $kinds): static {
+        $this->data['kinds'] = array_map(
+            static fn(array $kind): array => array_filter([
+                'group' => $kind['group'] ?? 'gateway.networking.k8s.io',
+                'kind' => $kind['kind'],
+            ]),
+            $kinds,
+        );
+
+        return $this;
+    }
+
+    allowHTTPRoutes(): static => $this->allowKinds([['kind' => 'HTTPRoute']]);
+
+    allowGRPCRoutes(): static => $this->allowKinds([['kind' => 'GRPCRoute']]);
+
+    private fromNamespaces(RouteNamespaceFrom $from): static {
+        NestedData::object($this->data, 'namespaces')['from'] = $from->value;
+
+        return $this;
+    }
+}

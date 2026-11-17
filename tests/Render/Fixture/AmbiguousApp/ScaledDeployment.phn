@@ -1,0 +1,14 @@
+namespace Klass8s\Tests\Render\Fixture\AmbiguousApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+/** Declares its replicas while klass8s.yaml sets them too. */
+class ScaledDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'scaled';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    replicas(): int => 2;
+}

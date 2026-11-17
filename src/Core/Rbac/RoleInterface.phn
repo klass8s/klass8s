@@ -1,0 +1,11 @@
+namespace Klass8s\Core\Rbac;
+
+use K8Schema\Api\Rbac\V1\Role;
+use Klass8s\Core\Rbac\Configurator\PolicyRulesConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface RoleInterface extends ManifestInterface
+{
+    rules(PolicyRulesConfigurator $rules): void;
+    configureRole(Role $role): void;
+}

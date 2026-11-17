@@ -1,0 +1,47 @@
+namespace Klass8s\Core\Pod\Topology;
+
+use K8Schema\Api\Core\V1\TopologySpreadConstraint;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+
+readonly class TopologySpreadConstraintConfigurator
+{
+    __construct(private TopologySpreadConstraint $constraint) {}
+
+    labelSelector(): SelectorConfigurator => new SelectorConfigurator($this->constraint->labelSelector());
+
+    matchLabelKeys(string ...$keys): static {
+        if (0 === count($keys)) {
+            throw new \InvalidArgumentException('You must provide at least one label key');
+        }
+
+        $this->constraint->matchLabelKeys()->addAll($keys);
+
+        return $this;
+    }
+
+    setMinDomains(int $minDomains): static {
+        if ($minDomains <= 0) {
+            throw new \InvalidArgumentException('$minDomains must be greater than 0.');
+        }
+
+        if ($this->constraint->getWhenUnsatisfiable() !== WhenUnsatisfiable::DoNotSchedule->value) {
+            throw new \LogicException('When $minDomains value is set, WhenUnsatisfiable must be "DoNotSchedule".');
+        }
+
+        $this->constraint->setMinDomains($minDomains);
+
+        return $this;
+    }
+
+    nodeAffinityPolicy(NodePolicy $policy): static {
+        $this->constraint->setNodeAffinityPolicy($policy->value);
+
+        return $this;
+    }
+
+    nodeTaintsPolicy(NodePolicy $policy): static {
+        $this->constraint->setNodeTaintsPolicy($policy->value);
+
+        return $this;
+    }
+}

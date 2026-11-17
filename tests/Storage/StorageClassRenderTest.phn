@@ -1,0 +1,92 @@
+namespace Klass8s\Tests\Storage;
+
+use Klass8s\App\AppProcessor;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+class StorageClassRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    private AppProcessor $appProcessor;
+
+    protected static getKernelClass(): string => StorageTestKernel::class;
+
+    protected setUp(): void {
+        self::bootKernel();
+        $this->appProcessor = self::service(AppProcessor::class);
+    }
+
+    testStorageClassRendering(): void {
+        $storageClass = $this->findStorageClass('storage-fast');
+
+        self::assertSame('storage.k8s.io/v1', $storageClass->get('apiVersion'));
+        self::assertSame('StorageClass', $storageClass->get('kind'));
+        self::assertSame('example.io/disk', $storageClass->get('provisioner'));
+        self::assertSame(['tier' => 'premium', 'fsType' => 'xfs'], $storageClass->get('parameters'));
+        self::assertSame('Retain', $storageClass->get('reclaimPolicy'));
+        self::assertSame('Immediate', $storageClass->get('volumeBindingMode'));
+        self::assertFalse($storageClass->get('allowVolumeExpansion'));
+        self::assertSame(['noatime', 'nodiratime'], $storageClass->get('mountOptions'));
+        self::assertFalse($storageClass->has('metadata', 'namespace'), 'A StorageClass is cluster-scoped');
+
+        self::assertSame(
+            [
+                ['matchLabelExpressions' => [
+                    ['key' => 'topology.kubernetes.io/zone', 'values' => ['eu-central-1a', 'eu-central-1b']],
+                    ['key' => 'example.io/disk-tier', 'values' => ['premium']],
+                ]],
+                ['matchLabelExpressions' => [
+                    ['key' => 'topology.kubernetes.io/zone', 'values' => ['eu-central-1c']],
+                ]],
+            ],
+            $storageClass->get('allowedTopologies'),
+        );
+
+        $annotations = $storageClass->at('metadata', 'annotations');
+        self::assertFalse($annotations->has('storageclass.kubernetes.io/is-default-class'), 'Not the default class unless isDefaultClass() says so');
+        self::assertSame('storage', $annotations->get('klass8s.dev/app'));
+        self::assertSame('storage', $storageClass->get('metadata', 'labels', 'app.kubernetes.io/name'));
+        self::assertSame('fast', $storageClass->get('metadata', 'labels', 'app.kubernetes.io/component'));
+    }
+
+    testDefaults(): void {
+        $storageClass = $this->findStorageClass('storage-plain');
+
+        self::assertSame('example.io/plain', $storageClass->get('provisioner'));
+        self::assertSame('Delete', $storageClass->get('reclaimPolicy'));
+        self::assertSame('Immediate', $storageClass->get('volumeBindingMode'));
+        self::assertFalse($storageClass->get('allowVolumeExpansion'));
+        self::assertFalse($storageClass->has('parameters'));
+        self::assertFalse($storageClass->has('mountOptions'));
+        self::assertFalse($storageClass->has('allowedTopologies'));
+        self::assertFalse($storageClass->has('metadata', 'annotations', 'storageclass.kubernetes.io/is-default-class'));
+    }
+
+    testEksAutoModeGp3Battery(): void {
+        // Named `gp3` regardless of the app prefix — the conventional cluster name.
+        $storageClass = $this->findStorageClass('gp3');
+
+        self::assertSame('ebs.csi.eks.amazonaws.com', $storageClass->get('provisioner'));
+        self::assertSame(['type' => 'gp3', 'encrypted' => 'true'], $storageClass->get('parameters'));
+        self::assertSame('Delete', $storageClass->get('reclaimPolicy'));
+        self::assertSame('WaitForFirstConsumer', $storageClass->get('volumeBindingMode'));
+        self::assertTrue($storageClass->get('allowVolumeExpansion'));
+        self::assertFalse($storageClass->has('mountOptions'));
+        self::assertSame(
+            [['matchLabelExpressions' => [['key' => 'eks.amazonaws.com/compute-type', 'values' => ['auto']]]]],
+            $storageClass->get('allowedTopologies'),
+        );
+
+        $annotations = $storageClass->at('metadata', 'annotations');
+        self::assertSame('true', $annotations->get('storageclass.kubernetes.io/is-default-class'));
+        // The default-class annotation is the manifest's own: it precedes the framework's annotations.
+        self::assertSame('storageclass.kubernetes.io/is-default-class', array_key_first($annotations->data));
+        self::assertSame('storage', $annotations->get('klass8s.dev/app'));
+        self::assertSame('gp3', $storageClass->get('metadata', 'labels', 'app.kubernetes.io/component'));
+    }
+
+    private findStorageClass(string $name): RenderedResource
+        => RenderedResource::in($this->appProcessor->process('storage')->render()->toString(), 'StorageClass', $name);
+}

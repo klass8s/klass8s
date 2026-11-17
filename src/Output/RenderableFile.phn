@@ -1,0 +1,10 @@
+namespace Klass8s\Output;
+
+use Klass8s\Renderer\RendererInterface;
+
+final readonly class RenderableFile
+{
+    __construct(public string $nameWithoutExtension, public array<mixed>|object $resource) {}
+
+    render(RendererInterface $renderer): string => $renderer->render($this->resource);
+}

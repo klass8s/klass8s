@@ -1,0 +1,33 @@
+namespace Klass8s\Bundle\Registry;
+
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Api\Core\V1\ConfigMap;
+use K8Schema\Api\Core\V1\Secret;
+
+/** What the registry keeps: the workloads that get checksums, and the ConfigMaps and Secrets they read. */
+type TrackedResource = Deployment|StatefulSet|Job|CronJob|ConfigMap|Secret;
+
+/** The resources a render has made so far, by kind and name, for the checksums. */
+class APIResourceRegistry
+{
+    private map<string, map<string, TrackedResource>> $resources = [];
+
+    /** Each resource, keyed by its kind. */
+    all(): iterable<string, TrackedResource> {
+        foreach ($this->resources as $kind => $resources) {
+            foreach ($resources as $resource) {
+                yield $kind => $resource;
+            }
+        }
+    }
+
+    add(TrackedResource $apiResource): void
+        => $this->resources[$apiResource::KIND][(string) $apiResource->metadata()->getName()] = $apiResource;
+
+    get(string $name, string $kind): TrackedResource => $this->resources[$kind][$name];
+
+    has(string $name, string $kind): bool => isset($this->resources[$kind][$name]);
+}

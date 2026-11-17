@@ -1,0 +1,17 @@
+namespace Klass8s\Value;
+
+use Symfony\Component\Yaml\Yaml;
+
+final readonly class YamlString
+{
+    private const string DOCUMENT_SEPARATOR = "\n---\n";
+
+    /** YAML text of one document or several, kept as given once every document parses. */
+    __construct(public string $value) {
+        foreach (explode(self::DOCUMENT_SEPARATOR, $value) as $document) {
+            Yaml::parse($document);
+        }
+    }
+
+    toString(): string => $this->value;
+}

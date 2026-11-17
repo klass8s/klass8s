@@ -1,0 +1,121 @@
+namespace Klass8s\Bridge\Helm\Release;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartLocalCopyProvider;
+use Klass8s\Event\Events;
+use Klass8s\Event\Helm\HelmManifestProcessedEvent;
+use Klass8s\Output\OutputDirectory;
+use Klass8s\Output\RenderableFile;
+use Klass8s\Renderer\RendererInterface;
+use Klass8s\Util\StringUtil;
+use Klass8s\Value\YamlString;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
+
+final readonly class HelmReleaseProcessor
+{
+    __construct(
+        private ChartLocalCopyProvider $localCopyProvider,
+        private RendererInterface $renderer,
+        private EventDispatcherInterface $dispatcher,
+        private string $projectDir,
+    ) {}
+
+    process(HelmReleaseInterface $release): OutputDirectory {
+        $yaml = $this->render($release);
+        $manifests = explode("\n---\n", $yaml->value) |> array_filter(...);
+        $manifests = array_filter(
+            $manifests,
+            static function (string $manifest): bool {
+                $lines = explode(PHP_EOL, $manifest);
+                $lines = array_filter(
+                    $lines,
+                    static fn(string $line) => !empty(trim($line)) && !str_starts_with($line, '#') && !str_starts_with($line, '---'),
+                );
+                $manifest = implode(PHP_EOL, $lines) |> trim(...);
+
+                return !empty($manifest);
+            },
+        );
+
+        $outputDir = new OutputDirectory($release->name, $this->renderer);
+        foreach ($manifests as $manifest) {
+            [$resource, $kind, $name] = self::parse($manifest);
+
+            $event = new HelmManifestProcessedEvent($kind, $name, $resource, $release);
+            Events::dispatch($this->dispatcher, $event, HelmManifestProcessedEvent::NAME);
+
+            $fileName = sprintf('%s.%s', $name, StringUtil::asDNSSubdomain($kind));
+            $file = new RenderableFile($fileName, $resource);
+            $outputDir->addFile($file);
+        }
+
+        return $outputDir;
+    }
+
+    render(HelmReleaseInterface $release): YamlString {
+        $chartDir = $this->localCopyProvider->createFrom($release->chart);
+        $command = [
+            'helm',
+            'template',
+            $release->name,
+            $chartDir->path,
+            '--include-crds',
+        ];
+
+        if (null !== $release->namespace) {
+            $command[] = '--namespace';
+            $command[] = $release->namespace;
+        }
+
+        $values = $release->values();
+        if (!empty($values)) {
+            $valuesYaml = Yaml::dump($values);
+            $valuesFilename = self::valuesYamlTempFilename($release);
+            file_put_contents($valuesFilename, $valuesYaml);
+
+            $command[] = '--values';
+            $command[] = $valuesFilename;
+        }
+
+        $process = new Process($command, $this->projectDir);
+        $process->mustRun();
+
+        return new YamlString($process->getOutput());
+    }
+
+    /**
+     * Converts YAML 1.1 octal literals (0NNN) to YAML 1.2 notation (0oNNN).
+     *
+     * Helm uses Go's YAML 1.1 parser where 0555 is an octal integer (decimal 365).
+     * Symfony Yaml follows YAML 1.2 where bare 0555 is a string, causing type corruption
+     * on the parse→dump round-trip.
+     */
+    private static normalizeYaml11Octals(string $yaml): string => preg_replace('/(?<=: )0([0-7]+)$/m', '0o$1', $yaml) ?? $yaml;
+
+    /** The resource a document of Helm's output holds, with its kind and name. */
+    private static parse(string $yaml): (\stdClass, string, string) {
+        $resource = Yaml::parse(self::normalizeYaml11Octals($yaml), Yaml::PARSE_OBJECT_FOR_MAP);
+        $kind = $resource instanceof \stdClass ? $resource->kind ?? null : null;
+        $metadata = $resource instanceof \stdClass ? $resource->metadata ?? null : null;
+        $name = $metadata instanceof \stdClass ? $metadata->name ?? null : null;
+        if (!$resource instanceof \stdClass || !is_string($kind) || !is_string($name)) {
+            throw new \RuntimeException(sprintf('Failed to parse manifest "%s".', $yaml));
+        }
+
+        return [$resource, $kind, $name];
+    }
+
+    private static valuesYamlTempFilename(HelmReleaseInterface $release): string {
+        $fileName = tempnam(sys_get_temp_dir(), sprintf('helm-%s-values', $release->name));
+        if (false === $fileName) {
+            throw new \RuntimeException('Failed to create temporary file for Helm release values.');
+        }
+        $filenameWithExtension = $fileName . '.yaml';
+        while (file_exists($filenameWithExtension)) {
+            $filenameWithExtension = $fileName . '-' . uniqid() . '.yaml';
+        }
+
+        return $filenameWithExtension;
+    }
+}

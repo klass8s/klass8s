@@ -1,0 +1,15 @@
+namespace Klass8s\GatewayApi\GRPCRoute;
+
+use K8Schema\Collection\StringList;
+use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
+use Klass8s\GatewayApi\GRPCRoute\Configurator\GRPCRouteRulesConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface GRPCRouteInterface extends ManifestInterface
+{
+    parentRefs(ParentRefsConfigurator $parentRefs): void;
+
+    hostnames(StringList $hostnames): void;
+
+    rules(GRPCRouteRulesConfigurator $rules): void;
+}

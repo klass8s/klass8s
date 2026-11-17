@@ -1,0 +1,17 @@
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture\AutoscaleApp;
+
+use Klass8s\Autoscaling\Attribute\Autoscale;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Tests\Bundle\Autoscaling\Fixture\TestLagTrigger;
+
+#[Autoscale(maxReplicas: 8, minReplicas: 2)]
+#[TestLagTrigger(queue: 'worker-queue', lagThreshold: 16)]
+class ScaledWorkerDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'worker';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    replicas(): int => 3;
+}

@@ -1,0 +1,20 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Core\Pod\Affinity\AffinityConfigurator;
+use Klass8s\Core\Pod\Affinity\NodeAffinityExpression;
+
+/** A pod placed by node affinity alone. */
+class PlacedDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'placed';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    affinity(AffinityConfigurator $affinity): void {
+        $affinity->nodeAffinity()
+            ->addPreference(NodeAffinityExpression::label('example.dev/generation')->greaterThan(3), 10)
+            ->addRequirement(NodeAffinityExpression::label('example.dev/cpus')->lowerThan(64));
+    }
+}

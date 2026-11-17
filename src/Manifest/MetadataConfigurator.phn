@@ -1,0 +1,15 @@
+namespace Klass8s\Manifest;
+
+use K8Schema\Collection\StringMap;
+
+class MetadataConfigurator
+{
+    __construct(
+        private StringMap $labels,
+        private StringMap $annotations,
+    ) {}
+
+    labels(): StringMap => $this->labels;
+
+    annotations(): StringMap => $this->annotations;
+}

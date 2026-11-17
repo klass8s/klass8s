@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 echo "<?php\n"; ?>
 
-namespace <?php echo $namespace; ?>;
+namespace <?php echo $variables['namespace']; ?>;
 
 use K8Schema\Collection\StringMap;
 use Klass8s\Core\ConfigMap\AbstractConfigMap;
 
-class <?php echo $className; ?> extends AbstractConfigMap
+class <?php echo $variables['className']; ?> extends AbstractConfigMap
 {
     public function data(StringMap $data): void
     {
@@ -14,6 +14,6 @@ class <?php echo $className; ?> extends AbstractConfigMap
 
     public static function shortName(): string
     {
-        return '<?php echo $manifestName; ?>';
+        return '<?php echo $variables['manifestName']; ?>';
     }
 }

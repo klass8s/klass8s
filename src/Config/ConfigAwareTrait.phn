@@ -1,0 +1,26 @@
+namespace Klass8s\Config;
+
+trait ConfigAwareTrait
+{
+    protected bool $configHasBeenSet = false;
+
+    protected(set) map<string, mixed> $config = [] {
+        get {
+            if (!$this->configHasBeenSet) {
+                throw new \RuntimeException('Config has not been set yet.');
+            }
+
+            return $this->config;
+        }
+        set {
+            if ($this->configHasBeenSet) {
+                throw new \RuntimeException('Config has already been set and cannot be modified.');
+            }
+
+            $this->config = $value;
+            $this->configHasBeenSet = true;
+        }
+    }
+
+    setConfig(map<string, mixed> $config): void => $this->config = $config;
+}

@@ -1,0 +1,73 @@
+namespace Klass8s\Tests\Bundle\CodeGeneration;
+
+use Klass8s\Tests\Support\ConfiguredTestKernel;
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Filesystem\Filesystem;
+
+final class MakeAppCommandTest extends TestCase
+{
+    testInAPhpProjectTheAppIsWrittenIntoTheCodeDir(): void {
+        $project = $this->project('php-project', ['composer.json' => '{}']);
+
+        $this->makeApp($project . '/src/K8S', 'shop');
+
+        $code = (string) file_get_contents($project . '/src/K8S/Shop/ShopApp.php');
+        self::assertStringStartsWith("<?php\n", $code);
+        self::assertStringContainsString("namespace Shop\\K8S\\Shop;\n", $code);
+        self::assertStringContainsString('class ShopApp extends AbstractApp', $code);
+    }
+
+    testInAPhaenonProjectTheAppIsWrittenIntoTheSourcesTheCodeDirIsBuiltFrom(): void {
+        $project = $this->project('phaenon-project', [
+            'composer.json' => '{}',
+            'phaenon.json' => '{"roots": {"src": ".src"}}',
+        ]);
+
+        $this->makeApp($project . '/.src/K8S', 'shop');
+
+        self::assertFileDoesNotExist($project . '/.src/K8S/Shop/ShopApp.php', 'The next build would delete it.');
+        $code = (string) file_get_contents($project . '/src/K8S/Shop/ShopApp.phn');
+        self::assertSame(
+            "namespace Shop\\K8S\\Shop;\n\nuse Klass8s\\App\\AbstractApp;\n\nclass ShopApp extends AbstractApp\n{\n    static name(): string => 'shop';\n}\n",
+            $code,
+        );
+        self::assertDirectoryExists($project . '/src/K8S/Shop/Manifest');
+    }
+
+    testInAPhaenonProjectTheClassIsLaidOutByTheProjectsOwnFormatter(): void {
+        $project = $this->project('formatted-project', [
+            'composer.json' => '{}',
+            'phaenon.json' => '{"roots": {"src": ".src"}}',
+            'vendor/bin/phn' => "#!/bin/sh\necho \"$@\" > \"$(dirname \"$0\")/../../phn-called\"\n",
+        ]);
+        chmod($project . '/vendor/bin/phn', 0o755);
+
+        $this->makeApp($project . '/.src/K8S', 'shop');
+
+        self::assertSame("fmt {$project}/src/K8S/Shop/ShopApp.phn\n", file_get_contents($project . '/phn-called'));
+    }
+
+    private project(string $name, map<string, string> $files): string {
+        $dir = TestDirectory::path($name);
+        $filesystem = new Filesystem();
+        foreach ($files as $file => $contents) {
+            $filesystem->dumpFile($dir . '/' . $file, $contents);
+        }
+
+        return $dir;
+    }
+
+    private makeApp(string $codeDir, string $appName): void {
+        $kernel = new ConfiguredTestKernel(['code_dir' => $codeDir, 'namespace_prefix' => 'Shop\K8S']);
+        try {
+            $tester = new CommandTester(new Application($kernel)->find('k8s:make:app'));
+            $tester->execute(['app-name' => $appName]);
+            self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        } finally {
+            $kernel->shutdown();
+        }
+    }
+}

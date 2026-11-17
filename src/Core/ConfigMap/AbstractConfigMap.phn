@@ -1,0 +1,20 @@
+namespace Klass8s\Core\ConfigMap;
+
+use K8Schema\Api\Core\V1\ConfigMap;
+use K8Schema\Collection\StringMap;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractConfigMap extends AbstractManifest implements ConfigMapInterface
+{
+    data(StringMap $data): void {}
+
+    binaryData(StringMap $binaryData): void {}
+
+    keysPrefix(): string => '';
+
+    configureConfigMap(ConfigMap $configMap): void {}
+
+    final static kind(): string => ConfigMap::KIND;
+
+    final static apiVersion(): string => ConfigMap::API_VERSION;
+}

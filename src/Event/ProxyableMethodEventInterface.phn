@@ -1,0 +1,21 @@
+namespace Klass8s\Event;
+
+use Klass8s\Proxy\ProxyableInterface;
+
+/** A method called on a proxied manifest or container: what was called, with which arguments, and what it returns. */
+interface ProxyableMethodEventInterface<out P of ProxyableInterface>
+{
+    proxyable(): P;
+    methodName(): string;
+
+    /** The arguments of the call, by parameter name. */
+    methodParams(): map<string, mixed>;
+
+    methodParam(string $name): mixed;
+
+    typedMethodParam<T of object>(string $paramName, class<T> $paramClass): T;
+
+    getReturnValue(): mixed;
+    setReturnValue(mixed $returnValue): void;
+    returnValueHasChanged(): bool;
+}

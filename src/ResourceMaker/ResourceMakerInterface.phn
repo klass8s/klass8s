@@ -1,0 +1,10 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ResourceMakerInterface
+{
+    make(ManifestInterface $manifest): APIResourceInterface;
+    supports(ManifestInterface $manifest): bool;
+}

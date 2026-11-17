@@ -1,0 +1,41 @@
+namespace Klass8s\Bundle\CodeGeneration;
+
+use Klass8s\Bundle\CodeGeneration\ClassDetailsResolver\AppResolver;
+use Klass8s\Bundle\Util\Dir;
+use Klass8s\Registry\AppRegistry;
+
+final readonly class AppGenerator
+{
+    __construct(
+        private AppRegistry $appRegistry,
+        private AppResolver $resolver,
+        private TemplateRenderer $renderer,
+    ) {}
+
+    generate(string $appName): string {
+        $this->ensureAppNameIsValid($appName);
+        $details = $this->resolver->getClassDetails($appName);
+        $source = GeneratedSource::for($details->fullFilePath());
+        $appDir = $source->directory();
+
+        Dir::create($appDir);
+        Dir::create($appDir . DIRECTORY_SEPARATOR . 'Manifest');
+        Dir::create($appDir . DIRECTORY_SEPARATOR . 'Container');
+        Dir::create($appDir . DIRECTORY_SEPARATOR . 'Resources');
+        $source->write($this->generateCode($source->template('App.tpl.php'), $details, $appName));
+
+        return $source->path;
+    }
+
+    private generateCode(string $template, ClassDetails $details, string $appName): string => $this->renderer->render($template, [
+        'namespace' => $details->namespace,
+        'className' => $details->className,
+        'appName' => $appName,
+    ]);
+
+    private ensureAppNameIsValid(string $appName): void {
+        if ($this->appRegistry->has($appName)) {
+            throw new \InvalidArgumentException(sprintf('App "%s" already exists', $appName));
+        }
+    }
+}

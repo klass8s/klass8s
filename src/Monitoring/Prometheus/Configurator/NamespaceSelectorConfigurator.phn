@@ -1,0 +1,14 @@
+namespace Klass8s\Monitoring\Prometheus\Configurator;
+
+final class NamespaceSelectorConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    any(bool $any): static {
+        $this->data['any'] = $any;
+
+        return $this;
+    }
+
+    matchNames(list<string> $names): void => $this->data['matchNames'] = $names;
+}

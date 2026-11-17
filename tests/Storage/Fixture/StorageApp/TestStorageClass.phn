@@ -1,0 +1,32 @@
+namespace Klass8s\Tests\Storage\Fixture\StorageApp;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Persistence\AbstractStorageClass;
+use Klass8s\Core\Persistence\AllowedTopologiesConfigurator;
+use Klass8s\Core\Persistence\ReclaimPolicy;
+
+class TestStorageClass extends AbstractStorageClass
+{
+    static shortName(): string => 'fast';
+
+    provisioner(): string => 'example.io/disk';
+
+    parameters(StringMap $parameters): void => $parameters
+        ->add('tier', 'premium')
+        ->add('fsType', 'xfs');
+
+    reclaimPolicy(): ReclaimPolicy => ReclaimPolicy::Retain;
+
+    mountOptions(): iterable {
+        yield 'noatime';
+        yield 'nodiratime';
+    }
+
+    allowedTopologies(AllowedTopologiesConfigurator $topologies): void {
+        $topologies->addTerm()
+            ->matchLabel('topology.kubernetes.io/zone', 'eu-central-1a', 'eu-central-1b')
+            ->matchLabel('example.io/disk-tier', 'premium');
+        $topologies->addTerm()
+            ->matchLabel('topology.kubernetes.io/zone', 'eu-central-1c');
+    }
+}

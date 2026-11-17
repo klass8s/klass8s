@@ -1,0 +1,79 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Apps\V1\StatefulSetUpdateStrategy;
+use Klass8s\Core\Pod\PodTemplateSpecProcessor;
+use Klass8s\Core\Service\ServiceInterface;
+use Klass8s\Core\StatefulSet\StatefulSetInterface;
+use Klass8s\Core\StatefulSet\UpdateStrategy\UpdateStrategyConfigurator;
+use Klass8s\Event\Events;
+use Klass8s\Event\StatefulSetGeneratedEvent;
+use Klass8s\Proxy\ProxyFactory;
+use Klass8s\Registry\AppRegistry;
+use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
+
+class StatefulSetMaker extends AbstractResourceMaker<StatefulSetInterface, StatefulSet>
+{
+    use ConfigureSelectorTrait;
+
+    __construct(
+        private readonly AppRegistry $appRegistry,
+        private readonly PersistentVolumeClaimMaker $pvcMaker,
+        private readonly PodTemplateSpecProcessor $podSpecProcessor,
+        private readonly ProxyFactory $proxyFactory,
+    ) {}
+
+    protected supportedClass(): class<StatefulSetInterface> => StatefulSetInterface::class;
+
+    protected makeResource(StatefulSetInterface $manifest): StatefulSet {
+        $serviceReference = $manifest->serviceName();
+        $serviceOwningApp = $this->appRegistry->get($serviceReference->appAlias);
+        $serviceName = $serviceOwningApp->resourceNameFromManifestClass($serviceReference->className, ServiceInterface::class);
+
+        $sts = new StatefulSet();
+        $spec = $sts->spec();
+        $spec->setServiceName($serviceName);
+
+        $this->configureSelector($manifest, $spec->selector());
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $sts);
+        $this->podSpecProcessor->process($manifest, $spec->template(), $app);
+
+        foreach ($spec->selector()->matchLabels()->all() as $name => $value) {
+            $sts->metadata()->labels()->add($name, $value);
+            $spec->template()->metadata()->labels()->add($name, $value);
+        }
+
+        $podManagementPolicy = $manifest->podManagementPolicy();
+        if (null !== $podManagementPolicy) {
+            $spec->setPodManagementPolicy($podManagementPolicy->toString());
+        }
+
+        $spec
+            ->setReplicas($manifest->replicas())
+            ->setRevisionHistoryLimit($manifest->revisionHistoryLimit());
+
+        $specUpdateStrategy = $spec->getUpdateStrategy() ?? new StatefulSetUpdateStrategy();
+        $updateStrategy = new UpdateStrategyConfigurator($specUpdateStrategy);
+        $manifest->updateStrategy($updateStrategy);
+        if ([] !== array_filter($specUpdateStrategy->jsonSerialize()->getArrayCopy())) {
+            $spec->setUpdateStrategy($specUpdateStrategy);
+        }
+
+        foreach ($manifest->volumeClaimTemplates() as $template) {
+            $template->setApp($app);
+            if (!str_contains($template::class, '@anonymous')) {
+                $template = $this->proxyFactory->makeProxy($template);
+            }
+            $pvc = $this->pvcMaker->make($template);
+            $pvc->metadata()->setName($template::shortName()); // Rewrite PVC full name to it's short name
+            $spec->volumeClaimTemplates()->add($pvc);
+        }
+
+        $manifest->configureStatefulSet($sts);
+
+        Events::dispatch($this->dispatcher, new StatefulSetGeneratedEvent($manifest, $sts, $app), StatefulSetGeneratedEvent::NAME);
+
+        return $sts;
+    }
+}

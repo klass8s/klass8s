@@ -1,0 +1,70 @@
+namespace Klass8s\Manifest;
+
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Container\Env\ExternalConfigurationRegistry;
+use Klass8s\Core\Secret\SecretInterface;
+use Klass8s\Event\Events;
+use Klass8s\Event\ManifestGeneratedEvent;
+use Klass8s\Output\OutputDirectory;
+use Klass8s\Output\RenderableFile;
+use Klass8s\ResourceMaker\AbstractResourceMaker;
+use Klass8s\ResourceMaker\ResourceMakerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+final class ManifestProcessor
+{
+    private list<ResourceMakerInterface> $makers = [];
+
+    __construct(
+        private readonly EventDispatcherInterface $dispatcher,
+        iterable<ResourceMakerInterface> $makers,
+        private readonly ExternalConfigurationRegistry $externalConfigurations,
+    ) {
+
+        foreach ($makers as $maker) {
+            if ($maker instanceof AbstractResourceMaker) {
+                $maker->setEventDispatcher($this->dispatcher);
+            }
+            $this->makers[] = $maker;
+        }
+    }
+
+    /**
+     * Makes the manifest's resource and adds it to the output directory. A manifest the config
+     * declares `virtual` is made into nothing, because something outside this project owns its
+     * resource, and stays referenceable by the others: a virtual ConfigMap or Secret is an
+     * external one to the workloads that read it, as if they had declared it `external: true`.
+     */
+    process(ManifestInterface $manifest, OutputDirectory $outputDir): void {
+        $manifestConfig = $manifest->app->manifestConfig($manifest);
+        $manifest->setConfig($manifestConfig);
+        if ($manifestConfig['virtual'] ?? false) {
+            if ($manifest instanceof ConfigMapInterface) {
+                $this->externalConfigurations->addConfigMap($manifest->computedFullName);
+            } elseif ($manifest instanceof SecretInterface) {
+                $this->externalConfigurations->addSecret($manifest->computedFullName);
+            }
+
+            return;
+        }
+
+        foreach ($this->makers as $maker) {
+            if (!$maker->supports($manifest)) {
+                continue;
+            }
+
+            $resource = $maker->make($manifest);
+            $event = new ManifestGeneratedEvent($manifest, $resource);
+            Events::dispatch($this->dispatcher, $event, ManifestGeneratedEvent::NAME);
+
+            if (!$event->preventProcessing) {
+                $file = new RenderableFile($manifest->fileName, $resource);
+                $outputDir->addFile($file);
+            }
+
+            return;
+        }
+
+        throw new \RuntimeException(sprintf('No resource maker found for manifest "%s".', $manifest::class));
+    }
+}

@@ -1,0 +1,8 @@
+namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
+
+use Klass8s\App\AbstractApp;
+
+class GatewayApp extends AbstractApp
+{
+    static name(): string => 'gateway';
+}

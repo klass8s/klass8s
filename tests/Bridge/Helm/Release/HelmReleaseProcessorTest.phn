@@ -1,0 +1,60 @@
+namespace Klass8s\Tests\Bridge\Helm\Release;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartLocalCopyProvider;
+use Klass8s\Bridge\Helm\Release\HelmRelease;
+use Klass8s\Bridge\Helm\Release\HelmReleaseProcessor;
+use Klass8s\Renderer\YamlRenderer;
+use Klass8s\Tests\Support\RecordingDispatcher;
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
+
+/** A release of a local chart, which helm renders without the network. */
+final class HelmReleaseProcessorTest extends TestCase
+{
+    protected setUp(): void {
+        if (0 !== new Process(['helm', 'version', '--short'])->run()) {
+            self::markTestSkipped('helm is not installed');
+        }
+    }
+
+    /**
+     * Helm's output for a chart of one document has no separator between documents. It used to
+     * be parsed and dumped once more, which turned its empty lists into empty maps; it is now read
+     * as helm wrote it, like every document of a longer stream.
+     */
+    testAChartOfOneDocumentKeepsItsListsLists(): void {
+        $chart = TestDirectory::path('helm-single-document');
+        $filesystem = new Filesystem();
+        $filesystem->dumpFile($chart . '/Chart.yaml', "apiVersion: v2\nname: single\nversion: 0.1.0\n");
+        $filesystem->dumpFile($chart . '/templates/service-account.yaml', <<<'YAML'
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: single
+              labels:
+                tier: web
+            imagePullSecrets: []
+            secrets:
+              - name: token
+            automountServiceAccountToken: false
+            YAML);
+        $processor = new HelmReleaseProcessor(
+            new ChartLocalCopyProvider($chart, TestDirectory::path('helm-cache')),
+            new YamlRenderer(),
+            new RecordingDispatcher(),
+            $chart,
+        );
+
+        $output = $processor->process(new HelmRelease('single', [], null, 0, $chart))->render()->toString();
+        $resource = Yaml::parse($output);
+
+        self::assertIsArray($resource);
+        self::assertSame(['name' => 'single', 'labels' => ['tier' => 'web']], $resource['metadata'] ?? null);
+        self::assertSame([['name' => 'token']], $resource['secrets'] ?? null);
+        self::assertArrayNotHasKey('imagePullSecrets', $resource, 'An empty list is left out, as the renderer leaves out every empty value');
+        self::assertStringNotContainsString('{', $output);
+    }
+}

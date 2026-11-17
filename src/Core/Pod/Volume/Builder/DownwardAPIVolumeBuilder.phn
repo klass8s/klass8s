@@ -1,0 +1,48 @@
+namespace Klass8s\Core\Pod\Volume\Builder;
+
+use K8Schema\Api\Core\V1\DownwardAPIVolumeFile;
+use K8Schema\Api\Core\V1\DownwardAPIVolumeSource;
+use K8Schema\Api\Core\V1\Volume;
+use Klass8s\Core\Container\Resources\ContainerResourcesField;
+use Klass8s\Core\Pod\PodField;
+
+class DownwardAPIVolumeBuilder extends AbstractVolumeBuilder
+{
+    private DownwardAPIVolumeSource $source;
+
+    __construct() {
+        $this->source = new DownwardAPIVolumeSource();
+    }
+
+    init(Volume $volume): void => $volume->setDownwardAPI($this->source);
+
+    setDefaultMode(int $mode): static {
+        $this->source->setDefaultMode($mode);
+
+        return $this;
+    }
+
+    exposePodInfo(string $filePath, PodField $podField, ?int $mode = null): static {
+        $file = new DownwardAPIVolumeFile($filePath);
+        $file->setFieldRef($podField->selector());
+        if (null !== $mode) {
+            $file->setMode($mode);
+        }
+
+        $this->source->items()->add($file);
+
+        return $this;
+    }
+
+    exposeContainerResources(string $filePath, ContainerResourcesField $resourcesField, ?int $mode = null): static {
+        $file = new DownwardAPIVolumeFile($filePath);
+        $file->setResourceFieldRef($resourcesField->selector());
+        if (null !== $mode) {
+            $file->setMode($mode);
+        }
+
+        $this->source->items()->add($file);
+
+        return $this;
+    }
+}

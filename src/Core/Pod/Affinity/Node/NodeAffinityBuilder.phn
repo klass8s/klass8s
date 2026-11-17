@@ -1,0 +1,40 @@
+namespace Klass8s\Core\Pod\Affinity\Node;
+
+use K8Schema\Api\Core\V1\NodeAffinity;
+use K8Schema\Api\Core\V1\NodeSelectorTerm;
+use K8Schema\Api\Core\V1\PreferredSchedulingTerm;
+use Klass8s\Core\Pod\Affinity\NodeAffinityExpression;
+
+class NodeAffinityBuilder
+{
+    __construct(private NodeAffinity $affinity) {}
+
+    addPreference(NodeAffinityExpression $rule, int $preferenceWeight): static {
+        $preferences = $this->affinity->preferredDuringSchedulingIgnoredDuringExecution();
+        $term = new PreferredSchedulingTerm($preferenceWeight);
+        $preferences->add($term);
+        $selector = $term->preference();
+
+        $list = NodeAffinityExpression::TARGET_FIELD === $rule->target()
+            ? $selector->matchFields()
+            : $selector->matchExpressions();
+        $requirement = $rule->toNodeSelectorRequirement();
+        $list->add($requirement);
+
+        return $this;
+    }
+
+    addRequirement(NodeAffinityExpression $rule): static {
+        $requirements = $this->affinity->requiredDuringSchedulingIgnoredDuringExecution();
+        $selector = new NodeSelectorTerm();
+        $requirements->nodeSelectorTerms()->add($selector);
+
+        $list = NodeAffinityExpression::TARGET_FIELD === $rule->target()
+            ? $selector->matchFields()
+            : $selector->matchExpressions();
+        $requirement = $rule->toNodeSelectorRequirement();
+        $list->add($requirement);
+
+        return $this;
+    }
+}

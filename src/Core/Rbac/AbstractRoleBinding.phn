@@ -1,0 +1,11 @@
+namespace Klass8s\Core\Rbac;
+
+use K8Schema\Api\Rbac\V1\RoleBinding;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractRoleBinding extends AbstractManifest implements RoleBindingInterface
+{
+    static apiVersion(): string => RoleBinding::API_VERSION;
+
+    static kind(): string => RoleBinding::KIND;
+}

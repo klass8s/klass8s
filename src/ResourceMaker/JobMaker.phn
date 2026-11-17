@@ -1,0 +1,52 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Batch\V1\Job;
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelector;
+use Klass8s\Core\CronJob\CronJobInterface;
+use Klass8s\Core\Job\JobInterface;
+use Klass8s\Core\Job\JobSpecProcessor;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Pod\Policy\RestartPolicy;
+use Klass8s\Event\Events;
+use Klass8s\Event\JobGeneratedEvent;
+use Klass8s\Manifest\ManifestInterface;
+
+final class JobMaker extends AbstractResourceMaker<JobInterface, Job>
+{
+    __construct(private JobSpecProcessor $jobSpecProcessor) {}
+
+    supports(ManifestInterface $manifest): bool
+        => $manifest instanceof JobInterface && !$manifest instanceof CronJobInterface;
+
+    protected makeResource(JobInterface $manifest): Job {
+        $job = new Job();
+        $spec = $job->spec();
+
+        $selector = new LabelSelector();
+        $manifest->selector(new SelectorConfigurator($selector));
+        if ($selector->matchExpressions()->count() > 0 || $selector->matchLabels()->count() > 0) {
+            $spec->setSelector($selector);
+        }
+
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $job);
+        $this->jobSpecProcessor->process($manifest, $spec);
+        foreach (($spec->getSelector()?->matchLabels()->all() ?? []) as $name => $value) {
+            $job->metadata()->labels()->add($name, $value);
+        }
+
+        $manifest->configureJob($job);
+
+        if (null === $job->spec()->template()->spec()->getRestartPolicy()) {
+            $job->spec()->template()->spec()->setRestartPolicy(
+                RestartPolicy::Never->toString(),
+            );
+        }
+
+        Events::dispatch($this->dispatcher, new JobGeneratedEvent($manifest, $job, $app), JobGeneratedEvent::NAME);
+
+        return $job;
+    }
+
+    protected supportedClass(): class<JobInterface> => JobInterface::class;
+}

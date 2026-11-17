@@ -1,0 +1,18 @@
+namespace Klass8s\Renderer;
+
+class JsonRenderer extends AbstractRenderer
+{
+    render(array<mixed>|object $resource): string => json_encode($this->renderAsArray($resource), JSON_THROW_ON_ERROR);
+
+    fileExtension(): string => '.json';
+
+    renderAsArray(array<mixed>|object $object): array<mixed> {
+        $data = $object
+            |> $this->withoutEmptyValues(...)
+            |> json_encode(?, JSON_THROW_ON_ERROR)
+            |> json_decode(?, true, flags: JSON_THROW_ON_ERROR);
+        assert(is_array($data));
+
+        return $data;
+    }
+}

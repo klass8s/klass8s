@@ -1,0 +1,15 @@
+namespace Klass8s\GatewayApi\HTTPRoute;
+
+use K8Schema\Collection\StringList;
+use Klass8s\GatewayApi\Configurator\ParentRefsConfigurator;
+use Klass8s\GatewayApi\HTTPRoute\Configurator\HTTPRouteRulesConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface HTTPRouteInterface extends ManifestInterface
+{
+    parentRefs(ParentRefsConfigurator $parentRefs): void;
+
+    hostnames(StringList $hostnames): void;
+
+    rules(HTTPRouteRulesConfigurator $rules): void;
+}

@@ -1,0 +1,79 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Bundle\DependencyInjection\ManifestConfig;
+use Klass8s\Bundle\DependencyInjection\ResourcesConfig;
+use Klass8s\Bundle\EventListener\Traits\EnsureMethodIsNotDeclaredInUserManifestTrait;
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
+use Klass8s\Core\Container\Resources\CPU;
+use Klass8s\Core\Container\Resources\Memory;
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Core\Job\JobInterface;
+use Klass8s\Core\StatefulSet\StatefulSetInterface;
+use Klass8s\Event\ContainerMethodEvent;
+use Klass8s\Event\ManifestMethodEvent;
+use Klass8s\Event\ProxyableMethodEventInterface;
+
+class AutoSetResourcesSubscriber extends AbstractMethodSubscriber
+{
+    use EnsureMethodIsNotDeclaredInUserManifestTrait;
+
+    /** The resources() of a workload whose class is its own container: a Deployment, a StatefulSet, a Job or a CronJob. */
+    protected supports(ProxyableMethodEventInterface $event): bool
+        => self::isWorkload($event->proxyable()) && $event->proxyable() instanceof ContainerInterface && 'resources' === $event->methodName();
+
+    protected beforeMethod(ProxyableMethodEventInterface $event): void {
+        $manifest = $event->proxyable();
+        if (!self::isWorkload($manifest)) {
+            throw new \InvalidArgumentException(sprintf('Manifest "%s" must be a Deployment, a StatefulSet, a Job or a CronJob.', $manifest::class));
+        }
+
+        /** @var ManifestConfig $config */
+        $config = $manifest->config;
+        $requests = self::resources($config, 'requests');
+        $limits = self::resources($config, 'limits');
+        $resources = $event->typedMethodParam('resources', ContainerResourcesInterface::class);
+
+        if ($cpu = $requests['cpu'] ?? null) {
+            $resources->requestCPU(CPU::fromString((string) $cpu));
+        }
+        if ($cpu = $limits['cpu'] ?? null) {
+            $resources->limitCPU(CPU::fromString((string) $cpu));
+        }
+        if ($memory = $requests['memory'] ?? null) {
+            $resources->requestMemory(Memory::fromString((string) $memory));
+        }
+        if ($memory = $limits['memory'] ?? null) {
+            $resources->limitMemory(Memory::fromString((string) $memory));
+        }
+        if ($storage = $requests['storage'] ?? null) {
+            $resources->requestStorage(Memory::fromString((string) $storage));
+        }
+        if ($storage = $limits['storage'] ?? null) {
+            $resources->limitStorage(Memory::fromString((string) $storage));
+        }
+
+        if ([] !== $requests || [] !== $limits) {
+            // We don't want ambiguous behavior, so only one way of specifying resources should be used:
+            // if resources are automatically set from config, they should not be set by method
+            $this->ensureMethodIsNotDeclaredInUserManifest($manifest, 'resources');
+            $event->setReturnValue(null); // This is done to prevent method body
+        }
+    }
+
+    /** @phpstan-assert-if-true DeploymentInterface|JobInterface|StatefulSetInterface $proxyable */
+    private static isWorkload(object $proxyable): bool
+        => $proxyable instanceof DeploymentInterface || $proxyable instanceof JobInterface || $proxyable instanceof StatefulSetInterface;
+
+    /** The requests or limits the manifest's config sets: a reference to another manifest's was resolved when the container was built. */
+    private static resources(ManifestConfig $config, string $key): ResourcesConfig {
+        $resources = $config['resources'][$key] ?? [];
+
+        return is_array($resources) ? $resources : [];
+    }
+
+    protected static eventNames(): iterable<string> {
+        yield ManifestMethodEvent::NAME;
+        yield ContainerMethodEvent::NAME;
+    }
+}

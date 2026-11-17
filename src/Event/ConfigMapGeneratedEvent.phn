@@ -1,0 +1,21 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Core\V1\ConfigMap;
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+
+readonly class ConfigMapGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.config_map';
+
+    __construct(private ConfigMapInterface $manifest, private ConfigMap $configMap, private AppInterface $app) {}
+
+    manifest(): ConfigMapInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->configMap;
+
+    configMap(): ConfigMap => $this->configMap;
+
+    app(): AppInterface => $this->app;
+}

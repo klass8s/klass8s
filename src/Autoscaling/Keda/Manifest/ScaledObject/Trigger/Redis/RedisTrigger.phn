@@ -1,0 +1,60 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Redis;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\OneOf;
+
+class RedisTrigger extends AbstractTriggerBuilder
+{
+    private const string ADDRESS = 'address';
+    private const string ADDRESS_FROM_ENV = 'addressFromEnv';
+    private const string USERNAME = 'username';
+    private const string USERNAME_FROM_ENV = 'usernameFromEnv';
+    private const string PASSWORD = 'password';
+    private const string PASSWORD_FROM_ENV = 'passwordFromEnv';
+    private const string LIST_NAME = 'listName';
+    private const string LIST_LENGTH = 'listLength';
+    private const string ACTIVATION_LIST_LENGTH = 'activationListLength';
+    private const string ENABLE_TLS = 'enableTLS';
+    private const string UNSAFE_SSL = 'unsafeSsl';
+    private const string DATABASE_INDEX = 'databaseIndex';
+
+    protected requiredKeys(): list<string|OneOf> => [
+        new OneOf(self::ADDRESS, self::ADDRESS_FROM_ENV),
+        new OneOf(self::PASSWORD, self::PASSWORD_FROM_ENV),
+        self::LIST_NAME,
+        self::LIST_LENGTH,
+    ];
+
+    address(string $address): static => $this->set(self::ADDRESS, $address);
+
+    addressFromEnv(string $envName): static => $this->set(self::ADDRESS_FROM_ENV, $envName);
+
+    username(string $username): static => $this->set(self::USERNAME, $username);
+
+    usernameFromEnv(string $envName): static => $this->set(self::USERNAME_FROM_ENV, $envName);
+
+    password(string $password): static => $this->set(self::PASSWORD, $password);
+
+    passwordFromEnv(string $envName): static => $this->set(self::PASSWORD_FROM_ENV, $envName);
+
+    listName(string $listName): static => $this->set(self::LIST_NAME, $listName);
+
+    listLength(int $length): static => $this->set(self::LIST_LENGTH, $length);
+
+    activationListLength(int $length): static => $this->set(self::ACTIVATION_LIST_LENGTH, $length);
+
+    enableTLS(bool $value): static => $this->set(self::ENABLE_TLS, $value);
+
+    unsafeSsl(bool $value): static => $this->set(self::UNSAFE_SSL, $value);
+
+    databaseIndex(int $index): static => $this->set(self::DATABASE_INDEX, $index);
+
+    static forList(string $listName): static {
+        $instance = new static();
+        $instance->listName($listName);
+
+        return $instance;
+    }
+
+    protected static type(): string => 'redis';
+}

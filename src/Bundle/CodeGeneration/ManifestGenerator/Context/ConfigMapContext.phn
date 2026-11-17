@@ -1,0 +1,10 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context;
+
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+
+class ConfigMapContext extends AbstractContext
+{
+    kind(): string => 'ConfigMap';
+
+    static interfaceName(): class<ConfigMapInterface> => ConfigMapInterface::class;
+}

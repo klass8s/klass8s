@@ -1,0 +1,16 @@
+namespace Klass8s\Core\Rbac;
+
+use K8Schema\Api\Rbac\V1\ClusterRole;
+use Klass8s\Core\Rbac\Configurator\AggregationRuleConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractClusterRole extends AbstractManifest implements ClusterRoleInterface
+{
+    aggregationRule(AggregationRuleConfigurator $rule): void {}
+
+    configureClusterRole(ClusterRole $clusterRole): void {}
+
+    static apiVersion(): string => ClusterRole::API_VERSION;
+
+    static kind(): string => ClusterRole::KIND;
+}

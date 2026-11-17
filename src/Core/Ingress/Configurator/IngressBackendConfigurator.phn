@@ -1,0 +1,44 @@
+namespace Klass8s\Core\Ingress\Configurator;
+
+use K8Schema\Api\Networking\V1\IngressBackend;
+use K8Schema\Api\Networking\V1\IngressServiceBackend;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Service\ServiceInterface;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
+use Klass8s\Registry\AppRegistry;
+
+readonly class IngressBackendConfigurator
+{
+    __construct(
+        private AppInterface $app,
+        private AppRegistry $appRegistry,
+        private ManifestClassReferenceConverter $referencesService,
+        private IngressBackend $backend,
+    ) {}
+
+    fromServiceNameAndPort(string $serviceName, int|string $servicePort): void {
+        $serviceBackend = new IngressServiceBackend($serviceName);
+
+        if (is_numeric($servicePort)) {
+            $serviceBackend->port()->setNumber((int) $servicePort);
+        } else {
+            $serviceBackend->port()->setName($servicePort);
+        }
+
+        $this->backend->setService($serviceBackend);
+    }
+
+    fromServiceClassAndPort(class<ServiceInterface> $serviceClass, int|string $servicePort): void {
+        $serviceName = $this->app->resourceNameFromManifestClass($serviceClass, ServiceInterface::class);
+        $this->fromServiceNameAndPort($serviceName, $servicePort);
+    }
+
+    fromManifestReference(ManifestClassReference $manifestReference): void {
+        $resource = $this->referencesService->toTypedLocalObjectReference($manifestReference);
+        $this->backend->setResource($resource);
+    }
+
+    withExternalApp(string $appAlias): static
+        => new static($this->appRegistry->get($appAlias), $this->appRegistry, $this->referencesService, $this->backend);
+}

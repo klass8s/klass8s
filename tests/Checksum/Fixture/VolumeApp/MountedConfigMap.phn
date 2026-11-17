@@ -1,0 +1,19 @@
+namespace Klass8s\Tests\Checksum\Fixture\VolumeApp;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\ConfigMap\AbstractConfigMap;
+
+/**
+ * A ConfigMap the app renders itself and the deployment mounts as a volume. Its single value is a
+ * constructor argument so a test can render the same project twice with different content.
+ */
+class MountedConfigMap extends AbstractConfigMap
+{
+    const string KEY = 'app.conf';
+
+    __construct(private readonly string $value) {}
+
+    static shortName(): string => 'mounted-config';
+
+    data(StringMap $data): void => $data->add(self::KEY, $this->value);
+}

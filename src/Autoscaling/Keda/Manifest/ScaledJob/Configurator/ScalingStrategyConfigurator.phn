@@ -1,0 +1,38 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator;
+
+use Klass8s\Autoscaling\Keda\API\ScaledJob\ScalingStrategy;
+
+final readonly class ScalingStrategyConfigurator
+{
+    __construct(private ScalingStrategy $scalingStrategy) {}
+
+    setStrategy(string $strategy): static {
+        $this->scalingStrategy->setStrategy($strategy);
+
+        return $this;
+    }
+
+    setCustomScalingQueueLengthDeduction(int $customScalingQueueLengthDeduction): static {
+        $this->scalingStrategy->setCustomScalingQueueLengthDeduction($customScalingQueueLengthDeduction);
+
+        return $this;
+    }
+
+    setCustomScalingRunningJobPercentage(float $customScalingRunningJobPercentage): static {
+        $this->scalingStrategy->setCustomScalingRunningJobPercentage($customScalingRunningJobPercentage);
+
+        return $this;
+    }
+
+    setPendingPodConditions(list<string> $pendingPodConditions): static {
+        $this->scalingStrategy->setPendingPodConditions($pendingPodConditions);
+
+        return $this;
+    }
+
+    setMultipleScalersCalculation(string $multipleScalersCalculation): static {
+        $this->scalingStrategy->setMultipleScalersCalculation($multipleScalersCalculation);
+
+        return $this;
+    }
+}

@@ -1,0 +1,7 @@
+namespace Klass8s\Renderer;
+
+interface RendererInterface
+{
+    render(array<mixed>|object $resource): string;
+    fileExtension(): string;
+}

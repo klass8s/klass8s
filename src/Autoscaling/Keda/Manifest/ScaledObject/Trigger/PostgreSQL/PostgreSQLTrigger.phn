@@ -1,0 +1,39 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\PostgreSQL;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\OneOf;
+
+class PostgreSQLTrigger extends AbstractTriggerBuilder
+{
+    private const string CONNECTION = 'connection';
+    private const string CONNECTION_FROM_ENV = 'connectionFromEnv';
+    private const string QUERY = 'query';
+    private const string TARGET_QUERY_VALUE = 'targetQueryValue';
+    private const string ACTIVATION_TARGET_QUERY_VALUE = 'activationTargetQueryValue';
+
+    connection(string $connectionString): static => $this->set(self::CONNECTION, $connectionString);
+
+    connectionFromEnv(string $envName): static => $this->set(self::CONNECTION_FROM_ENV, $envName);
+
+    query(string $query): static => $this->set(self::QUERY, $query);
+
+    targetQueryValue(int|float $value): static => $this->set(self::TARGET_QUERY_VALUE, $value);
+
+    activationTargetQueryValue(int|float $value): static => $this->set(self::ACTIVATION_TARGET_QUERY_VALUE, $value);
+
+    static withQuery(string $query): static {
+        $instance = new static();
+        $instance->query($query);
+
+        return $instance;
+    }
+
+    protected requiredKeys(): list<string|OneOf> => [
+        OneOf::fromValues(self::CONNECTION, self::CONNECTION_FROM_ENV),
+        self::QUERY,
+        self::TARGET_QUERY_VALUE,
+        self::ACTIVATION_TARGET_QUERY_VALUE,
+    ];
+
+    protected static type(): string => 'postgresql';
+}

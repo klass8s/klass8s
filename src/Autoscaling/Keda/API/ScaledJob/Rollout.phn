@@ -1,0 +1,20 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledJob;
+
+final class Rollout implements \JsonSerializable
+{
+    private string $strategy = 'default';
+    private string $propagationPolicy = 'background';
+
+    getStrategy(): string => $this->strategy;
+
+    setStrategy(string $strategy): void => $this->strategy = $strategy;
+
+    getPropagationPolicy(): string => $this->propagationPolicy;
+
+    setPropagationPolicy(string $propagationPolicy): void => $this->propagationPolicy = $propagationPolicy;
+
+    jsonSerialize(): map<string, string> => [
+        'strategy' => $this->strategy,
+        'propagationPolicy' => $this->propagationPolicy,
+    ];
+}

@@ -1,0 +1,42 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\RabbitMQ;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\OneOf;
+
+class RabbitMQTrigger extends AbstractTriggerBuilder
+{
+    private const string HOST = 'host';
+    private const string HOST_FROM_ENV = 'hostFromEnv';
+    private const string QUEUE_NAME = 'queueName';
+    private const string MODE = 'mode';
+    private const string VALUE = 'value';
+    private const string ACTIVATION_VALUE = 'activationValue';
+
+    queue(string $queueName): static => $this->set(self::QUEUE_NAME, $queueName);
+
+    host(string $host): static => $this->set(self::HOST, $host);
+
+    hostFromEnv(string $envName): static => $this->set(self::HOST_FROM_ENV, $envName);
+
+    mode(Mode $mode): static => $this->set(self::MODE, $mode->value);
+
+    value(int|float $value): static => $this->set(self::VALUE, $value);
+
+    activationValue(int|float $value): static => $this->set(self::ACTIVATION_VALUE, $value);
+
+    static forQueue(string $queueName): static {
+        $instance = new static();
+        $instance->queue($queueName);
+
+        return $instance;
+    }
+
+    protected static type(): string => 'rabbitmq';
+
+    protected requiredKeys(): list<string|OneOf> => [
+        self::VALUE,
+        self::MODE,
+        self::QUEUE_NAME,
+        new OneOf(self::HOST, self::HOST_FROM_ENV),
+    ];
+}

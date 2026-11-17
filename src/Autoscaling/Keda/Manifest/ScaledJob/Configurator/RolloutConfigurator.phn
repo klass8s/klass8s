@@ -1,0 +1,20 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledJob\Configurator;
+
+use Klass8s\Autoscaling\Keda\API\ScaledJob\Rollout;
+
+final readonly class RolloutConfigurator
+{
+    __construct(private Rollout $rollout) {}
+
+    setStrategy(string $strategy): static {
+        $this->rollout->setStrategy($strategy);
+
+        return $this;
+    }
+
+    setPropagationPolicy(string $propagationPolicy): static {
+        $this->rollout->setPropagationPolicy($propagationPolicy);
+
+        return $this;
+    }
+}

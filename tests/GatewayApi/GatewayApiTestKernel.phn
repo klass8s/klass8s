@@ -1,0 +1,79 @@
+namespace Klass8s\Tests\GatewayApi;
+
+use Klass8s\Bundle\Klass8sBundle;
+use Klass8s\Tests\Support\TestDirectory;
+use Proximity\Bundle\ProximityBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Kernel;
+
+class GatewayApiTestKernel extends Kernel
+{
+    registerBundles(): iterable => [
+        new FrameworkBundle(),
+        new ProximityBundle(),
+        new Klass8sBundle(),
+    ];
+
+    getCacheDir(): string => TestDirectory::path('gateway-api-test-cache-' . spl_object_id($this));
+
+    getLogDir(): string => TestDirectory::path('gateway-api-test-logs');
+
+    /** @phpstan-ignore missingType.iterableValue */
+    protected getKernelParameters(): array => array_replace(parent::getKernelParameters(), [
+        'kernel.project_dir' => __DIR__,
+        'kernel.environment' => 'test',
+        'kernel.runtime_mode.web' => false,
+        'kernel.runtime_mode.cli' => true,
+        'env(APP_SECRET)' => bin2hex(random_bytes(32)),
+    ]);
+
+    registerContainerConfiguration(LoaderInterface $loader): void {
+        $loader->load(function (ContainerBuilder $container): void {
+            $container->loadFromExtension('framework', [
+                'test' => true,
+                'secret' => '%env(APP_SECRET)%',
+            ]);
+
+            $container->loadFromExtension('klass8s', [
+                'code_dir' => __DIR__ . '/Fixture',
+                'namespace_prefix' => 'Klass8s\Tests\GatewayApi\Fixture',
+                'manifests_dir' => TestDirectory::path('gateway-api-test-manifests'),
+            ]);
+
+            // Register fixture App and Manifest classes as services
+            $container->register(Fixture\GatewayApp\GatewayApp::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestGatewayClass::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestGateway::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestHTTPRoute::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestHttpsRedirectRoute::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestGRPCRoute::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestReferenceGrant::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+
+            $container->register(Fixture\GatewayApp\TestBackendTLSPolicy::class)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
+        });
+    }
+}

@@ -1,0 +1,30 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Env\EnvConfigurator;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+
+/** Reads the two virtual manifests by class, through its environment and through volumes. */
+class ReaderDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'reader';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    env(EnvConfigurator $env): void {
+        $env->addConfigMapClass(SharedConfigMap::class);
+        $env->addSecretClass(CredentialsSecret::class);
+    }
+
+    volumes(VolumesConfigurator $volumes): void {
+        $volumes->fromConfigMapClass('shared', SharedConfigMap::class);
+        $volumes->fromSecretClass('credentials', CredentialsSecret::class);
+    }
+
+    volumeMounts(VolumeMountsConfigurator $mounts): void {
+        $mounts->add('shared', '/etc/shared');
+        $mounts->add('credentials', '/etc/credentials');
+    }
+}

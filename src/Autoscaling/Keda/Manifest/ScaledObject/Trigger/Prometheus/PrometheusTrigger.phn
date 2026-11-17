@@ -1,0 +1,94 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Prometheus;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Util\StringUtil;
+
+class PrometheusTrigger extends AbstractTriggerBuilder
+{
+    // Required fields
+    private const string SERVER_ADDRESS = 'serverAddress';
+    private const string QUERY = 'query';
+    private const string THRESHOLD = 'threshold';
+    private const string ACTIVATION_THRESHOLD = 'activationThreshold';
+
+    // Optional fields
+    private const string PROMETHEUS_NAMESPACE = 'namespace';
+    private const string CUSTOM_HEADERS = 'customHeaders';
+    private const string IGNORE_NULL_VALUES = 'ignoreNullValues';
+    private const string QUERY_PARAMETERS = 'queryParameters';
+    private const string UNSAFE_SSL = 'unsafeSsl';
+
+    __construct(string $query) {
+        parent::__construct();
+
+        $this->set(self::QUERY, $query);
+    }
+
+    serverAddress(string $serverAddress): static {
+        $this->set(self::SERVER_ADDRESS, $serverAddress);
+
+        return $this;
+    }
+
+    threshold(int|float $threshold): static {
+        $this->set(self::THRESHOLD, $threshold);
+
+        return $this;
+    }
+
+    activationThreshold(int|float $activationThreshold): static {
+        $this->set(self::ACTIVATION_THRESHOLD, $activationThreshold);
+
+        return $this;
+    }
+
+    namespace(string $namespace): static {
+        $this->set(self::PROMETHEUS_NAMESPACE, $namespace);
+
+        return $this;
+    }
+
+    customHeaders(map<string, string> $customHeaders): static {
+        $this->set(self::CUSTOM_HEADERS, $this->mapToString($customHeaders));
+
+        return $this;
+    }
+
+    ignoreNullValues(bool $ignoreNullValues): static {
+        $this->set(self::IGNORE_NULL_VALUES, StringUtil::stringify($ignoreNullValues));
+
+        return $this;
+    }
+
+    queryParameters(map<string, string> $queryParameters): static {
+        $this->set(self::QUERY_PARAMETERS, $this->mapToString($queryParameters));
+
+        return $this;
+    }
+
+    unsafeSsl(bool $unsafeSsl): static {
+        $this->set(self::UNSAFE_SSL, StringUtil::stringify($unsafeSsl));
+
+        return $this;
+    }
+
+    static withQuery(string $query): static => new static($query);
+
+    protected requiredKeys(): list<string> => [
+        self::SERVER_ADDRESS,
+        self::QUERY,
+        self::THRESHOLD,
+        self::ACTIVATION_THRESHOLD,
+    ];
+
+    protected static type(): string => 'prometheus';
+
+    private mapToString(map<string, string> $map): string {
+        $expressions = [];
+        foreach ($map as $name => $value) {
+            $expressions[] = sprintf('%s=%s', $name, $value);
+        }
+
+        return implode(',', $expressions);
+    }
+}

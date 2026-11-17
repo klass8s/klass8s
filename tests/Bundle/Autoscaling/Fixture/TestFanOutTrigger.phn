@@ -1,0 +1,12 @@
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture;
+
+use Klass8s\Autoscaling\Attribute\ScalingTriggerAttributeInterface;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+final readonly class TestFanOutTrigger implements ScalingTriggerAttributeInterface
+{
+    __construct(
+        public list<string> $queues,
+        public int $lagThreshold,
+    ) {}
+}

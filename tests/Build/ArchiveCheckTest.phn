@@ -1,0 +1,103 @@
+namespace Klass8s\Tests\Build;
+
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+
+/**
+ * tools/check-archive.sh, the part of `composer build:check` that holds the export rules to what
+ * a consumer needs. Each case runs it against a copy of the index with another .gitattributes,
+ * so neither the working tree nor the index is touched.
+ */
+final class ArchiveCheckTest extends TestCase
+{
+    private const string ROOT = __DIR__ . '/../..';
+
+    protected setUp(): void {
+        if (0 !== new Process(['git', 'rev-parse', '--is-inside-work-tree'], self::ROOT)->run()) {
+            self::markTestSkipped('Not a git working tree');
+        }
+    }
+
+    testTheCommittedRulesShipWhatThePackageNeeds(): void {
+        $check = $this->check(null);
+
+        self::assertSame(0, $check->getExitCode(), $check->getOutput());
+    }
+
+    testARuleThatDropsWhatTheBundleLoadsFails(): void {
+        $check = $this->check(self::attributes() . "/config export-ignore\n/templates export-ignore\n");
+
+        self::assertSame(1, $check->getExitCode());
+        self::assertStringContainsString('The archive leaves out', $check->getOutput());
+        self::assertStringContainsString('config/services.yaml', $check->getOutput());
+    }
+
+    testARuleThatDropsTheCompiledSourcesFails(): void {
+        $check = $this->check(self::attributes() . "/.* export-ignore\n");
+
+        self::assertSame(1, $check->getExitCode());
+        self::assertStringContainsString("\n  .src/", $check->getOutput());
+    }
+
+    testARuleThatDropsTheSourcesFails(): void {
+        $check = $this->check(self::attributes() . "/src export-ignore\n/phaenon.json export-ignore\n");
+
+        self::assertSame(1, $check->getExitCode());
+        self::assertStringContainsString('phaenon.json', $check->getOutput());
+    }
+
+    testRulesThatShipTheTestsFail(): void {
+        $check = $this->check(str_replace("/tests export-ignore\n", '', self::attributes()));
+
+        self::assertSame(1, $check->getExitCode());
+        self::assertStringContainsString('The archive carries the tests', $check->getOutput());
+    }
+
+    testTheCheckFailsWhenItCannotReadThePackagesDirectories(): void {
+        $bin = TestDirectory::path('archive-check-failing-php');
+        new Filesystem()->dumpFile($bin . '/php', "#!/bin/sh\nexit 1\n");
+        chmod($bin . '/php', 0o755);
+
+        $check = $this->check(null, ['PATH' => $bin . ':' . (string) getenv('PATH')]);
+
+        self::assertSame(1, $check->getExitCode());
+        self::assertStringContainsString('Could not read the package\'s directories', $check->getOutput());
+    }
+
+    testBuildCheckRunsTheArchiveCheck(): void {
+        $composer = json_decode((string) file_get_contents(self::ROOT . '/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        $scripts = $composer['scripts'] ?? null;
+        self::assertIsArray($scripts);
+        $buildCheck = $scripts['build:check'] ?? null;
+        self::assertIsArray($buildCheck);
+
+        self::assertContains('tools/check-archive.sh', $buildCheck);
+    }
+
+    private static attributes(): string => (string) file_get_contents(self::ROOT . '/.gitattributes');
+
+    /** Runs the check against a copy of the index, whose .gitattributes is the one given, if any. */
+    private check(?string $attributes, map<string, string> $environment = []): Process {
+        $index = TestDirectory::path('archive-check-index-' . bin2hex(random_bytes(4)));
+        copy(self::git(['rev-parse', '--path-format=absolute', '--git-path', 'index']), $index);
+        if (null !== $attributes) {
+            $blob = self::git(['hash-object', '-w', '--stdin'], input: $attributes);
+            self::git(['update-index', '--cacheinfo', "100644,{$blob},.gitattributes"], index: $index);
+        }
+
+        $check = new Process([self::ROOT . '/tools/check-archive.sh'], self::ROOT, ['GIT_INDEX_FILE' => $index, ...$environment]);
+        $check->run();
+
+        return $check;
+    }
+
+    private static git(list<string> $arguments, ?string $input = null, ?string $index = null): string {
+        $git = new Process(['git', ...$arguments], self::ROOT, null === $index ? null : ['GIT_INDEX_FILE' => $index], $input);
+        $git->mustRun();
+
+        return trim($git->getOutput());
+    }
+}

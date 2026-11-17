@@ -1,0 +1,41 @@
+namespace Klass8s\Core\Container;
+
+use K8Schema\Api\Core\V1\Container;
+use K8Schema\Collection\StringList;
+use Klass8s\Core\Container\Env\EnvConfigurator;
+use Klass8s\Core\Container\Image\ImagePullPolicy;
+use Klass8s\Core\Container\Lifecycle\LifecycleConfigurator;
+use Klass8s\Core\Container\Lifecycle\Probes\ProbesConfigurator;
+use Klass8s\Core\Container\Ports\PortsConfigurator;
+use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
+use Klass8s\Core\Container\Security\SecurityContextConfigurator;
+use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
+
+trait ContainerTrait
+{
+    containerName(): string => 'app';
+
+    args(StringList $args): void {}
+
+    command(StringList $command): void {}
+
+    env(EnvConfigurator $env): void {}
+
+    volumeMounts(VolumeMountsConfigurator $mounts): void {}
+
+    resources(ContainerResourcesInterface $resources): void {}
+
+    ports(PortsConfigurator $ports): void {}
+
+    lifecycle(LifecycleConfigurator $lifecycle): void {}
+
+    probes(ProbesConfigurator $probes): void {}
+
+    securityContext(SecurityContextConfigurator $context): void {}
+
+    imagePullPolicy(): ImagePullPolicy => ImagePullPolicy::IfNotPresent;
+
+    workingDir(): ?string => null;
+
+    configureContainer(Container $container): void {}
+}

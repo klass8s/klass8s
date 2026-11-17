@@ -1,0 +1,10 @@
+namespace Klass8s\Util;
+
+/** Reads and writes a property of an object, whatever its visibility. */
+final class PropertyAccessor
+{
+    static get(object $object, string $propertyName): mixed => new \ReflectionProperty($object, $propertyName)->getValue($object);
+
+    static set(object $object, string $propertyName, mixed $propertyValue): void
+        => new \ReflectionProperty($object, $propertyName)->setValue($object, $propertyValue);
+}

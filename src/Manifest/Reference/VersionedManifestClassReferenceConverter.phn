@@ -1,0 +1,19 @@
+namespace Klass8s\Manifest\Reference;
+
+use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
+use Klass8s\Registry\AppRegistry;
+
+final readonly class VersionedManifestClassReferenceConverter
+{
+    __construct(private AppRegistry $appRegistry) {}
+
+    toCrossVersionObjectReference(VersionedManifestClassReference $reference): CrossVersionObjectReference {
+        $class = $reference->className;
+        $name = $this->appRegistry->get($reference->appAlias)->resourceNameFromManifestClass($class);
+
+        $ref = new CrossVersionObjectReference($class::kind(), $name);
+        $ref->setApiVersion($reference->apiVersion ?: $class::apiVersion());
+
+        return $ref;
+    }
+}

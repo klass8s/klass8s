@@ -1,0 +1,12 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Rbac\V1\RoleBinding;
+use K8Schema\Api\Rbac\V1\RoleRef;
+use Klass8s\Core\Rbac\RoleBindingInterface;
+
+class RoleBindingMaker extends AbstractRoleBindingMaker<RoleBindingInterface, RoleBinding>
+{
+    protected roleBinding(RoleRef $ref): RoleBinding => new RoleBinding($ref);
+
+    protected supportedClass(): class<RoleBindingInterface> => RoleBindingInterface::class;
+}

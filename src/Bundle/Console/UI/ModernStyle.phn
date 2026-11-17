@@ -1,0 +1,83 @@
+namespace Klass8s\Bundle\Console\UI;
+
+use Klass8s\Util\StringUtil;
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+final class ModernStyle extends SymfonyStyle
+{
+    private InputInterface $input;
+
+    __construct(InputInterface $input, OutputInterface $output) {
+        parent::__construct($input, $output);
+
+        $this->input = $input;
+
+        self::applyTheme($output);
+    }
+
+    title(string $message): void {
+        $this->newLine();
+        $this->writeln('<title>' . OutputFormatter::escape($message) . '</title>');
+    }
+
+    success(string|array<mixed> $message): void {
+        foreach (self::lines($message) as $line) {
+            $this->line('success', $line, '✔︎');
+        }
+    }
+
+    error(string|array<mixed> $message): void {
+        foreach (self::lines($message) as $line) {
+            $this->line('error', $line, '❌');
+        }
+    }
+
+    warning(string|array<mixed> $message): void {
+        foreach (self::lines($message) as $line) {
+            $this->line('warning', $line, '⚠️');
+        }
+    }
+
+    info(string|array<mixed> $message): void {
+        foreach (self::lines($message) as $line) {
+            $this->line('info', $line, 'ℹ️');
+        }
+    }
+
+    note(string|array<mixed> $message): void {
+        $this->writeln(sprintf('<info>%s</info> <muted>%s</muted>', '📝', 'Notes:'));
+
+        foreach (self::lines($message) as $line) {
+            $this->writeln('  <muted>-</muted> ' . OutputFormatter::escape($line));
+        }
+    }
+
+    debug(string $message): void
+        => $this->writeln(sprintf('<muted>%s %s</muted>', '🔎', OutputFormatter::escape($message)));
+
+    /** @return list<string> */
+    private static lines(string|array<mixed> $message): list<string>
+        => array_map(StringUtil::stringify(...), is_array($message) ? array_values($message) : [$message]);
+
+    private line(string $style, string $message, string $emoji): void
+        => $this->writeln(sprintf(' <%s>%s</%s> %s', $style, $emoji, $style, $message));
+
+    static applyTheme(OutputInterface $output): void {
+        $f = $output->getFormatter();
+
+        // Keep colors basic for the best cross-terminal consistency.
+        $f->setStyle('success', new OutputFormatterStyle('green', null));
+        $f->setStyle('error', new OutputFormatterStyle('red', null));
+        $f->setStyle('warning', new OutputFormatterStyle('yellow', null));
+        $f->setStyle('info', new OutputFormatterStyle('cyan'));
+        $f->setStyle('muted', new OutputFormatterStyle('gray'));
+        $f->setStyle('title', new OutputFormatterStyle('magenta', null));
+        $f->setStyle('k', new OutputFormatterStyle('white', null));
+    }
+
+    getErrorStyle(): self => new self($this->input, $this->getErrorOutput());
+}

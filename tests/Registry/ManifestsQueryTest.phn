@@ -1,0 +1,36 @@
+namespace Klass8s\Tests\Registry;
+
+use Klass8s\Core\Deployment\DeploymentInterface;
+use Klass8s\Registry\ManifestRegistry;
+use Klass8s\Tests\Render\Fixture\CoreApp\PlacedDeployment;
+use Klass8s\Tests\Render\RenderTestKernel;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+final class ManifestsQueryTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    protected static getKernelClass(): string => RenderTestKernel::class;
+
+    testAQueryHoldsAnAppsManifestsByKindAndName(): void {
+        self::bootKernel();
+        $query = self::service(ManifestRegistry::class)->query('core');
+
+        self::assertSame(
+            ['Deployment_client', 'Deployment_placed', 'HorizontalPodAutoscaler_web', 'Ingress_web', 'PriorityClass_batch', 'Secret_token'],
+            self::sorted(array_keys($query->execute())),
+        );
+
+        $deployments = $query->instancesOf(DeploymentInterface::class)->execute();
+        self::assertSame(['Deployment_client', 'Deployment_placed'], self::sorted(array_keys($deployments)));
+        self::assertInstanceOf(PlacedDeployment::class, $deployments['Deployment_placed']);
+        self::assertSame($deployments['Deployment_placed'], $query->instanceName('placed')->getFirstResult());
+    }
+
+    private static sorted(list<string> $keys): list<string> {
+        sort($keys);
+
+        return $keys;
+    }
+}

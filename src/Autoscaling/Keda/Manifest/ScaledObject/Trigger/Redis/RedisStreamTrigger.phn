@@ -1,0 +1,89 @@
+namespace Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\Redis;
+
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\AbstractTriggerBuilder;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledObject\Trigger\OneOf;
+
+class RedisStreamTrigger extends AbstractTriggerBuilder
+{
+    private const string ADDRESS = 'address';
+    private const string HOST = 'host';
+    private const string PORT = 'port';
+    private const string USERNAME_FROM_ENV = 'usernameFromEnv';
+    private const string PASSWORD_FROM_ENV = 'passwordFromEnv';
+    private const string STREAM = 'stream';
+    private const string CONSUMER_GROUP = 'consumerGroup';
+    private const string PENDING_ENTRIES_COUNT = 'pendingEntriesCount';
+    private const string STREAM_LENGTH = 'streamLength';
+    private const string LAG_COUNT = 'lagCount';
+    private const string ACTIVATION_LAG_COUNT = 'activationLagCount';
+    private const string ENABLE_TLS = 'enableTLS';
+    private const string UNSAFE_SSL = 'unsafeSsl';
+    private const string DATABASE_INDEX = 'databaseIndex';
+    private const string ADDRESS_FROM_ENV = 'addressFromEnv';
+    private const string HOST_FROM_ENV = 'hostFromEnv';
+    private const string PORT_FROM_ENV = 'portFromEnv';
+
+    private ?string $triggerName = null;
+
+    address(string $address): static => $this->set(self::ADDRESS, $address);
+
+    host(string $host): static => $this->set(self::HOST, $host);
+
+    port(int|string $port): static => $this->set(self::PORT, $port);
+
+    usernameFromEnv(string $envVarName): static => $this->set(self::USERNAME_FROM_ENV, $envVarName);
+
+    passwordFromEnv(string $envVarName): static => $this->set(self::PASSWORD_FROM_ENV, $envVarName);
+
+    stream(string $stream): static => $this->set(self::STREAM, $stream);
+
+    consumerGroup(string $consumerGroup): static => $this->set(self::CONSUMER_GROUP, $consumerGroup);
+
+    pendingEntriesCount(int|string $pendingEntriesCount): static
+        => $this->setTrigger(self::PENDING_ENTRIES_COUNT, $pendingEntriesCount);
+
+    streamLength(int|string $streamLength): static => $this->setTrigger(self::STREAM_LENGTH, $streamLength);
+
+    lagCount(int|string $lagCount): static => $this->setTrigger(self::LAG_COUNT, $lagCount);
+
+    activationLagCount(int|string $activationLagCount): static
+        => $this->set(self::ACTIVATION_LAG_COUNT, $activationLagCount);
+
+    enableTLS(bool $enableTLS): static => $this->set(self::ENABLE_TLS, $enableTLS);
+
+    unsafeSsl(bool $unsafeSsl): static => $this->set(self::UNSAFE_SSL, $unsafeSsl);
+
+    databaseIndex(int|string $databaseIndex): static => $this->set(self::DATABASE_INDEX, $databaseIndex);
+
+    addressFromEnv(string $envVarName): static => $this->set(self::ADDRESS_FROM_ENV, $envVarName);
+
+    hostFromEnv(string $envVarName): static => $this->set(self::HOST_FROM_ENV, $envVarName);
+
+    portFromEnv(int|string $envVarName): static => $this->set(self::PORT_FROM_ENV, $envVarName);
+
+    static forStream(string $stream): static {
+        $instance = new static();
+        $instance->stream($stream);
+
+        return $instance;
+    }
+
+    protected requiredKeys(): list<string|OneOf> => [
+        new OneOf(self::ADDRESS, self::ADDRESS_FROM_ENV),
+        new OneOf(self::PENDING_ENTRIES_COUNT, self::STREAM_LENGTH, self::LAG_COUNT),
+        self::PASSWORD_FROM_ENV,
+        self::STREAM,
+    ];
+
+    protected static type(): string => 'redis-streams';
+
+    private setTrigger(string $triggerName, int|string $triggerValue): static {
+        if ($this->triggerName !== null && $this->triggerName !== $triggerName) {
+            throw new \LogicException(sprintf('Scale trigger is already set to "%s" and cannot be rewritten with the new value "%s".', $this->triggerName, $triggerName));
+        }
+
+        $this->triggerName = $triggerName;
+
+        return $this->set($triggerName, $triggerValue);
+    }
+}

@@ -1,0 +1,29 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Bundle\Attribute\NoDefaultMetadataLabels;
+use Klass8s\Bundle\Util\AttributesUtil;
+use Klass8s\Event\ProxyableMethodEventInterface;
+use Klass8s\Manifest\Labels\LabelsGeneratorInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\MetadataConfigurator;
+use Klass8s\Proxy\ProxyManager;
+
+class DefaultMetadataLabelsSubscriber extends AbstractManifestMethodSubscriber
+{
+    __construct(private readonly LabelsGeneratorInterface $labelsGenerator) {}
+
+    protected supports(ProxyableMethodEventInterface $event): bool => 'metadata' === $event->methodName()
+        && ($event->methodParams()['meta'] ?? null) instanceof MetadataConfigurator;
+
+    protected beforeMethod(ProxyableMethodEventInterface $event): void {
+        /** @var ManifestInterface $manifest */
+        $manifest = $event->proxyable();
+        if (self::classHasNoLabelsAttribute(ProxyManager::unwrapClassName($manifest))) {
+            return;
+        }
+        $event->typedMethodParam('meta', MetadataConfigurator::class)->labels()->addAll($this->labelsGenerator->forManifest($manifest));
+    }
+
+    private static classHasNoLabelsAttribute(class<object> $className): bool
+        => null !== AttributesUtil::fromClass(new \ReflectionClass($className), NoDefaultMetadataLabels::class);
+}

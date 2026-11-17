@@ -1,0 +1,8 @@
+namespace Klass8s\Tests\Render\Fixture\AmbiguousResourcesApp;
+
+use Klass8s\App\AbstractApp;
+
+class AmbiguousResourcesApp extends AbstractApp
+{
+    static name(): string => 'sizing';
+}

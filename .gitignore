@@ -1,4 +1,9 @@
 /vendor/
+
+# phn build compiles src/ into .src/, which is committed (phaenon.json "committed"),
+# and tests/ into .tests/, which is not
+/.tests/
+.phn-build
 /composer.lock
 /.idea/
 

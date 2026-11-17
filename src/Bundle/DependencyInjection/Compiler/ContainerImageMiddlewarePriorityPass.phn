@@ -1,0 +1,35 @@
+namespace Klass8s\Bundle\DependencyInjection\Compiler;
+
+use Klass8s\Bundle\Klass8sBundle;
+use Klass8s\Middleware\ContainerImageMiddlewareInterface;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+/**
+ * Writes each container-image middleware's {@see ContainerImageMiddlewareInterface::priority()}
+ * into its tag as the `priority` attribute, so the tagged iterator orders by it.
+ *
+ * The interface method stays the contract a middleware author implements. Symfony 8.1
+ * deprecates asking the iterator to call such a method (`default_priority_method`) in favour of
+ * a tag attribute — this pass is the bridge: the method is read once at compile time, no
+ * implementation changes, no attribute to remember. An explicit `priority` attribute on the tag
+ * (`#[AsTaggedItem(priority: …)]`, or a hand-written tag) wins.
+ */
+final readonly class ContainerImageMiddlewarePriorityPass implements CompilerPassInterface
+{
+    process(ContainerBuilder $container): void {
+        foreach ($container->findTaggedServiceIds(Klass8sBundle::TAG_IMAGE_MIDDLEWARE) as $id => $tags) {
+            $definition = $container->findDefinition($id);
+            $class = $container->getParameterBag()->resolveValue($definition->getClass());
+            if (!\is_string($class) || !is_subclass_of($class, ContainerImageMiddlewareInterface::class)) {
+                continue;
+            }
+            $definition->clearTag(Klass8sBundle::TAG_IMAGE_MIDDLEWARE);
+            foreach ($tags as $attributes) {
+                assert(is_array($attributes));
+                $attributes['priority'] ??= $class::priority();
+                $definition->addTag(Klass8sBundle::TAG_IMAGE_MIDDLEWARE, $attributes);
+            }
+        }
+    }
+}

@@ -1,0 +1,27 @@
+namespace Klass8s\Tests\Bundle\Util;
+
+use Klass8s\Bundle\Util\Dir;
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\TestCase;
+
+final class DirTest extends TestCase
+{
+    testADirectoryIsCreatedWithItsParentsAndOnce(): void {
+        $dir = TestDirectory::path('dir-test/a/b/c');
+
+        Dir::create($dir);
+        Dir::create($dir);
+
+        self::assertDirectoryExists($dir);
+    }
+
+    testADirectoryThatCannotBeCreatedSaysWhy(): void {
+        $file = TestDirectory::path('dir-test-file');
+        file_put_contents($file, '');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches(sprintf('/^Can\'t create directory "%s": .+/', preg_quote($file . '/sub', '/')));
+
+        Dir::create($file . '/sub');
+    }
+}

@@ -1,0 +1,12 @@
+namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
+
+use Klass8s\GatewayApi\GatewayClass\AbstractGatewayClass;
+
+class TestGatewayClass extends AbstractGatewayClass
+{
+    static shortName(): string => 'main';
+
+    controllerName(): string => 'example.io/gateway-controller';
+
+    description(): ?string => 'Test gateway class';
+}

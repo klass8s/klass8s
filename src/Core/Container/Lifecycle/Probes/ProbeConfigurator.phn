@@ -1,0 +1,46 @@
+namespace Klass8s\Core\Container\Lifecycle\Probes;
+
+use K8Schema\Api\Core\V1\Probe;
+
+class ProbeConfigurator
+{
+    private Probe $probe;
+    private ProbeActionConfigurator $action;
+
+    __construct(Probe $probe) {
+        $this->probe = $probe;
+        $this->action = new ProbeActionConfigurator($probe);
+    }
+
+    action(): ProbeActionConfigurator => $this->action;
+
+    setFailureThreshold(int $threshold): static {
+        $this->probe->setFailureThreshold($threshold);
+
+        return $this;
+    }
+
+    setInitialDelaySeconds(int $seconds): static {
+        $this->probe->setInitialDelaySeconds($seconds);
+
+        return $this;
+    }
+
+    setPeriodSeconds(int $seconds): static {
+        $this->probe->setPeriodSeconds($seconds);
+
+        return $this;
+    }
+
+    setSuccessThreshold(int $threshold): static {
+        $this->probe->setSuccessThreshold($threshold);
+
+        return $this;
+    }
+
+    setTimeoutSeconds(int $seconds): static {
+        $this->probe->setTimeoutSeconds($seconds);
+
+        return $this;
+    }
+}

@@ -1,0 +1,65 @@
+namespace Klass8s\Tests\Render;
+
+use Klass8s\App\AppManager;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+final class CoreResourcesRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    protected static getKernelClass(): string => RenderTestKernel::class;
+
+    testAPriorityClassCarriesItsValue(): void {
+        $priorityClass = RenderedResource::in($this->render(), 'PriorityClass', 'core-batch');
+
+        self::assertSame(1000, $priorityClass->get('value'));
+        self::assertFalse($priorityClass->get('globalDefault'));
+    }
+
+    testAPodIsPlacedByNodeAffinity(): void {
+        $nodeAffinity = RenderedResource::in($this->render(), 'Deployment', 'core-placed')
+            ->at('spec', 'template', 'spec', 'affinity', 'nodeAffinity');
+
+        self::assertSame(
+            [['preference' => ['matchExpressions' => [['key' => 'example.dev/generation', 'operator' => 'Gt', 'values' => ['3']]]], 'weight' => 10]],
+            $nodeAffinity->get('preferredDuringSchedulingIgnoredDuringExecution'),
+        );
+        self::assertSame(
+            [['matchExpressions' => [['key' => 'example.dev/cpus', 'operator' => 'Lt', 'values' => ['64']]]]],
+            $nodeAffinity->get('requiredDuringSchedulingIgnoredDuringExecution', 'nodeSelectorTerms'),
+        );
+    }
+
+    testAnIngressBackendPortIsANumberOrAName(): void {
+        $ingress = RenderedResource::in($this->render(), 'Ingress', 'core-web');
+
+        self::assertSame(['name' => 'web', 'port' => ['number' => 8080]], $ingress->get('spec', 'rules', 0, 'http', 'paths', 0, 'backend', 'service'));
+        self::assertSame(['name' => 'web', 'port' => ['name' => 'http']], $ingress->get('spec', 'rules', 1, 'http', 'paths', 0, 'backend', 'service'));
+    }
+
+    testEachMetricTargetTypeSetsItsOwnField(): void {
+        $metrics = RenderedResource::in($this->render(), 'HorizontalPodAutoscaler', 'core-web')->at('spec');
+
+        self::assertSame(['averageUtilization' => 80, 'type' => 'Utilization'], $metrics->get('metrics', 0, 'resource', 'target'));
+        self::assertSame(['averageValue' => '10', 'type' => 'AverageValue'], $metrics->get('metrics', 1, 'pods', 'target'));
+        self::assertSame(['type' => 'Value', 'value' => '100'], $metrics->get('metrics', 2, 'external', 'target'));
+    }
+
+    /** A Secret the project renders is tracked, so the workload that reads it gets its fingerprint. */
+    testARenderedSecretCountsInTheChecksumsOfAWorkloadThatReadsIt(): void {
+        $yaml = $this->render();
+        $annotations = RenderedResource::in($yaml, 'Deployment', 'core-client')->at('spec', 'template', 'metadata', 'annotations');
+
+        self::assertSame('core-token', RenderedResource::in($yaml, 'Secret', 'core-token')->get('metadata', 'name'));
+        self::assertNotSame(md5(''), $annotations->get('klass8s.dev/env-sources-checksum'));
+        self::assertNotSame(md5(''), $annotations->get('klass8s.dev/volume-sources-checksum'));
+    }
+
+    private render(): string {
+        self::bootKernel();
+
+        return self::service(AppManager::class)->generateManifests('core')->render()->toString();
+    }
+}

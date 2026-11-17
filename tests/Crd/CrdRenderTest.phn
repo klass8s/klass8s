@@ -1,0 +1,122 @@
+namespace Klass8s\Tests\Crd;
+
+use Klass8s\App\AppProcessor;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+class CrdRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    private AppProcessor $appProcessor;
+
+    protected static getKernelClass(): string => CrdTestKernel::class;
+
+    protected setUp(): void {
+        self::bootKernel();
+        $this->appProcessor = self::service(AppProcessor::class);
+    }
+
+    testCrdRendering(): void {
+        $output = $this->appProcessor->process('crd');
+        $yaml = $output->render()->toString();
+        $crd = RenderedResource::in($yaml, 'CustomResourceDefinition');
+
+        // apiVersion & kind
+        self::assertSame('apiextensions.k8s.io/v1', $crd->get('apiVersion'));
+        self::assertSame('CustomResourceDefinition', $crd->get('kind'));
+
+        // CRD name must be {plural}.{group}
+        self::assertSame('certificates.cert-manager.io', $crd->get('metadata', 'name'));
+
+        // Spec top-level fields
+        self::assertSame('cert-manager.io', $crd->get('spec', 'group'));
+        self::assertSame('Namespaced', $crd->get('spec', 'scope'));
+
+        // Names
+        $names = $crd->at('spec', 'names');
+        self::assertSame('Certificate', $names->get('kind'));
+        self::assertSame('certificates', $names->get('plural'));
+        self::assertSame('certificate', $names->get('singular'));
+        self::assertSame('CertificateList', $names->get('listKind'));
+        self::assertSame(['cert', 'certs'], $names->get('shortNames'));
+        self::assertSame(['cert-manager'], $names->get('categories'));
+    }
+
+    testCrdVersions(): void {
+        $output = $this->appProcessor->process('crd');
+        $yaml = $output->render()->toString();
+        $crd = RenderedResource::in($yaml, 'CustomResourceDefinition');
+
+        $versions = $crd->at('spec', 'versions');
+        self::assertCount(2, $versions);
+
+        // v1 — served and storage
+        $v1 = $versions->at(0);
+        self::assertSame('v1', $v1->get('name'));
+        self::assertTrue($v1->get('served'));
+        self::assertTrue($v1->get('storage'));
+
+        // OpenAPI schema
+        self::assertArrayHasKey('openAPIV3Schema', $v1->map('schema'));
+        $schema = $v1->at('schema', 'openAPIV3Schema');
+        self::assertSame('object', $schema->get('type'));
+        self::assertArrayHasKey('spec', $schema->map('properties'));
+        self::assertArrayHasKey('status', $schema->map('properties'));
+        self::assertSame(['secretName', 'issuerRef'], $schema->get('properties', 'spec', 'required'));
+
+        // Printer columns
+        self::assertCount(3, $v1->list('additionalPrinterColumns'));
+
+        $readyCol = $v1->at('additionalPrinterColumns', 0);
+        self::assertSame('Ready', $readyCol->get('name'));
+        self::assertSame('boolean', $readyCol->get('type'));
+        self::assertSame('.status.ready', $readyCol->get('jsonPath'));
+        self::assertSame('Whether the certificate is ready', $readyCol->get('description'));
+
+        $secretCol = $v1->at('additionalPrinterColumns', 1);
+        self::assertSame('Secret', $secretCol->get('name'));
+        self::assertSame('string', $secretCol->get('type'));
+        self::assertSame('.spec.secretName', $secretCol->get('jsonPath'));
+
+        $expirationCol = $v1->at('additionalPrinterColumns', 2);
+        self::assertSame('Expiration', $expirationCol->get('name'));
+        self::assertSame('date', $expirationCol->get('type'));
+        self::assertSame(1, $expirationCol->get('priority'));
+
+        // Subresources — status enabled
+        self::assertTrue($v1->has('subresources', 'status'));
+
+        // Selectable fields
+        self::assertCount(1, $v1->list('selectableFields'));
+        self::assertSame('.spec.issuerRef.name', $v1->get('selectableFields', 0, 'jsonPath'));
+    }
+
+    testCrdDeprecatedVersion(): void {
+        $output = $this->appProcessor->process('crd');
+        $yaml = $output->render()->toString();
+        $crd = RenderedResource::in($yaml, 'CustomResourceDefinition');
+
+        $v1alpha1 = $crd->at('spec', 'versions', 1);
+        self::assertSame('v1alpha1', $v1alpha1->get('name'));
+        self::assertTrue($v1alpha1->get('served'));
+        self::assertFalse($v1alpha1->get('storage'));
+        self::assertTrue($v1alpha1->get('deprecated'));
+        self::assertSame(
+            'cert-manager.io/v1alpha1 Certificate is deprecated; use v1',
+            $v1alpha1->get('deprecationWarning'),
+        );
+    }
+
+    testCrdLabels(): void {
+        $output = $this->appProcessor->process('crd');
+        $yaml = $output->render()->toString();
+        $crd = RenderedResource::in($yaml, 'CustomResourceDefinition');
+
+        self::assertSame('crd', $crd->get('metadata', 'labels', 'app.kubernetes.io/name'));
+        self::assertSame('certificates', $crd->get('metadata', 'labels', 'app.kubernetes.io/component'));
+        self::assertSame('cert-manager', $crd->get('metadata', 'labels', 'app.kubernetes.io/part-of'));
+        self::assertSame('crd', $crd->get('metadata', 'annotations', 'klass8s.dev/app'));
+    }
+}

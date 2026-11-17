@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 echo "<?php\n"; ?>
 
-namespace <?php echo $namespace; ?>;
+namespace <?php echo $variables['namespace']; ?>;
 
 use Klass8s\Core\Ingress\AbstractIngress;
 use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
 
-class <?php echo $className; ?> extends AbstractIngress
+class <?php echo $variables['className']; ?> extends AbstractIngress
 {
     public function rules(IngressRulesConfigurator $rules): void
     {
@@ -14,6 +14,6 @@ class <?php echo $className; ?> extends AbstractIngress
 
     public static function shortName(): string
     {
-        return '<?php echo $manifestName; ?>';
+        return '<?php echo $variables['manifestName']; ?>';
     }
 }

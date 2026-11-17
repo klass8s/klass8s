@@ -1,0 +1,9 @@
+namespace Klass8s\Tests\Render\Fixture\SoloApp;
+
+use Klass8s\App\AbstractApp;
+
+/** An app of one manifest, whose render is a single document. */
+class SoloApp extends AbstractApp
+{
+    static name(): string => 'solo';
+}

@@ -1,0 +1,63 @@
+namespace Klass8s\Tests\Core\Container;
+
+use Klass8s\Core\Container\Resources\Memory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class MemoryTest extends TestCase
+{
+    testAWholeNumberOfBytesOrOfABinaryUnitIsRead(): void {
+        self::assertSame(134217728, Memory::fromString('134217728')->bytesNumber());
+        self::assertSame(128 * 1024 * 1024, Memory::fromString('128Mi')->bytesNumber());
+        self::assertSame('128Mi', Memory::fromString('134217728')->prettify()->toString());
+        self::assertSame(12, Memory::fromString('0012')->bytesNumber());
+        self::assertSame(0, Memory::fromString('0')->bytesNumber());
+    }
+
+    testTheLargestAmountAnIntHoldsIsRead(): void {
+        self::assertSame(PHP_INT_MAX, Memory::fromString((string) PHP_INT_MAX)->bytesNumber());
+        self::assertSame(7 * 1024 ** 6, Memory::fromString('7Ei')->bytesNumber());
+    }
+
+    #[DataProvider('notAWholeAmount')]
+    testAnythingElseIsRefused(string $value): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches(sprintf('/^Invalid Memory string "%s": /', preg_quote($value, '/')));
+
+        Memory::fromString($value);
+    }
+
+    static notAWholeAmount(): iterable<string, list<string>> {
+        yield 'nothing' => [''];
+        yield 'a fraction of a byte' => ['1.5'];
+        yield 'a fraction of a unit' => ['1.5Gi'];
+        yield 'an exponent' => ['1e3'];
+        yield 'a decimal unit' => ['128M'];
+        yield 'a decimal kilo' => ['1k'];
+        yield 'a decimal giga' => ['1G'];
+        yield 'milli' => ['100m'];
+        yield 'a unit in lower case' => ['128mi'];
+        yield 'a negative amount' => ['-1'];
+        yield 'a plus sign' => ['+128'];
+        yield 'a leading space' => [' 128'];
+        yield 'a trailing space' => ['128 '];
+        yield 'a space before the unit' => ['128 Mi'];
+        yield 'a trailing newline' => ["128Mi\n"];
+        yield 'a unit alone' => ['Mi'];
+    }
+
+    #[DataProvider('moreThanAnIntHolds')]
+    testAnAmountAnIntCannotHoldIsRefused(string $value): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(sprintf('Memory string "%s" is more bytes than PHP can count, which is %d.', $value, PHP_INT_MAX));
+
+        Memory::fromString($value);
+    }
+
+    static moreThanAnIntHolds(): iterable<string, list<string>> {
+        yield 'bytes' => ['9223372036854775808'];
+        yield 'twenty digits' => ['99999999999999999999'];
+        yield 'exbibytes' => ['8Ei'];
+        yield 'pebibytes' => ['8192Pi'];
+    }
+}

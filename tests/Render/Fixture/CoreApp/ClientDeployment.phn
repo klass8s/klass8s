@@ -1,0 +1,21 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use Klass8s\Core\Container\Env\EnvConfigurator;
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Container\VolumeMount\VolumeMountsConfigurator;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+use Klass8s\Core\Pod\Volume\VolumesConfigurator;
+
+/** Reads the rendered TokenSecret through its environment and through a volume. */
+class ClientDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'client';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    env(EnvConfigurator $env): void => $env->addSecretClass(TokenSecret::class);
+
+    volumes(VolumesConfigurator $volumes): void => $volumes->fromSecretClass('token', TokenSecret::class);
+
+    volumeMounts(VolumeMountsConfigurator $mounts): void => $mounts->add('token', '/etc/token');
+}

@@ -1,0 +1,50 @@
+namespace Klass8s\Bundle\Console\Command;
+
+use Klass8s\App\AppManager;
+use Klass8s\Bridge\Helm\HelmReleaseManager;
+use Klass8s\Bridge\Helm\Release\HelmReleaseRegistry;
+use Klass8s\Registry\AppRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(
+    name: 'k8s:render:all',
+    description: 'Renders manifests for all apps and Helm releases to stdout',
+    aliases: ['k8s:render'],
+)]
+class RenderAllCommand extends Command
+{
+    use AddHelmReposTrait;
+
+    __construct(
+        private readonly AppManager $appManager,
+        private readonly AppRegistry $appRegistry,
+        private readonly HelmReleaseManager $helmReleaseManager,
+        private readonly HelmReleaseRegistry $helmReleaseRegistry,
+    ) {
+        parent::__construct();
+    }
+
+    protected execute(InputInterface $input, OutputInterface $output): int {
+        $appsDir = $this->appManager->generateManifests(...$this->appRegistry->aliases());
+
+        $this->addHelmRepos();
+        $helmDir = $this->helmReleaseManager->generateManifests(...$this->helmReleaseRegistry->releaseNames);
+
+        $outputWasWritten = false;
+        if (!$appsDir->isEmpty()) {
+            echo $appsDir->render()->toString(), "\n";
+            $outputWasWritten = true;
+        }
+        if (!$helmDir->isEmpty()) {
+            if ($outputWasWritten) {
+                echo "\n---\n";
+            }
+            echo $helmDir->render()->toString(), "\n";
+        }
+
+        return self::SUCCESS;
+    }
+}

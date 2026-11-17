@@ -1,0 +1,18 @@
+namespace Klass8s\Core\Crd\Configurator;
+
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceDefinitionVersion;
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceDefinitionVersionList;
+
+class CrdVersionsConfigurator
+{
+    __construct(
+        private readonly CustomResourceDefinitionVersionList $versions,
+    ) {}
+
+    addVersion(string $name, bool $served = true, bool $storage = true): CrdVersionConfigurator {
+        $version = new CustomResourceDefinitionVersion($name, $served, $storage);
+        $this->versions->add($version);
+
+        return new CrdVersionConfigurator($version);
+    }
+}

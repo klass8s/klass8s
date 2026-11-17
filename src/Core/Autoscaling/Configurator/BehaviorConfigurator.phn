@@ -1,0 +1,12 @@
+namespace Klass8s\Core\Autoscaling\Configurator;
+
+use K8Schema\Api\Autoscaling\V2\HorizontalPodAutoscalerBehavior;
+
+readonly class BehaviorConfigurator
+{
+    __construct(private HorizontalPodAutoscalerBehavior $behavior) {}
+
+    scaleUp(): HPAScalingRulesConfigurator => new HPAScalingRulesConfigurator($this->behavior->scaleUp());
+
+    scaleDown(): HPAScalingRulesConfigurator => new HPAScalingRulesConfigurator($this->behavior->scaleDown());
+}

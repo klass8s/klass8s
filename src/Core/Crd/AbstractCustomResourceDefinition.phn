@@ -1,0 +1,26 @@
+namespace Klass8s\Core\Crd;
+
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceDefinition;
+use Klass8s\Core\Crd\Configurator\CrdNamesConfigurator;
+use Klass8s\Core\Crd\Configurator\CrdVersionsConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\FullNameAwareInterface;
+
+abstract class AbstractCustomResourceDefinition extends AbstractManifest implements CustomResourceDefinitionInterface, FullNameAwareInterface
+{
+    final static kind(): string => CustomResourceDefinition::KIND;
+
+    static apiVersion(): string => CustomResourceDefinition::API_VERSION;
+
+    fullName(): string => $this->plural() . '.' . $this->group();
+
+    scope(): CrdScope => CrdScope::Namespaced;
+
+    names(CrdNamesConfigurator $names): void {}
+
+    versions(CrdVersionsConfigurator $versions): void {}
+
+    preserveUnknownFields(): ?bool => null;
+
+    configureCrd(CustomResourceDefinition $crd): void {}
+}

@@ -1,0 +1,12 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+/** Scaled to zero by its config. */
+class IdleDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'idle';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+}

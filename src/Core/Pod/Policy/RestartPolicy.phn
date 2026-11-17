@@ -1,0 +1,10 @@
+namespace Klass8s\Core\Pod\Policy;
+
+enum RestartPolicy: string
+{
+    case Always = 'Always';
+    case OnFailure = 'OnFailure';
+    case Never = 'Never';
+
+    toString(): string => $this->value;
+}

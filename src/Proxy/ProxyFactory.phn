@@ -1,0 +1,34 @@
+namespace Klass8s\Proxy;
+
+use Proximity\MethodsInterception\BodyInterceptorInterface;
+use Proximity\MethodsInterception\ResultInterceptorInterface;
+use Proximity\ProxyInterface;
+use Proximity\ProxyOptions;
+
+/** Wraps manifests and containers in proxies that run the interceptors around their methods. */
+class ProxyFactory
+{
+    private list<BodyInterceptorInterface> $bodyInterceptors;
+    private list<ResultInterceptorInterface> $resultInterceptors;
+
+    __construct(
+        protected \Proximity\ProxyFactory $proxyFactory,
+        iterable<BodyInterceptorInterface> $bodyInterceptors,
+        iterable<ResultInterceptorInterface> $resultInterceptors,
+    ) {
+        $this->bodyInterceptors = iterator_to_array($bodyInterceptors, false);
+        $this->resultInterceptors = iterator_to_array($resultInterceptors, false);
+    }
+
+    /** @return T&ProxyInterface */
+    makeProxy<T of object>(T $object): ProxyInterface {
+        $options = new ProxyOptions(
+            defaultBodyInterceptors: $this->bodyInterceptors,
+            defaultResultInterceptors: $this->resultInterceptors,
+        );
+        /** @var T&ProxyInterface $proxy A proxy is an instance of a subclass of its object's class. */
+        $proxy = $this->proxyFactory->proxy($object, $options);
+
+        return $proxy;
+    }
+}

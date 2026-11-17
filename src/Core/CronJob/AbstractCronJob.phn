@@ -1,0 +1,31 @@
+namespace Klass8s\Core\CronJob;
+
+use K8Schema\Api\Batch\V1\CronJob;
+use Klass8s\Core\Job\AbstractJob;
+use Klass8s\Core\Job\JobInterface;
+use Klass8s\Core\Pod\PriorityClass\PriorityClassConfigurator;
+
+abstract class AbstractCronJob extends AbstractJob implements CronJobInterface
+{
+    job(): JobInterface => $this;
+
+    concurrencyPolicy(): ConcurrencyPolicy => ConcurrencyPolicy::Forbid;
+
+    failedJobsHistoryLimit(): ?int => null;
+
+    startingDeadlineSeconds(): ?int => null;
+
+    successfulJobsHistoryLimit(): ?int => null;
+
+    suspendCronJob(): bool => $this->suspend();
+
+    priorityClass(PriorityClassConfigurator $priorityClass): void {}
+
+    timeZone(): ?string => null;
+
+    configureCronJob(CronJob $cronJob): void {}
+
+    final static kind(): string => CronJob::KIND;
+
+    final static apiVersion(): string => CronJob::API_VERSION;
+}

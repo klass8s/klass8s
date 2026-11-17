@@ -1,0 +1,83 @@
+namespace Klass8s\Core\Container\Image;
+
+class Image
+{
+    private string $name;
+    private ?string $registryUrl;
+    private ?string $tag;
+    private ?string $prefix = null;
+
+    private __construct(string $name, ?string $registryUrl, ?string $tag) {
+        $name = trim($name, '/');
+        if (null !== $registryUrl) {
+            $registryUrl = rtrim($registryUrl, '/');
+        }
+
+        $this->name = $name;
+        $this->registryUrl = $registryUrl;
+        $this->tag = $tag;
+    }
+
+    imageName(): string => $this->name;
+
+    registryUrl(): ?string => $this->registryUrl;
+
+    tag(): ?string => $this->tag;
+
+    fullName(): string {
+        $fullName = '';
+        if ($this->registryUrl) {
+            $fullName .= $this->registryUrl . '/';
+        }
+        if (null !== $this->prefix) {
+            $fullName .= $this->prefix . '/';
+        }
+        $fullName .= $this->name;
+        if (null !== $this->tag) {
+            $separator = ':';
+            if (str_contains($this->tag, ':')) {
+                $separator = '@';
+            }
+
+            $fullName .= $separator . $this->tag;
+        }
+
+        return $fullName;
+    }
+
+    setName(string $name): static {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    setRegistryUrl(string $registryUrl): static {
+        $this->registryUrl = $registryUrl;
+
+        return $this;
+    }
+
+    setTag(string $tag): static {
+        $this->tag = $tag;
+
+        return $this;
+    }
+
+    setPrefix(string $prefix): static {
+        $this->prefix = trim($prefix, '/');
+
+        return $this;
+    }
+
+    static fromName(string $name): static => new static($name, null, null);
+
+    static fromString(string $string): static {
+        if (preg_match('#(.+)/(.+):(.+)#', $string, $matches)) {
+            return new static($matches[2], $matches[1], $matches[3]);
+        }
+        if (preg_match('#(.+):(.+)#', $string, $matches)) {
+            return new static($matches[1], null, $matches[2]);
+        }
+        return new static($string, null, null);
+    }
+}

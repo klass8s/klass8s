@@ -1,0 +1,24 @@
+namespace Klass8s\Core\Pod\Volume;
+
+use K8Schema\Api\Core\V1\Volume;
+use K8Schema\Api\Core\V1\VolumeList;
+
+class VolumesMap
+{
+    /** The volumes by name: an array, not a map, since PHP keys a numeric name as an int. */
+    private array<Volume> $volumes = [];
+
+    private __construct(VolumeList $list) {
+        foreach ($list->all() as $volume) {
+            $this->volumes[$volume->getName()] = $volume;
+        }
+    }
+
+    has(string $name): bool => array_key_exists($name, $this->volumes);
+
+    get(string $name): Volume => $this->volumes[$name];
+
+    names(): list<string> => array_map(static fn(Volume $volume): string => $volume->getName(), array_values($this->volumes));
+
+    static fromVolumeList(VolumeList $list): static => new static($list);
+}

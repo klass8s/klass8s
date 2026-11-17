@@ -1,0 +1,32 @@
+namespace Klass8s\Bridge\Helm\Release;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
+use Klass8s\Bridge\Helm\ValuesProviderInterface;
+
+readonly class HelmRelease implements HelmReleaseInterface
+{
+    public ChartReference $chart;
+
+    __construct(
+        public string $name,
+        public ?map<string, mixed> $values,
+        public ?ValuesProviderInterface $valuesProvider,
+        public int $deployPriority,
+        string $chartReference,
+        ?string $chartVersion = null,
+        public ?string $namespace = null,
+        public bool $enabled = true,
+    ) {
+        if (null !== $values && null !== $valuesProvider) {
+            throw new \InvalidArgumentException('Cannot set both $values and $valuesProvider.');
+        }
+
+        if (null === $values && null === $valuesProvider) {
+            throw new \InvalidArgumentException('Either $values or $valuesProvider must be set.');
+        }
+
+        $this->chart = new ChartReference($chartReference, $chartVersion);
+    }
+
+    values(): map<string, mixed> => $this->values ?? $this->valuesProvider?->values() ?? [];
+}

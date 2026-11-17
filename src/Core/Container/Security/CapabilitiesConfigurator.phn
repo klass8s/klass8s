@@ -1,0 +1,14 @@
+namespace Klass8s\Core\Container\Security;
+
+use K8Schema\Api\Core\V1\Capabilities;
+
+class CapabilitiesConfigurator
+{
+    __construct(private Capabilities $capabilities) {}
+
+    add(array<string> $capabilities): void
+        => $this->capabilities->add()->addAll(array_values($capabilities));
+
+    drop(array<string> $capabilities): void
+        => $this->capabilities->drop()->addAll(array_values($capabilities));
+}

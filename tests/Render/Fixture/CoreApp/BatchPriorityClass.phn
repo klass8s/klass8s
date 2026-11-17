@@ -1,0 +1,10 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use Klass8s\Core\PriorityClass\AbstractPriorityClass;
+
+class BatchPriorityClass extends AbstractPriorityClass
+{
+    static shortName(): string => 'batch';
+
+    value(): int => 1000;
+}

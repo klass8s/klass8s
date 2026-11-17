@@ -1,0 +1,16 @@
+namespace Klass8s\Core\Persistence;
+
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+interface PersistentVolumeClaimInterface extends ManifestInterface
+{
+    accessModes(): iterable<AccessMode>;
+    dataSource(): ?ManifestClassReference;
+    resources(PvcResourcesConfigurator $resources): void;
+    selector(SelectorConfigurator $selector): void;
+    storageClassName(): ?string;
+    volumeMode(): VolumeMode;
+    volumeName(): ?string;
+}

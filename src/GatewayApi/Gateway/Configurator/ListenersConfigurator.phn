@@ -1,0 +1,20 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\GenericList;
+
+final readonly class ListenersConfigurator
+{
+    __construct(
+        private GenericList<\ArrayObject<string, mixed>> $data,
+        private AppInterface $app,
+    ) {}
+
+    add(string $name): ListenerConfigurator {
+        $listenerData = new \ArrayObject<string, mixed>();
+        $listenerData['name'] = $name;
+        $this->data->add($listenerData);
+
+        return new ListenerConfigurator($listenerData, $this->app);
+    }
+}

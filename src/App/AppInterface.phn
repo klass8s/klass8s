@@ -1,0 +1,26 @@
+namespace Klass8s\App;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use K8Schema\APIResourceInterface;
+use Klass8s\Bundle\DependencyInjection\ManifestConfig;
+use Klass8s\Config\ConfigurableInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\MetadataAwareInterface;
+
+interface AppInterface extends ConfigurableInterface
+{
+    static name(): string;
+
+    /** The alias with which the app was registered in AppRegistry. */
+    alias(): string;
+
+    deployPriority(): int;
+
+    /** @param $classToValidateAgainst - If set, $manifestClass will be ensured to be a subclass of this */
+    resourceNameFromManifestClass(class<ManifestInterface> $manifestClass, ?class<ManifestInterface> $classToValidateAgainst = null): string;
+    resourceNameFromShortName(string $shortName): string;
+    manifestConfig(ManifestInterface $manifest): ManifestConfig;
+    getManifestByClass<T of ManifestInterface>(class<T> $manifestClass): ?T;
+    ownsManifestClass(class<ManifestInterface> $manifestClass): bool;
+    static configureMeta(MetadataAwareInterface $metadataAware, APIResourceInterface $apiObject): ObjectMeta;
+}

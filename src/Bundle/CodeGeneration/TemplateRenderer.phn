@@ -1,0 +1,25 @@
+namespace Klass8s\Bundle\CodeGeneration;
+
+/** Renders the PHP templates the make commands write classes from: a template reads its variables from $variables. */
+final readonly class TemplateRenderer
+{
+    __construct(private string $templatesDir) {}
+
+    render(string $templateName, map<string, string> $variables): string {
+        $template = $this->templatesDir . DIRECTORY_SEPARATOR . $templateName;
+        if (!file_exists($template)) {
+            throw new \InvalidArgumentException(sprintf('Template "%s" does not exists', $templateName));
+        }
+
+        ob_start();
+        try {
+            self::evaluate($template, $variables);
+        } finally {
+            $code = (string) ob_get_clean();
+        }
+
+        return $code;
+    }
+
+    private static evaluate(string $template, map<string, string> $variables): void => require $template;
+}

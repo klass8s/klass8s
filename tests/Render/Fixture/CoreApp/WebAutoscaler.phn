@@ -1,0 +1,28 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use K8Schema\Api\Autoscaling\V2\CrossVersionObjectReference;
+use Klass8s\Core\Autoscaling\AbstractHorizontalPodAutoscaler;
+use Klass8s\Core\Autoscaling\Configurator\MetricsConfigurator;
+use Klass8s\Core\Autoscaling\Metric\TypedMetricTarget;
+use Klass8s\Core\Container\Resources\ContainerResource;
+use Klass8s\Manifest\Reference\VersionedManifestClassReference;
+
+/** One metric of each target type. */
+class WebAutoscaler extends AbstractHorizontalPodAutoscaler
+{
+    static shortName(): string => 'web';
+
+    maxReplicas(): int => 4;
+
+    scaleTargetRef(): VersionedManifestClassReference|CrossVersionObjectReference {
+        $ref = new CrossVersionObjectReference('Deployment', 'core-placed');
+        $ref->setApiVersion('apps/v1');
+
+        return $ref;
+    }
+
+    metrics(MetricsConfigurator $metrics): void => $metrics
+        ->addResourceMetric(ContainerResource::CPU, TypedMetricTarget::utilization(80))
+        ->addPodsMetric('requests_per_second', TypedMetricTarget::averageValue('10'))
+        ->addExternalMetric('queue_depth', TypedMetricTarget::value('100'));
+}

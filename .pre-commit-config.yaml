@@ -1,13 +1,20 @@
 repos:
   - repo: local
     hooks:
+      # Both hooks check the whole repository and read no file names, so each runs once and
+      # alone: pre-commit would otherwise start one per batch of staged files, in parallel, and
+      # the batches would race each other's builds.
       - id: check-cs
         name: Check code style before commit
         entry: bash -c 'composer cs:check'
         language: system
+        pass_filenames: false
+        require_serial: true
         stages: [commit]
       - id: tests
         name: Run tests before commit
         entry: bash -c 'composer test:bundle'
         language: system
+        pass_filenames: false
+        require_serial: true
         stages: [commit]

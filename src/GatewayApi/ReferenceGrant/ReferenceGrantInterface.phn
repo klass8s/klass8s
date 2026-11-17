@@ -1,0 +1,12 @@
+namespace Klass8s\GatewayApi\ReferenceGrant;
+
+use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantFromConfigurator;
+use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantToConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ReferenceGrantInterface extends ManifestInterface
+{
+    from(ReferenceGrantFromConfigurator $from): void;
+
+    to(ReferenceGrantToConfigurator $to): void;
+}

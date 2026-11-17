@@ -1,0 +1,44 @@
+namespace Klass8s\Registry\Query;
+
+use Klass8s\Manifest\FullNameAwareInterface;
+use Klass8s\Manifest\ManifestInterface;
+
+/**
+ * The manifests of one app, narrowed by filters. A filter returns a new query; instancesOf()
+ * narrows the type of the manifests the query yields as well.
+ */
+final readonly class ManifestsQuery<out M of ManifestInterface>
+{
+    /** @param $manifests The manifests keyed `<kind>_<name>`, as the registry keeps them */
+    __construct(private map<string, M> $manifests) {}
+
+    instancesOf<T of ManifestInterface>(class<T> $className): ManifestsQuery<T> {
+        // A manifest narrowed by `instanceof $className` is an M&T, which phn 0.7 does not accept
+        // as a T: without the declaration the map would be inferred as map<string, M&T> and refused.
+        /** @var map<string, T> $instances */
+        $instances = [];
+        foreach ($this->manifests as $key => $manifest) {
+            if ($manifest instanceof $className) {
+                $instances[$key] = $manifest;
+            }
+        }
+
+        return new self($instances);
+    }
+
+    instanceName(string $name): ManifestsQuery<M> => new self(array_filter(
+        $this->manifests,
+        fn(M $manifest): bool => !$manifest instanceof FullNameAwareInterface && $name === $manifest->computedShortName,
+    ));
+
+    /** The manifests keyed `<kind>_<name>`. */
+    execute(): map<string, M> => $this->manifests;
+
+    getFirstResult(): ?M {
+        foreach ($this->manifests as $manifest) {
+            return $manifest;
+        }
+
+        return null;
+    }
+}

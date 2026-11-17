@@ -1,0 +1,23 @@
+namespace Klass8s\Core\StatefulSet;
+
+use K8Schema\Api\Apps\V1\StatefulSet;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Core\Persistence\PersistentVolumeClaimInterface;
+use Klass8s\Core\Pod\PodTemplateSpecInterface;
+use Klass8s\Core\StatefulSet\UpdateStrategy\UpdateStrategyConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+interface StatefulSetInterface extends PodTemplateSpecInterface, ManifestInterface
+{
+    podManagementPolicy(): ?PodManagementPolicy;
+    replicas(): int;
+    revisionHistoryLimit(): int;
+    selector(SelectorConfigurator $selector): void;
+    serviceName(): ManifestClassReference;
+    updateStrategy(UpdateStrategyConfigurator $updateStrategy): void;
+
+    volumeClaimTemplates(): iterable<PersistentVolumeClaimInterface>;
+
+    configureStatefulSet(StatefulSet $statefulSet): void;
+}

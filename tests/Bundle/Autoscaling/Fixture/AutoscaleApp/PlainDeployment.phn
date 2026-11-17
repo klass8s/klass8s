@@ -1,0 +1,13 @@
+namespace Klass8s\Tests\Bundle\Autoscaling\Fixture\AutoscaleApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+class PlainDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'plain';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    replicas(): int => 2;
+}

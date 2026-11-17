@@ -1,0 +1,34 @@
+namespace Klass8s\Tests\GatewayApi\Fixture\GatewayApp;
+
+use Klass8s\GatewayApi\Enum\ProtocolType;
+use Klass8s\GatewayApi\Gateway\AbstractGateway;
+use Klass8s\GatewayApi\Gateway\Configurator\AddressesConfigurator;
+use Klass8s\GatewayApi\Gateway\Configurator\ListenersConfigurator;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+class TestGateway extends AbstractGateway
+{
+    static shortName(): string => 'main';
+
+    gatewayClass(): string|ManifestClassReference => new ManifestClassReference('gateway', TestGatewayClass::class);
+
+    listeners(ListenersConfigurator $listeners): void {
+        $listeners->add('http')
+            ->port(80)
+            ->protocol(ProtocolType::HTTP)
+            ->hostname('*.example.com')
+            ->allowedRoutes()
+                ->fromSameNamespace()
+                ->allowHTTPRoutes();
+
+        $listeners->add('https')
+            ->port(443)
+            ->protocol(ProtocolType::HTTPS)
+            ->hostname('*.example.com')
+            ->tls()
+                ->terminate()
+                ->certificateRef('wildcard-cert');
+    }
+
+    addresses(AddressesConfigurator $addresses): void => $addresses->addIPAddress('10.0.0.1');
+}

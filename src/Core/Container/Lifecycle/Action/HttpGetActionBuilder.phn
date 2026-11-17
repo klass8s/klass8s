@@ -1,0 +1,40 @@
+namespace Klass8s\Core\Container\Lifecycle\Action;
+
+use K8Schema\Api\Core\V1\HTTPGetAction;
+use K8Schema\Api\Core\V1\HTTPHeader;
+
+class HttpGetActionBuilder
+{
+    __construct(private HTTPGetAction $action) {}
+
+    addHeader(string $name, string $value): static {
+        $header = new HTTPHeader($name, $value);
+        $this->action->httpHeaders()->add($header);
+
+        return $this;
+    }
+
+    setHost(string $host): static {
+        $this->action->setHost($host);
+
+        return $this;
+    }
+
+    setPath(string $path): static {
+        $this->action->setPath($path);
+
+        return $this;
+    }
+
+    setPort(string|int $port): static {
+        $this->action->setPort($port);
+
+        return $this;
+    }
+
+    setScheme(string $scheme): static {
+        $this->action->setScheme($scheme);
+
+        return $this;
+    }
+}

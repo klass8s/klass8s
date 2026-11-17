@@ -1,0 +1,10 @@
+namespace Klass8s\Bundle\Checksum;
+
+class ChecksumAnnotation
+{
+    __construct(private string $name, private string $value) {}
+
+    name(): string => $this->name;
+
+    value(): string => $this->value;
+}

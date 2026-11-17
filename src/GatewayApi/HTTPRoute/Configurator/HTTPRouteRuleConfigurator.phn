@@ -1,0 +1,61 @@
+namespace Klass8s\GatewayApi\HTTPRoute\Configurator;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Collection\NestedData;
+
+final class HTTPRouteRuleConfigurator
+{
+    __construct(
+        private \ArrayObject<string, mixed> $data,
+        private readonly AppInterface $app,
+    ) {}
+
+    name(string $name): static {
+        $this->data['name'] = $name;
+
+        return $this;
+    }
+
+    match(): HTTPRouteMatchConfigurator {
+        $matchData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'matches')->add($matchData);
+
+        return new HTTPRouteMatchConfigurator($matchData);
+    }
+
+    filter(): HTTPRouteFilterConfigurator {
+        $filterData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'filters')->add($filterData);
+
+        return new HTTPRouteFilterConfigurator($filterData);
+    }
+
+    backendRef(): HTTPBackendRefConfigurator {
+        $refData = new \ArrayObject<string, mixed>();
+        NestedData::list($this->data, 'backendRefs')->add($refData);
+
+        return new HTTPBackendRefConfigurator($refData, $this->app);
+    }
+
+    timeout(string $duration): static {
+        NestedData::object($this->data, 'timeouts')['request'] = $duration;
+
+        return $this;
+    }
+
+    backendTimeout(string $duration): static {
+        NestedData::object($this->data, 'timeouts')['backendRequest'] = $duration;
+
+        return $this;
+    }
+
+    retry(list<int> $codes, int $attempts, ?string $backoff = null): static {
+        $this->data['retry'] = array_filter([
+            'codes' => $codes,
+            'attempts' => $attempts,
+            'backoff' => $backoff,
+        ], static fn(mixed $v): bool => null !== $v);
+
+        return $this;
+    }
+}

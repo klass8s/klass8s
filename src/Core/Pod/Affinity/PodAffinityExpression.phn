@@ -1,0 +1,22 @@
+namespace Klass8s\Core\Pod\Affinity;
+
+use Klass8s\Core\LabelSelector\LabelSelectorExpression;
+
+class PodAffinityExpression extends LabelSelectorExpression
+{
+    const string TARGET_LABEL = 'label';
+    const string TARGET_FIELD = 'field';
+
+    protected string $target;
+
+    protected __construct(string $target, string $key) {
+        $this->target = $target;
+        parent::__construct($key);
+    }
+
+    target(): string => $this->target;
+
+    static field(string $key): static => new static(self::TARGET_FIELD, $key);
+
+    static label(string $key): static => new static(self::TARGET_LABEL, $key);
+}

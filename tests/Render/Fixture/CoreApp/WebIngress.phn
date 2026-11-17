@@ -1,0 +1,15 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use Klass8s\Core\Ingress\AbstractIngress;
+use Klass8s\Core\Ingress\Configurator\IngressRulesConfigurator;
+use Klass8s\Core\Ingress\Http\PathType;
+
+class WebIngress extends AbstractIngress
+{
+    static shortName(): string => 'web';
+
+    rules(IngressRulesConfigurator $rules): void {
+        $rules->addHttpRule('example.dev')->addPath(PathType::Prefix, '/')->backend()->fromServiceNameAndPort('web', '8080');
+        $rules->addHttpRule('admin.example.dev')->addPath(PathType::Prefix, '/')->backend()->fromServiceNameAndPort('web', 'http');
+    }
+}

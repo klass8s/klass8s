@@ -1,0 +1,68 @@
+namespace Klass8s\Core\LabelSelector;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\LabelSelectorRequirement;
+
+class LabelSelectorExpression
+{
+    protected ?Operator $operator = null;
+    protected ?list<string> $values = null;
+
+    protected __construct(protected string $key) {}
+
+    toLabelSelectorRequirement(): LabelSelectorRequirement {
+        $selector = new LabelSelectorRequirement($this->key, $this->operator());
+        if (null !== $this->values) {
+            $selector->values()->addAll($this->values);
+        }
+
+        return $selector;
+    }
+
+    in(array<string> $values): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::In;
+        $this->values = array_values($values);
+
+        return $this;
+    }
+
+    notIn(array<string> $values): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::NotIn;
+        $this->values = array_values($values);
+
+        return $this;
+    }
+
+    exists(): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::Exists;
+
+        return $this;
+    }
+
+    doesNotExist(): static {
+        $this->ensureImmutableOperator();
+        $this->operator = Operator::DoesNotExist;
+
+        return $this;
+    }
+
+    static withKey(string $key): static => new static($key);
+
+    protected operator(): string {
+        if (null === $this->operator) {
+            throw new \LogicException(sprintf('Operator is not set on %s instance for key "%s"', $this::class, $this->key));
+        }
+
+        return $this->operator->value;
+    }
+
+    protected ensureImmutableOperator(): void {
+        if (null === $this->operator) {
+            return;
+        }
+
+        throw new \LogicException(sprintf('Repeated attempt to set operator on %s instance. Rule must be set only once.', $this::class));
+    }
+}

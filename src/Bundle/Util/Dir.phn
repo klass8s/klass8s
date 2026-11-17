@@ -1,0 +1,11 @@
+namespace Klass8s\Bundle\Util;
+
+class Dir
+{
+    /** Creates the directory and its parents, unless it exists. */
+    static create(string $dir): void {
+        if (!is_dir($dir) && !@mkdir($dir, 0o777, true) && !is_dir($dir)) {
+            throw new \RuntimeException(sprintf('Can\'t create directory "%s": %s', $dir, error_get_last()['message'] ?? 'unknown error'));
+        }
+    }
+}

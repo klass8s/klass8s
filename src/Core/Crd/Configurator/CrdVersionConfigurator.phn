@@ -1,0 +1,48 @@
+namespace Klass8s\Core\Crd\Configurator;
+
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceColumnDefinition;
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceDefinitionVersion;
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceValidation;
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\SelectableField;
+use Klass8s\Core\Crd\JsonSchemaArray;
+
+class CrdVersionConfigurator
+{
+    __construct(
+        private readonly CustomResourceDefinitionVersion $version,
+    ) {}
+
+    /** @param $schema - Raw OpenAPI v3 schema array */
+    openApiV3Schema(map<string, mixed> $schema): static {
+        $validation = new CustomResourceValidation();
+        $validation->setOpenAPIV3Schema(new JsonSchemaArray($schema));
+        $this->version->setSchema($validation);
+
+        return $this;
+    }
+
+    deprecated(bool $deprecated = true, ?string $warning = null): static {
+        $this->version->setDeprecated($deprecated);
+        if (null !== $warning) {
+            $this->version->setDeprecationWarning($warning);
+        }
+
+        return $this;
+    }
+
+    addPrinterColumn(string $name, string $type, string $jsonPath): PrinterColumnConfigurator {
+        $column = new CustomResourceColumnDefinition($jsonPath, $name, $type);
+        $this->version->additionalPrinterColumns()->add($column);
+
+        return new PrinterColumnConfigurator($column);
+    }
+
+    subresources(): SubresourcesConfigurator => new SubresourcesConfigurator($this->version);
+
+    addSelectableField(string $jsonPath): static {
+        $field = new SelectableField($jsonPath);
+        $this->version->selectableFields()->add($field);
+
+        return $this;
+    }
+}

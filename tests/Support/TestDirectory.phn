@@ -1,0 +1,30 @@
+namespace Klass8s\Tests\Support;
+
+use Symfony\Component\Filesystem\Filesystem;
+
+/**
+ * A directory of this run of the suite, under the system's temp dir and removed when the run
+ * ends. The test kernels cache their containers and write their manifests there, so neither a
+ * second checkout nor a later run ever loads a container another one compiled.
+ */
+final class TestDirectory
+{
+    private static ?string $root = null;
+
+    private __construct() {}
+
+    static path(string $name): string => self::root() . '/' . $name;
+
+    private static root(): string {
+        if (null === self::$root) {
+            $root = sys_get_temp_dir() . '/klass8s-tests-' . getmypid() . '-' . bin2hex(random_bytes(4));
+            new Filesystem()->mkdir($root);
+            register_shutdown_function(static function () use ($root): void {
+                new Filesystem()->remove($root);
+            });
+            self::$root = $root;
+        }
+
+        return self::$root;
+    }
+}

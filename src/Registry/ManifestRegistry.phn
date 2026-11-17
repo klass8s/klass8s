@@ -1,0 +1,44 @@
+namespace Klass8s\Registry;
+
+use Klass8s\Manifest\FullNameAwareInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Proxy\ProxyFactory;
+use Klass8s\Registry\Query\ManifestsQuery;
+use Klass8s\Runtime\ManifestRuntimeStatusResolverInterface;
+
+final class ManifestRegistry
+{
+    /** The proxied manifests of each app, by kind and name. */
+    private map<string, map<string, ManifestInterface>> $manifests = [];
+
+    __construct(
+        private readonly ProxyFactory $proxyFactory,
+        private readonly ManifestRuntimeStatusResolverInterface $statusResolver,
+    ) {}
+
+    add(ManifestInterface $manifest): void {
+        $appAlias = $manifest->app->alias();
+        $this->manifests[$appAlias] ??= [];
+
+        $identifier = $manifest instanceof FullNameAwareInterface
+            ? $manifest->fullName()
+            : $manifest->computedShortName;
+        $key = sprintf('%s_%s', $manifest::kind(), $identifier);
+        if (array_key_exists($key, $this->manifests[$appAlias])) {
+            $existingManifest = $this->manifests[$appAlias][$key];
+            if ($existingManifest === $manifest) {
+                return;
+            }
+
+            throw new \LogicException(sprintf('Manifests instances of classes "%s" and "%s" have the same kind and instance name, which is forbidden.', $existingManifest::className(), $manifest::class));
+        }
+
+        if (!$this->statusResolver->isClassEnabled(new \ReflectionClass($manifest))) {
+            return;
+        }
+
+        $this->manifests[$appAlias][$key] = $this->proxyFactory->makeProxy($manifest);
+    }
+
+    query(string $appAlias): ManifestsQuery<ManifestInterface> => new ManifestsQuery($this->manifests[$appAlias] ?? []);
+}

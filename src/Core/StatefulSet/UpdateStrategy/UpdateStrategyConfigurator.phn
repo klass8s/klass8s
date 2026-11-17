@@ -1,0 +1,19 @@
+namespace Klass8s\Core\StatefulSet\UpdateStrategy;
+
+use K8Schema\Api\Apps\V1\StatefulSetUpdateStrategy;
+
+class UpdateStrategyConfigurator
+{
+    private const string TYPE_ON_DELETE = 'OnDelete';
+    private const string TYPE_ROLLING_UPDATE = 'RollingUpdate';
+
+    __construct(private StatefulSetUpdateStrategy $strategy) {}
+
+    onDelete(): void => $this->strategy->setType(self::TYPE_ON_DELETE);
+
+    rollingUpdate(): RollingUpdateStrategyConfigurator {
+        $this->strategy->setType(self::TYPE_ROLLING_UPDATE);
+
+        return new RollingUpdateStrategyConfigurator($this->strategy->rollingUpdate());
+    }
+}

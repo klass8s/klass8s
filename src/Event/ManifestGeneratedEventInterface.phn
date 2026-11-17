@@ -1,0 +1,11 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ManifestGeneratedEventInterface
+{
+    manifest(): ManifestInterface;
+
+    apiResource(): APIResourceInterface;
+}

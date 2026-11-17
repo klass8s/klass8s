@@ -1,0 +1,15 @@
+namespace Klass8s\Event;
+
+use Klass8s\Manifest\ManifestInterface;
+use Proximity\ProxyInterface;
+
+class ManifestMethodEvent extends AbstractProxyableMethodEvent<ManifestInterface&ProxyInterface>
+{
+    const string NAME = 'klass8s.manifest.before_method';
+
+    __construct(ManifestInterface&ProxyInterface $proxyable, string $methodName, map<string, mixed> $methodParams) {
+        parent::__construct($proxyable, $methodName, $methodParams);
+    }
+
+    manifest(): ManifestInterface => $this->proxyable;
+}

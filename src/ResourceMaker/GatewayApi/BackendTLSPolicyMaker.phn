@@ -1,0 +1,52 @@
+namespace Klass8s\ResourceMaker\GatewayApi;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use Klass8s\Collection\GenericList;
+use Klass8s\Event\BackendTLSPolicyGeneratedEvent;
+use Klass8s\Event\Events;
+use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyApiResource;
+use Klass8s\GatewayApi\BackendTLSPolicy\BackendTLSPolicyInterface;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\OptionsConfigurator;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TargetRefsConfigurator;
+use Klass8s\GatewayApi\BackendTLSPolicy\Configurator\TLSValidationConfigurator;
+use Klass8s\ResourceMaker\AbstractResourceMaker;
+
+final class BackendTLSPolicyMaker extends AbstractResourceMaker<BackendTLSPolicyInterface, BackendTLSPolicyApiResource>
+{
+    protected supportedClass(): class<BackendTLSPolicyInterface> => BackendTLSPolicyInterface::class;
+
+    protected makeResource(BackendTLSPolicyInterface $manifest): BackendTLSPolicyApiResource {
+        $data = new \ArrayObject<string, mixed>();
+        $data['apiVersion'] = $manifest::apiVersion();
+        $data['kind'] = $manifest::kind();
+        $data['metadata'] = new ObjectMeta();
+        $data['spec'] = new \ArrayObject<string, mixed>();
+
+        $app = $manifest->app;
+
+        $data['spec']['targetRefs'] = new GenericList<map<string, string>>();
+        $targetRefs = new TargetRefsConfigurator($data['spec']['targetRefs'], $app);
+        $manifest->targetRefs($targetRefs);
+
+        $validation = new \ArrayObject<string, mixed>();
+        $data['spec']['validation'] = $validation;
+        $manifest->validation(new TLSValidationConfigurator($validation, $app));
+
+        $options = new \ArrayObject<string, mixed>();
+        $manifest->options(new OptionsConfigurator($options));
+        if ($options->count() > 0) {
+            $data['spec']['options'] = $options;
+        }
+
+        $resource = new BackendTLSPolicyApiResource($data);
+        $app::configureMeta($manifest, $resource);
+
+        Events::dispatch(
+            $this->dispatcher,
+            new BackendTLSPolicyGeneratedEvent($manifest, $resource, $app),
+            BackendTLSPolicyGeneratedEvent::NAME,
+        );
+
+        return $resource;
+    }
+}

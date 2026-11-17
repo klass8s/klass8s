@@ -1,0 +1,12 @@
+namespace Klass8s\Tests\Render\Fixture\ConfigApp;
+
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\ConfigMap\AbstractConfigMap;
+
+/** Configured `virtual`: something outside this project renders it. */
+class SharedConfigMap extends AbstractConfigMap
+{
+    static shortName(): string => 'shared';
+
+    data(StringMap $data): void => $data->add('region', 'eu');
+}

@@ -1,0 +1,26 @@
+namespace Klass8s\Autoscaling\Keda\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Autoscaling\Keda\API\ScaledJob\ScaledJob;
+use Klass8s\Autoscaling\Keda\Manifest\ScaledJob\ScaledJobInterface;
+use Klass8s\Event\ManifestGeneratedEventInterface;
+
+readonly class ScaledJobGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.scaled_job';
+
+    __construct(
+        private ScaledJobInterface $manifest,
+        private ScaledJob $apiResource,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): ScaledJobInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->apiResource;
+
+    scaledJob(): ScaledJob => $this->apiResource;
+
+    app(): AppInterface => $this->app;
+}

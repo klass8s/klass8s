@@ -1,0 +1,44 @@
+namespace Klass8s\Core\Pod;
+
+use K8Schema\Api\Core\V1\ObjectFieldSelector;
+
+class PodField
+{
+    private const string METADATA_NAME = 'metadata.name';
+    private const string METADATA_NAMESPACE = 'metadata.namespace';
+    private const string METADATA_LABELS = 'metadata.labels';
+    private const string METADATA_ANNOTATIONS = 'metadata.annotations';
+    private const string METADATA_UID = 'metadata.uid';
+    private const string NODE_NAME = 'spec.nodeName';
+    private const string SERVICE_ACCOUNT_NAME = 'spec.serviceAccountName';
+    private const string HOST_IP = 'status.hostIP';
+    private const string POD_IP = 'status.podIP';
+
+    private ObjectFieldSelector $selector;
+
+    private __construct(string $fieldPath) {
+        $this->selector = new ObjectFieldSelector($fieldPath);
+    }
+
+    setApiVersion(string $apiVersion): void => $this->selector->setApiVersion($apiVersion);
+
+    selector(): ObjectFieldSelector => $this->selector;
+
+    static metadataName(): static => new static(self::METADATA_NAME);
+
+    static metadataNamespace(): static => new static(self::METADATA_NAMESPACE);
+
+    static metadataLabels(): static => new static(self::METADATA_LABELS);
+
+    static metadataAnnotations(): static => new static(self::METADATA_ANNOTATIONS);
+
+    static metadataUid(): static => new static(self::METADATA_UID);
+
+    static nodeName(): static => new static(self::NODE_NAME);
+
+    static serviceAccountName(): static => new static(self::SERVICE_ACCOUNT_NAME);
+
+    static hostIp(): static => new static(self::HOST_IP);
+
+    static podIp(): static => new static(self::POD_IP);
+}

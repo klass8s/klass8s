@@ -1,0 +1,60 @@
+namespace Klass8s\Bundle\EventListener\Traits;
+
+use Klass8s\Bundle\EnvManagement\Attribute\AbstractMethodDecoratorAttribute;
+use Klass8s\Bundle\Util\AttributesUtil;
+use Klass8s\Proxy\ProxyableInterface;
+use Klass8s\Proxy\ProxyManager;
+use Klass8s\Util\SignatureChecker;
+
+trait ApplyWrappersTrait
+{
+    /**
+     * Calls the methods of the proxyable that an attribute of this class declares as wrappers
+     * of the method called, in the current environment.
+     *
+     * @param $returnValue - Replaced with what a wrapper returns, when its attribute says so
+     */
+    private applyWrappers<A of AbstractMethodDecoratorAttribute>(ProxyableInterface $proxyable, string $methodName, map<string, mixed> $params, class<A> $attributeClass, mixed &$returnValue): void {
+        $class = ProxyManager::unwrapClass($proxyable);
+        foreach ($class->getMethods() as $method) {
+            if ($method->getName() === $methodName) {
+                continue;
+            }
+            $attributes = AttributesUtil::getFunctionAttributes($method, $attributeClass, true);
+            if (0 === count($attributes)) {
+                continue;
+            }
+
+            $isWrapper = false;
+            $replacesReturnValue = false;
+            foreach ($attributes as $attribute) {
+                $attr = $attribute->newInstance();
+                if (!in_array($this->currentEnv, $attr->envs(), true)) {
+                    continue;
+                }
+                if ($methodName === $attr->methodName()) {
+                    $isWrapper = true;
+                    $replacesReturnValue = $attr->replacesReturnValue();
+                    break;
+                }
+            }
+            if (!$isWrapper) {
+                continue;
+            }
+
+            if (!$method->isPublic()) {
+                throw new \LogicException(sprintf('Method "%s::%s()" uses attribute "%s" and therefore must be public', $class->getName(), $method->getName(), $attributeClass));
+            }
+
+            $originalMethod = $class->getMethod($methodName);
+            if (!SignatureChecker::check($originalMethod, $method)) {
+                throw new \LogicException(sprintf('Method "%s::%s()" uses attribute "%s" to wrap method "%s()", but has another signature', $class->getName(), $method->getName(), $attributeClass, $methodName));
+            }
+
+            $result = $method->invoke($proxyable, ...$params);
+            if ($replacesReturnValue) {
+                $returnValue = $result;
+            }
+        }
+    }
+}

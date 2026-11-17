@@ -1,0 +1,37 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Core\V1\ConfigMap;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Event\ConfigMapGeneratedEvent;
+use Klass8s\Event\Events;
+use Klass8s\ResourceMaker\Traits\PrefixMapKeysTrait;
+use Klass8s\Value\StringMapProxy;
+
+final class ConfigMapMaker extends AbstractResourceMaker<ConfigMapInterface, ConfigMap>
+{
+    use PrefixMapKeysTrait;
+
+    protected makeResource(ConfigMapInterface $manifest): ConfigMap {
+        $configMap = new ConfigMap();
+
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $configMap);
+        $data = StringMapProxy::make($configMap->data());
+        $manifest->data($data);
+        $binaryData = $configMap->binaryData();
+        $manifest->binaryData($binaryData);
+
+        if ($prefix = $manifest->keysPrefix()) {
+            $this->prefixMapKeys($prefix, $data);
+            $this->prefixMapKeys($prefix, $binaryData);
+        }
+
+        $manifest->configureConfigMap($configMap);
+
+        Events::dispatch($this->dispatcher, new ConfigMapGeneratedEvent($manifest, $configMap, $app), ConfigMapGeneratedEvent::NAME);
+
+        return $configMap;
+    }
+
+    protected supportedClass(): class<ConfigMapInterface> => ConfigMapInterface::class;
+}

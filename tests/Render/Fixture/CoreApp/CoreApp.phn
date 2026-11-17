@@ -1,0 +1,8 @@
+namespace Klass8s\Tests\Render\Fixture\CoreApp;
+
+use Klass8s\App\AbstractApp;
+
+class CoreApp extends AbstractApp
+{
+    static name(): string => 'core';
+}

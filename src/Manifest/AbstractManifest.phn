@@ -1,0 +1,51 @@
+namespace Klass8s\Manifest;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Config\ConfigAwareTrait;
+use Klass8s\Util\StringUtil;
+use Proximity\ProxyInterface;
+
+abstract class AbstractManifest implements ManifestInterface
+{
+    use ConfigAwareTrait;
+
+    protected(set) AppInterface $app;
+
+    public string $computedShortName {
+        get => match (true) {
+            $this instanceof FullNameAwareInterface => throw new \LogicException(sprintf('$computedShortName must not be accessed on a full-name aware manifest "%s".', static::className())),
+            $this instanceof ManifestTemplateInterface => $this->dynamicShortName,
+            default => $this::shortName(),
+        };
+    }
+
+    public string $computedFullName {
+        get {
+            if ($this instanceof FullNameAwareInterface) {
+                return $this->fullName();
+            }
+
+            return $this->app->resourceNameFromShortName($this->computedShortName);
+        }
+    }
+
+    public string $fileName {
+        get {
+            if ($this instanceof FullNameAwareInterface) {
+                $name = $this->fullName();
+            } elseif (!$this->computedShortName) {
+                throw new \LogicException(sprintf('Short name cannot be empty in class "%s".', $this::className()));
+            } else {
+                $name = $this->computedShortName;
+            }
+
+            return $name . '.' . StringUtil::asDNSSubdomain($this::kind());
+        }
+    }
+
+    metadata(MetadataConfigurator $meta): void {}
+
+    setApp(AppInterface $app): void => $this->app = $app;
+
+    static className(): string => is_a(static::class, ProxyInterface::class, true) ? (string) get_parent_class(static::class) : static::class;
+}

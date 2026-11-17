@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\GatewayApi\ReferenceGrant\ReferenceGrantApiResource;
+use Klass8s\GatewayApi\ReferenceGrant\ReferenceGrantInterface;
+
+final readonly class ReferenceGrantGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.reference_grant';
+
+    __construct(
+        private ReferenceGrantInterface $manifest,
+        private ReferenceGrantApiResource $resource,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): ReferenceGrantInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->resource;
+
+    referenceGrant(): ReferenceGrantApiResource => $this->resource;
+
+    app(): AppInterface => $this->app;
+}

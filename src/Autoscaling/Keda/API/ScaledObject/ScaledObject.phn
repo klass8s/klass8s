@@ -1,0 +1,110 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledObject;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use K8Schema\APIResourceInterface;
+
+class ScaledObject implements APIResourceInterface
+{
+    const string API_VERSION = 'keda.sh/v1alpha1';
+    const string KIND = 'ScaledObject';
+
+    private ObjectMeta $meta;
+    private ?ScaleTargetReference $scaleTargetRef;
+    private int $pollingInterval = 30;
+    private int $cooldownPeriod = 300;
+    private ?int $idleReplicaCount = null;
+    private int $minReplicaCount = 0;
+    private int $maxReplicaCount = 100;
+    private ?Fallback $fallback = null;
+    private AdvancedSettings $advanced;
+
+    private list<Trigger> $triggers = [];
+
+    __construct() {
+        $this->meta = new ObjectMeta();
+        $this->advanced = new AdvancedSettings();
+    }
+
+    metadata(): ObjectMeta => $this->meta;
+
+    getScaleTargetRef(): ?ScaleTargetReference => $this->scaleTargetRef;
+
+    setScaleTargetRef(ScaleTargetReference $scaleTargetRef): static {
+        $this->scaleTargetRef = $scaleTargetRef;
+
+        return $this;
+    }
+
+    getPollingInterval(): int => $this->pollingInterval;
+
+    setPollingInterval(int $pollingInterval): static {
+        $this->pollingInterval = $pollingInterval;
+
+        return $this;
+    }
+
+    getCooldownPeriod(): int => $this->cooldownPeriod;
+
+    setCooldownPeriod(int $cooldownPeriod): static {
+        $this->cooldownPeriod = $cooldownPeriod;
+
+        return $this;
+    }
+
+    getIdleReplicaCount(): ?int => $this->idleReplicaCount;
+
+    setIdleReplicaCount(int $idleReplicaCount): static {
+        $this->idleReplicaCount = $idleReplicaCount;
+
+        return $this;
+    }
+
+    getMinReplicaCount(): int => $this->minReplicaCount;
+
+    setMinReplicaCount(int $minReplicaCount): static {
+        $this->minReplicaCount = $minReplicaCount;
+
+        return $this;
+    }
+
+    getMaxReplicaCount(): int => $this->maxReplicaCount;
+
+    setMaxReplicaCount(int $maxReplicaCount): static {
+        $this->maxReplicaCount = $maxReplicaCount;
+
+        return $this;
+    }
+
+    setFallback(Fallback $fallback): static {
+        $this->fallback = $fallback;
+
+        return $this;
+    }
+
+    advanced(): AdvancedSettings => $this->advanced;
+
+    getTriggers(): list<Trigger> => $this->triggers;
+
+    setTriggers(list<Trigger> $triggers): static {
+        $this->triggers = $triggers;
+
+        return $this;
+    }
+
+    jsonSerialize(): array<mixed> => [
+        'apiVersion' => self::API_VERSION,
+        'kind' => self::KIND,
+        'metadata' => $this->meta,
+        'spec' => [
+            'scaleTargetRef' => $this->scaleTargetRef,
+            'pollingInterval' => $this->pollingInterval,
+            'cooldownPeriod' => $this->cooldownPeriod,
+            'idleReplicaCount' => $this->idleReplicaCount,
+            'minReplicaCount' => $this->minReplicaCount,
+            'maxReplicaCount' => $this->maxReplicaCount,
+            'fallback' => $this->fallback,
+            'advanced' => $this->advanced,
+            'triggers' => $this->triggers,
+        ],
+    ];
+}

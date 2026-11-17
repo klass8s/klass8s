@@ -1,0 +1,12 @@
+namespace Klass8s\GatewayApi\BackendTLSPolicy\Configurator;
+
+final class OptionsConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    set(string $key, string $value): static {
+        $this->data[$key] = $value;
+
+        return $this;
+    }
+}

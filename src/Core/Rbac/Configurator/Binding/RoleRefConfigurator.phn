@@ -1,0 +1,60 @@
+namespace Klass8s\Core\Rbac\Configurator\Binding;
+
+use K8Schema\Api\Rbac\V1\ClusterRole;
+use K8Schema\Api\Rbac\V1\Role;
+use K8Schema\Api\Rbac\V1\RoleRef;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Rbac\ClusterRoleInterface;
+use Klass8s\Core\Rbac\RoleInterface;
+use Klass8s\Manifest\ManifestInterface;
+use Klass8s\Registry\AppRegistry;
+
+readonly class RoleRefConfigurator
+{
+    __construct(
+        private RoleRef $ref,
+        private AppInterface $app,
+        private AppRegistry $appRegistry,
+    ) {
+        $ref->setApiGroup(strstr(Role::API_VERSION, '/', true) ?: Role::API_VERSION);
+    }
+
+    fromRoleName(string $roleName): void => $this->ref->setKind(Role::KIND)->setName($roleName);
+
+    fromClusterRoleName(string $clusterRoleName): void
+        => $this->ref->setKind(ClusterRole::KIND)->setName($clusterRoleName);
+
+    fromRoleClass(class<RoleInterface> $roleClass): void {
+        $this->ensureAppOwnsManifestClass($roleClass);
+        $name = $this->app->resourceNameFromManifestClass($roleClass, RoleInterface::class);
+
+        $this->fromRoleName($name);
+    }
+
+    fromClusterRoleClass(class<ClusterRoleInterface> $clusterRoleClass): void {
+        $this->ensureAppOwnsManifestClass($clusterRoleClass);
+        $name = $this->app->resourceNameFromManifestClass($clusterRoleClass, ClusterRoleInterface::class);
+
+        $this->fromClusterRoleName($name);
+    }
+
+    withExternalApp(string $appAlias): static
+        => new static($this->ref, $this->appRegistry->get($appAlias), $this->appRegistry);
+
+    private ensureAppOwnsManifestClass(class<ManifestInterface> $className): void {
+        if ($this->app->ownsManifestClass($className)) {
+            return;
+        }
+
+        $msg = <<<'ERR'
+            App "%s" does not have manifests with class "%s". Please use method "%s::withExternalApp()"
+            for referencing manifests from other apps.
+
+            $ref->withExternalApp('externalAppAlias')->fromRoleClass(MyRole::class)
+            ERR;
+
+        throw new \InvalidArgumentException(
+            sprintf($msg, $this->app->alias(), $className, self::class),
+        );
+    }
+}

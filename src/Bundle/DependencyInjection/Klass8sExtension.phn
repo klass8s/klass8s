@@ -1,0 +1,242 @@
+namespace Klass8s\Bundle\DependencyInjection;
+
+use Klass8s\Bridge\Helm\Chart\Reference\ChartReference;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultMetadataLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultSelectorLabelsPass;
+use Klass8s\Bundle\DependencyInjection\Compiler\DefaultServiceSelectorPass;
+use Klass8s\Bundle\DependencyInjection\ContainerResources\ResourcesReferenceResolver;
+use Klass8s\Event\ContainerMethodCalledEvent;
+use Klass8s\Event\ManifestMethodCalledEvent;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+
+class Klass8sExtension extends Extension
+{
+    private readonly ResourcesReferenceResolver $referenceResolver;
+
+    __construct() {
+        $this->referenceResolver = new ResourcesReferenceResolver();
+    }
+
+    load(array $configs, ContainerBuilder $container): void {
+        $loader = new YamlFileLoader(
+            $container,
+            new FileLocator(__DIR__ . '/../../../config'),
+        );
+        $loader->load('services.yaml');
+
+        /** @var Klass8sConfig $config */
+        $config = $this->processConfiguration(new Configuration(), $configs);
+        /** @var map<string, AppConfig> $apps */
+        $apps = array_replace_recursive($config['apps'], self::mergedAppsConfig($configs));
+        $config['apps'] = $apps;
+
+        $projectDir = self::projectDir($container);
+        foreach ($config['helm']['releases'] as $releaseConfig) {
+            $ref = new ChartReference($releaseConfig['chart']);
+            if ($ref->isRelativePath()) {
+                $path = $projectDir . '/' . ltrim($ref->value, './\\');
+                self::ensureChartDirExists($path);
+            } elseif ($ref->isAbsolutePath()) {
+                self::ensureChartDirExists($ref->value);
+            }
+        }
+
+        $this->loadInternal($config, $container);
+    }
+
+    /**
+     * The `apps` of every klass8s.yaml merged as they are written. Configuration keeps the
+     * keys of an app it does not know (ArrayNodeDefinition::ignoreExtraKeys()), and Symfony
+     * does not merge such keys across files, so the extension merges them itself.
+     */
+    private static mergedAppsConfig(array<array<mixed>> $configs): array<mixed> {
+        $appsConfigs = [];
+        foreach (array_column($configs, 'apps') as $appsConfig) {
+            if (!is_array($appsConfig)) {
+                continue;
+            }
+            $normalized = [];
+            foreach ($appsConfig as $key => $appConfig) {
+                $alias = is_array($appConfig) && is_string($appConfig['alias'] ?? null) ? $appConfig['alias'] : (string) $key;
+                $normalized[$alias] = $appConfig;
+            }
+            $appsConfigs[] = $normalized;
+        }
+
+        return $appsConfigs === [] ? [] : array_replace_recursive(...$appsConfigs);
+    }
+
+    getAlias(): string => 'klass8s';
+
+    private loadInternal(Klass8sConfig $config, ContainerBuilder $container): void {
+        $this
+            ->setupCodeDir($config, $container)
+            ->setupManifestsDir($config, $container)
+            ->setupTemplatesDir($container)
+            ->setupNamespacePrefix($config['namespace_prefix'], $container)
+        ;
+
+        $container->setParameter('klass8s.auto_set_resources', $config['auto_set_resources']);
+        $container->setParameter('klass8s.auto_set_replicas', $config['auto_set_replicas']);
+        $container->setParameter('klass8s.auto_generate_checksums', $config['auto_generate_checksums']);
+        $container->setParameter('klass8s.strip_namespace', $config['strip_namespace']);
+
+        $container->setParameter(DefaultMetadataLabelsPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_METADATA_LABELS]);
+        $container->setParameter(DefaultSelectorLabelsPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_SELECTOR_LABELS]);
+        $container->setParameter(DefaultServiceSelectorPass::PARAM, $config[Configuration::PARAM_SET_DEFAULT_SERVICE_SELECTOR]);
+
+        // A manifest's requests or limits may refer to another manifest's: replace each
+        // reference with what it points to.
+        $apps = $config['apps'];
+        foreach ($apps as $appAlias => $appConfig) {
+            foreach ($appConfig['manifests'] as $manifestName => $manifestConfig) {
+                foreach (['requests', 'limits'] as $resourcesKey) {
+                    $reference = $manifestConfig['resources'][$resourcesKey] ?? null;
+                    if (is_string($reference)) {
+                        $config['apps'][$appAlias]['manifests'][$manifestName]['resources'][$resourcesKey] = $this->referenceResolver->resolve($reference, $resourcesKey, $appAlias, $apps);
+                    }
+                }
+            }
+        }
+
+        $eventMap = [];
+        foreach ($config['env_management']['env_suffixed_methods'] as $envSuffixedMethodConfig) {
+            $methodName = $envSuffixedMethodConfig['name'];
+
+            $conditions = [];
+            foreach (['if', 'if_not'] as $conditionName) {
+                $condition = $envSuffixedMethodConfig[$conditionName] ?? null;
+                if (null !== $condition) {
+                    if (is_string($condition)) {
+                        $condition = $container->getParameterBag()->resolveValue($condition);
+                    }
+                    if (!is_bool($condition)) {
+                        throw self::exceptionForEnvAwareMethod($conditionName, $methodName, $condition);
+                    }
+
+                    $conditions[$conditionName] = $condition;
+                }
+            }
+
+            if (count($conditions) > 1) {
+                throw new InvalidConfigurationException(sprintf('Both "if" and "if_not" keys are set for env-suffixed method "%s".', $methodName));
+            } elseif (null !== ($conditions['if'] ?? null)) {
+                $methodEnabled = $conditions['if'];
+            } elseif (null !== ($conditions['if_not'] ?? null)) {
+                $methodEnabled = !$conditions['if_not'];
+            } else {
+                $methodEnabled = true;
+            }
+
+            if (!$methodEnabled) {
+                continue;
+            }
+
+            foreach ($envSuffixedMethodConfig['for'] as $i => $proxyableType) {
+                $eventName = match ($proxyableType) {
+                    'manifest' => ManifestMethodCalledEvent::NAME,
+                    'container' => ContainerMethodCalledEvent::NAME,
+                    default => throw new InvalidConfigurationException(sprintf('Invalid value "%s" under configuration key `for.%d` for env-suffixed method "%s". Supported values are "manifest" and "container".', $proxyableType, $i, $methodName)),
+                };
+                $eventMap[$eventName][] = $methodName;
+            }
+        }
+
+        $eventMap = array_map(array_unique(...), $eventMap);
+
+        $container->setParameter('klass8s.env_management.env_suffixed_methods.event_map', $eventMap);
+        $container->setParameter('klass8s.config.apps', $config['apps']);
+        $container->setParameter('klass8s.config.helm', $config['helm']);
+        $container->setParameter('klass8s.config.helm.repositories', $config['helm']['repositories']);
+        $container->setParameter('klass8s.config.helm.chart_cache_dir', $config['helm']['chart_cache_dir']);
+    }
+
+    private setupTemplatesDir(ContainerBuilder $container): static {
+        $container->setParameter(
+            'klass8s.class_templates_dir',
+            __DIR__ . '/../../../templates',
+        );
+
+        return $this;
+    }
+
+    private setupNamespacePrefix(string $prefix, ContainerBuilder $container): void
+        => $container->setParameter('klass8s.namespace_prefix', $prefix);
+
+    private setupCodeDir(Klass8sConfig $config, ContainerBuilder $container): static {
+        $codeDir = $config['code_dir'];
+        if (null === $codeDir) {
+            $srcDir = $this->getSrcDir($container);
+            if (!file_exists($srcDir)) {
+                throw $this->createExceptionForSrcDir($srcDir);
+            }
+            $codeDir = $srcDir . DIRECTORY_SEPARATOR . 'K8S';
+        }
+        // Created by the make commands when they first write there, like the manifests dir by the dump commands.
+        $container->setParameter('klass8s.code_dir', $codeDir);
+
+        return $this;
+    }
+
+    private setupManifestsDir(Klass8sConfig $config, ContainerBuilder $container): static {
+        $configParam = 'manifests_dir';
+        $manifestsDir = $config[$configParam];
+        if (null === $manifestsDir) {
+            $varDir = self::projectDir($container) . DIRECTORY_SEPARATOR . 'var';
+            if (!file_exists($varDir)) {
+                throw new \InvalidArgumentException(sprintf('Parameter "%s" is not set, default value is "var" directory, which was resolved to "%s", but no such directory exists.', $configParam, $varDir));
+            }
+            $manifestsDir = $varDir . DIRECTORY_SEPARATOR . 'k8s-manifests';
+        }
+        $container->setParameter('klass8s.manifests_dir', $manifestsDir);
+
+        return $this;
+    }
+
+    private getSrcDir(ContainerBuilder $container): string => self::projectDir($container) . DIRECTORY_SEPARATOR . 'src';
+
+    private static projectDir(ContainerBuilder $container): string {
+        $projectDir = $container->getParameter('kernel.project_dir');
+        assert(is_string($projectDir));
+
+        return $projectDir;
+    }
+
+    private createExceptionForSrcDir(string $srcDir): InvalidConfigurationException {
+        $errMessage = <<<ERR
+            "klass8s.code_dir" config value was not specified.
+            Fallback value requires %kernel.project_dir%/src dir, which was resolved
+            to "$srcDir", but this directory does not exist. Please configure "klass8s.code_dir"
+            config value explicitly as an absolute path or use standard "src" directory
+            for your code.
+            ERR;
+        $errMessage = str_replace(PHP_EOL, ' ', $errMessage);
+
+        return new InvalidConfigurationException($errMessage);
+    }
+
+    private static ensureChartDirExists(string $path): void {
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" does not exist.', $path));
+        }
+        if (!is_dir($path)) {
+            throw new \InvalidArgumentException(sprintf('Chart directory "%s" is a file.', $path));
+        }
+    }
+
+    /**
+     * The config tree takes a boolean, a parameter (resolved before the extension sees it) or an
+     * environment variable's placeholder, so a condition that is no boolean here is the last.
+     */
+    private static exceptionForEnvAwareMethod(string $key, string $methodName, mixed $when): InvalidConfigurationException
+        => new InvalidConfigurationException(sprintf(
+            'Key "%s" in a config for env-suffixed method "%s" must be a boolean or a reference to a boolean parameter, got "%s": an environment variable is known only at runtime, after the env-suffixed methods are compiled into the container.',
+            $key,
+            $methodName,
+            is_string($when) ? $when : get_debug_type($when),
+        ));
+}

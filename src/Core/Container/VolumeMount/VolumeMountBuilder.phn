@@ -1,0 +1,32 @@
+namespace Klass8s\Core\Container\VolumeMount;
+
+use K8Schema\Api\Core\V1\VolumeMount;
+
+class VolumeMountBuilder
+{
+    __construct(private VolumeMount $mount) {}
+
+    setVolumePropagation(MountPropagation $propagation): static {
+        $this->mount->setMountPropagation($propagation->toString());
+
+        return $this;
+    }
+
+    setReadOnly(bool $readOnly): static {
+        $this->mount->setReadOnly($readOnly);
+
+        return $this;
+    }
+
+    setSubPath(string $subPath): static {
+        $this->mount->setSubPath($subPath);
+
+        return $this;
+    }
+
+    setSubPathExpression(string $subPathExpression): static {
+        $this->mount->setSubPathExpr($subPathExpression);
+
+        return $this;
+    }
+}

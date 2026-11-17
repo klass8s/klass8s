@@ -1,0 +1,16 @@
+namespace Klass8s\Tests\Render\Fixture\AmbiguousResourcesApp;
+
+use Klass8s\Core\Container\Image\Image;
+use Klass8s\Core\Container\Resources\ContainerResourcesInterface;
+use Klass8s\Core\Container\Resources\CPU;
+use Klass8s\Core\Deployment\AbstractContainerDeployment;
+
+/** Declares its resources while klass8s.yaml sets them too. */
+class SizedDeployment extends AbstractContainerDeployment
+{
+    static shortName(): string => 'sized';
+
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
+
+    resources(ContainerResourcesInterface $resources): void => $resources->requestCPU(CPU::millicores(500));
+}

@@ -1,0 +1,13 @@
+namespace Klass8s\Core\StatefulSet;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\Container\ContainerTrait;
+
+abstract class AbstractContainerStatefulSet extends AbstractStatefulSet implements ContainerInterface
+{
+    use ContainerTrait;
+
+    containers(): iterable<ContainerInterface> {
+        yield $this;
+    }
+}

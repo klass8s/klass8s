@@ -1,0 +1,22 @@
+namespace Klass8s\Core;
+
+use K8Schema\Apimachinery\Pkg\Apis\Meta\V1\ObjectMeta;
+use K8Schema\APIResourceInterface;
+
+readonly class GenericApiResource implements APIResourceInterface
+{
+    private ObjectMeta $metadata;
+
+    __construct(private string $apiVersion, private string $kind, private map<string, mixed> $spec = []) {
+        $this->metadata = new ObjectMeta();
+    }
+
+    metadata(): ObjectMeta => $this->metadata;
+
+    jsonSerialize(): array<mixed> => [
+        'apiVersion' => $this->apiVersion,
+        'kind' => $this->kind,
+        'metadata' => $this->metadata,
+        'spec' => $this->spec,
+    ];
+}

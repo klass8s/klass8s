@@ -1,0 +1,19 @@
+# The PHP that phn compiles from src/: committed so that Composer installs plain PHP, and
+# collapsed in pull requests, where the .phn is what is reviewed.
+/.src/** linguist-generated
+
+# What a consumer's vendor/ receives is the library: the sources, their compiled PHP, the
+# bundle's config and templates. The tests stay out (a Phaenon consumer would compile them),
+# and so does what only working on the library needs.
+/tests export-ignore
+/docs export-ignore
+/tools export-ignore
+/var export-ignore
+/.github export-ignore
+/.claude export-ignore
+/.serena export-ignore
+/AGENTS.md export-ignore
+/CLAUDE.md export-ignore
+/.editorconfig export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/.pre-commit-config.yaml export-ignore

@@ -1,0 +1,23 @@
+namespace Klass8s\Bundle\CodeGeneration\ManifestGenerator;
+
+use Klass8s\Bundle\CodeGeneration\ManifestGenerator\Context\ContextInterface;
+
+final class ContextRegistry
+{
+    /** The contexts by the kind of manifest they generate. */
+    private map<string, ContextInterface> $contexts = [];
+
+    __construct(iterable<ContextInterface> $contexts) {
+        foreach ($contexts as $context) {
+            $this->contexts[$context->kind()] = $context;
+        }
+    }
+
+    has(string $kind): bool => array_key_exists($kind, $this->contexts);
+
+    get(string $kind): ContextInterface => $this->contexts[$kind];
+
+    all(): map<string, ContextInterface> => $this->contexts;
+
+    kinds(): list<string> => array_keys($this->contexts);
+}

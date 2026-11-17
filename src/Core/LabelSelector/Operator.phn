@@ -1,0 +1,12 @@
+namespace Klass8s\Core\LabelSelector;
+
+/** How a label or node selector requirement relates a key to its values. */
+enum Operator: string
+{
+    case In = 'In';
+    case NotIn = 'NotIn';
+    case Exists = 'Exists';
+    case DoesNotExist = 'DoesNotExist';
+    case GreaterThan = 'Gt';
+    case LowerThan = 'Lt';
+}

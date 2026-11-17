@@ -1,0 +1,17 @@
+namespace Klass8s\Bundle\Checksum;
+
+use Klass8s\Bundle\Checksum\PodTemplateGetter\PodTemplateGetter;
+use K8Schema\Api\Apps\V1\Deployment;
+use K8Schema\Api\Apps\V1\StatefulSet;
+use K8Schema\Api\Batch\V1\CronJob;
+use K8Schema\Api\Batch\V1\Job;
+
+class AnnotationSetter
+{
+    __construct(private PodTemplateGetter $podTemplateGetter, private string $annotationDomain) {}
+
+    setAnnotation(Deployment|Job|CronJob|StatefulSet $workload, ChecksumAnnotation $annotation): void {
+        $annotName = $this->annotationDomain . '/' . $annotation->name();
+        $this->podTemplateGetter->get($workload)->metadata()->annotations()->add($annotName, $annotation->value());
+    }
+}

@@ -1,0 +1,31 @@
+namespace Klass8s\Bridge\Helm\Chart\Reference;
+
+use Klass8s\Bridge\Helm\Chart\ChartReferenceType;
+
+final readonly class ChartReference
+{
+    private const string NAME_PATTERN = '#^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$#';
+
+    private(set) ChartReferenceType $type;
+
+    __construct(public string $value, public ?string $version = null) {
+        $this->type = match (true) {
+            str_starts_with($value, '.') => ChartReferenceType::RelativePath,
+            str_starts_with($value, '/') => ChartReferenceType::AbsolutePath,
+            str_starts_with($this->value, 'https://') => ChartReferenceType::Url,
+            str_starts_with($this->value, 'oci://') => ChartReferenceType::OciRegistry,
+            (bool) preg_match(self::NAME_PATTERN, $value) => ChartReferenceType::ChartName,
+            default => throw new \InvalidArgumentException(sprintf('Invalid chart reference "%s". Expected one of: "repository/chart", "https://...", "oci://...", or "./local/path".', $value)),
+        };
+    }
+
+    isRelativePath(): bool => ChartReferenceType::RelativePath === $this->type;
+
+    isAbsolutePath(): bool => ChartReferenceType::AbsolutePath === $this->type;
+
+    isUrl(): bool => ChartReferenceType::Url === $this->type;
+
+    isOciRegistry(): bool => ChartReferenceType::OciRegistry === $this->type;
+
+    isChartName(): bool => ChartReferenceType::ChartName === $this->type;
+}

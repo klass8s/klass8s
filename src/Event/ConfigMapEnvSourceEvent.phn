@@ -1,0 +1,23 @@
+namespace Klass8s\Event;
+
+use Klass8s\App\AppInterface;
+use Klass8s\Core\ConfigMap\ConfigMapInterface;
+use Klass8s\Core\Container\Env\EnvConfigurator;
+use Psr\EventDispatcher\StoppableEventInterface;
+
+class ConfigMapEnvSourceEvent implements StoppableEventInterface
+{
+    const string NAME = 'klass8s.env_source.config_map';
+
+    private bool $propagationStopped = false;
+
+    __construct(
+        public readonly class<ConfigMapInterface> $configMapClass,
+        public readonly AppInterface $app,
+        public readonly EnvConfigurator $env,
+    ) {}
+
+    stopPropagation(): void => $this->propagationStopped = true;
+
+    isPropagationStopped(): bool => $this->propagationStopped;
+}

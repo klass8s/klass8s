@@ -1,0 +1,75 @@
+namespace Klass8s\Bundle\CodeGeneration;
+
+use Klass8s\Bundle\Util\Dir;
+use Symfony\Component\Process\Process;
+
+/**
+ * Where and how the make commands write a class. In a project written in Phaenon, one with a
+ * phaenon.json beside its composer.json, the classes load from output directories that the next
+ * build replaces: there the class is written in Phaenon, from the templates in templates/phn/,
+ * into the source root that output is built from, and laid out by the project's own `phn fmt`,
+ * so it is formatted as the project's compiler formats.
+ */
+final readonly class GeneratedSource
+{
+    private __construct(public string $path, public bool $phaenon, private ?string $projectDir = null) {}
+
+    static for(string $phpFile): self {
+        for ($dir = dirname($phpFile); dirname($dir) !== $dir; $dir = dirname($dir)) {
+            if (is_file($dir . '/phaenon.json')) {
+                return self::inPhaenonProject($dir, $phpFile);
+            }
+            if (is_file($dir . '/composer.json')) {
+                break;
+            }
+        }
+
+        return new self($phpFile, false);
+    }
+
+    /** The directory the file is written into. */
+    directory(): string => dirname($this->path);
+
+    /** The template to render the class from, in the language the file is written in. */
+    template(string $name): string => $this->phaenon ? 'phn/' . $name : $name;
+
+    write(string $code): void {
+        Dir::create($this->directory());
+        if (false === file_put_contents($this->path, $code)) {
+            throw new \RuntimeException(sprintf('Can\'t write "%s".', $this->path));
+        }
+
+        if (null === $this->projectDir) {
+            return;
+        }
+        $phn = $this->projectDir . '/vendor/bin/phn';
+        if (!is_executable($phn)) {
+            return;
+        }
+
+        $format = new Process([$phn, 'fmt', $this->path], $this->projectDir);
+        if (0 !== $format->run()) {
+            throw new \RuntimeException(sprintf('"%s" was written, but "phn fmt" could not lay it out: %s', $this->path, trim($format->getErrorOutput() . $format->getOutput())));
+        }
+    }
+
+    private static inPhaenonProject(string $projectDir, string $phpFile): self {
+        $project = json_decode((string) file_get_contents($projectDir . '/phaenon.json'), true, flags: JSON_THROW_ON_ERROR);
+        $roots = is_array($project) && is_array($project['roots'] ?? null) ? $project['roots'] : [];
+        $relative = substr($phpFile, strlen($projectDir) + 1);
+        foreach ($roots as $source => $output) {
+            if (!is_string($source) || !is_string($output)) {
+                continue;
+            }
+            foreach ([$output, $source] as $root) {
+                if (str_starts_with($relative, rtrim($root, '/') . '/')) {
+                    $inSource = rtrim($source, '/') . substr($relative, strlen(rtrim($root, '/')));
+
+                    return new self($projectDir . '/' . substr($inSource, 0, -strlen('.php')) . '.phn', true, $projectDir);
+                }
+            }
+        }
+
+        return new self($phpFile, false);
+    }
+}

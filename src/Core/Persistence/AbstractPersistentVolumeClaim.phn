@@ -1,0 +1,25 @@
+namespace Klass8s\Core\Persistence;
+
+use K8Schema\Api\Core\V1\PersistentVolumeClaim;
+use Klass8s\Core\LabelSelector\SelectorConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+use Klass8s\Manifest\Reference\ManifestClassReference;
+
+abstract class AbstractPersistentVolumeClaim extends AbstractManifest implements PersistentVolumeClaimInterface
+{
+    dataSource(): ?ManifestClassReference => null;
+
+    resources(PvcResourcesConfigurator $resources): void {}
+
+    selector(SelectorConfigurator $selector): void {}
+
+    storageClassName(): ?string => null;
+
+    volumeMode(): VolumeMode => VolumeMode::Filesystem;
+
+    volumeName(): ?string => null;
+
+    static kind(): string => PersistentVolumeClaim::KIND;
+
+    static apiVersion(): string => PersistentVolumeClaim::API_VERSION;
+}

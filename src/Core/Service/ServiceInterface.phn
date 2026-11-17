@@ -1,0 +1,17 @@
+namespace Klass8s\Core\Service;
+
+use K8Schema\Api\Core\V1\Service;
+use K8Schema\Collection\StringMap;
+use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
+use Klass8s\Core\Service\Configurator\ServiceTypeConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface ServiceInterface extends ManifestInterface
+{
+    clusterIP(): ?string;
+    ports(ServicePortsConfigurator $ports): void;
+    selector(StringMap $selector): void;
+    type(ServiceTypeConfigurator $type): void;
+    configureService(Service $service): void;
+    trafficDistribution(): ?TrafficDistribution;
+}

@@ -1,0 +1,21 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\Api\Rbac\V1\Role;
+use Klass8s\Core\Rbac\Configurator\PolicyRulesConfigurator;
+use Klass8s\Core\Rbac\RoleInterface;
+
+final class RoleMaker extends AbstractResourceMaker<RoleInterface, Role>
+{
+    protected supportedClass(): class<RoleInterface> => RoleInterface::class;
+
+    protected makeResource(RoleInterface $manifest): Role {
+        $role = new Role();
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $role);
+        $rulesConfigurator = new PolicyRulesConfigurator($role->rules());
+        $manifest->rules($rulesConfigurator);
+        $manifest->configureRole($role);
+
+        return $role;
+    }
+}

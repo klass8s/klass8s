@@ -1,0 +1,13 @@
+namespace Klass8s\Core\Job;
+
+use Klass8s\Core\Container\ContainerInterface;
+use Klass8s\Core\Container\ContainerTrait;
+
+abstract class AbstractContainerJob extends AbstractJob implements ContainerInterface
+{
+    use ContainerTrait;
+
+    containers(): iterable<ContainerInterface> {
+        yield $this;
+    }
+}

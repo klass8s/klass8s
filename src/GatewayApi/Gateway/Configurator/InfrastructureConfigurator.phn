@@ -1,0 +1,30 @@
+namespace Klass8s\GatewayApi\Gateway\Configurator;
+
+use Klass8s\Collection\NestedData;
+
+final class InfrastructureConfigurator
+{
+    __construct(private \ArrayObject<string, mixed> $data) {}
+
+    label(string $key, string $value): static {
+        NestedData::object($this->data, 'labels')[$key] = $value;
+
+        return $this;
+    }
+
+    annotation(string $key, string $value): static {
+        NestedData::object($this->data, 'annotations')[$key] = $value;
+
+        return $this;
+    }
+
+    parametersRef(string $group, string $kind, string $name): static {
+        $this->data['parametersRef'] = [
+            'group' => $group,
+            'kind' => $kind,
+            'name' => $name,
+        ];
+
+        return $this;
+    }
+}

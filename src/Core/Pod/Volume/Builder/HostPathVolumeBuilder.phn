@@ -1,0 +1,22 @@
+namespace Klass8s\Core\Pod\Volume\Builder;
+
+use K8Schema\Api\Core\V1\HostPathVolumeSource;
+use K8Schema\Api\Core\V1\Volume;
+use Klass8s\Core\Pod\Volume\HostPathVolumeType;
+
+class HostPathVolumeBuilder extends AbstractVolumeBuilder
+{
+    private HostPathVolumeSource $source;
+
+    __construct(string $path) {
+        $this->source = new HostPathVolumeSource($path);
+    }
+
+    init(Volume $volume): void => $volume->setHostPath($this->source);
+
+    setType(HostPathVolumeType $type): static {
+        $this->source->setType($type->value);
+
+        return $this;
+    }
+}

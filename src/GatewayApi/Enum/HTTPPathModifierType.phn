@@ -1,0 +1,7 @@
+namespace Klass8s\GatewayApi\Enum;
+
+enum HTTPPathModifierType: string
+{
+    case ReplaceFullPath = 'ReplaceFullPath';
+    case ReplacePrefixMatch = 'ReplacePrefixMatch';
+}

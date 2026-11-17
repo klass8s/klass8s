@@ -1,0 +1,17 @@
+namespace Klass8s\GatewayApi\ReferenceGrant;
+
+use Klass8s\GatewayApi\AbstractGatewayApiResource;
+use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantFromConfigurator;
+use Klass8s\GatewayApi\ReferenceGrant\Configurator\ReferenceGrantToConfigurator;
+use Klass8s\Manifest\AbstractManifest;
+
+abstract class AbstractReferenceGrant extends AbstractManifest implements ReferenceGrantInterface
+{
+    final static kind(): string => ReferenceGrantApiResource::KIND;
+
+    static apiVersion(): string => AbstractGatewayApiResource::API_VERSION;
+
+    from(ReferenceGrantFromConfigurator $from): void {}
+
+    to(ReferenceGrantToConfigurator $to): void {}
+}

@@ -1,0 +1,10 @@
+namespace Klass8s\Core\Deployment\ValueObject;
+
+final readonly class NumberOrPercents
+{
+    private __construct(public int|string $value) {}
+
+    static number(int $number): self => new self($number);
+
+    static percents(int $percents): self => new self($percents . '%');
+}

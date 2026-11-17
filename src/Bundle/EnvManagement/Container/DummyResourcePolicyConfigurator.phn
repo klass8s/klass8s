@@ -1,0 +1,6 @@
+namespace Klass8s\Bundle\EnvManagement\Container;
+
+final readonly class DummyResourcePolicyConfigurator implements ResourcePolicyConfiguratorInterface
+{
+    configure(ResourcePolicyRegistry $policies): void {}
+}

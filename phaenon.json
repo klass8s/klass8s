@@ -1,0 +1,7 @@
+{
+    "roots": {
+        "src": ".src",
+        "tests": ".tests"
+    },
+    "committed": ["src"]
+}

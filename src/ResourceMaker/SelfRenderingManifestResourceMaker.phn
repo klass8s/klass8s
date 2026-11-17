@@ -1,0 +1,17 @@
+namespace Klass8s\ResourceMaker;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Manifest\SelfMakingManifestInterface;
+
+class SelfRenderingManifestResourceMaker extends AbstractResourceMaker<SelfMakingManifestInterface, APIResourceInterface>
+{
+    protected supportedClass(): class<SelfMakingManifestInterface> => SelfMakingManifestInterface::class;
+
+    protected makeResource(SelfMakingManifestInterface $manifest): APIResourceInterface {
+        $apiResource = $manifest->make();
+        $app = $manifest->app;
+        $app::configureMeta($manifest, $apiResource);
+
+        return $apiResource;
+    }
+}

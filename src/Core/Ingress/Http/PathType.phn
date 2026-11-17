@@ -1,0 +1,10 @@
+namespace Klass8s\Core\Ingress\Http;
+
+enum PathType: string
+{
+    case Exact = 'Exact';
+    case Prefix = 'Prefix';
+    case ImplementationSpecific = 'ImplementationSpecific';
+
+    toString(): string => $this->value;
+}

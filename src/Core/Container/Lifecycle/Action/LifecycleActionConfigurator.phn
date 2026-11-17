@@ -1,0 +1,10 @@
+namespace Klass8s\Core\Container\Lifecycle\Action;
+
+use K8Schema\Api\Core\V1\LifecycleHandler;
+
+class LifecycleActionConfigurator
+{
+    use ActionConfiguratorTrait;
+
+    __construct(private LifecycleHandler $handler) {}
+}

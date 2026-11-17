@@ -1,0 +1,10 @@
+namespace Klass8s\Event;
+
+use Klass8s\Output\OutputDirectory;
+
+final readonly class ManifestsProcessedEvent
+{
+    const string NAME = 'klass8s.manifests.processed';
+
+    __construct(public OutputDirectory $outputDir) {}
+}

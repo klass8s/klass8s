@@ -1,0 +1,67 @@
+namespace Klass8s\Tests\Util;
+
+use Klass8s\Util\SignatureChecker;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class SignatureCheckerTest extends TestCase
+{
+    testFunctionsWithOneSignatureMatch(): void
+        => self::assertTrue(SignatureChecker::check(
+            new \ReflectionFunction(static fn(string $name, \ArrayObject $data): int => 1),
+            new \ReflectionFunction(static fn(string $name, \ArrayObject $data): int => 2),
+        ));
+
+    testDifferentReturnTypesDoNotMatch(): void
+        => self::assertFalse(SignatureChecker::check(
+            new \ReflectionFunction(static fn(): int => 1),
+            new \ReflectionFunction(static fn(): string => 'one'),
+        ));
+
+    testANullableReturnTypeMatchesTheTypeItMakesNullable(): void {
+        $nullable = new \ReflectionFunction(static fn(): ?int => null);
+        $notNullable = new \ReflectionFunction(static fn(): int => 1);
+
+        self::assertTrue(SignatureChecker::check($nullable, $notNullable));
+        self::assertTrue(SignatureChecker::check($notNullable, $nullable));
+        self::assertFalse(SignatureChecker::check($nullable, $notNullable, ignoreNullsInReturnTypes: false));
+    }
+
+    testOneTypeSpelledTwoWaysMatches(): void {
+        self::assertTrue(SignatureChecker::check(
+            new \ReflectionFunction(static fn(int|string|null $value, \ArrayObject $data, \SplStack|\ArrayObject $list): int|string => 1),
+            new \ReflectionFunction(static fn(string|int|null $value, \arrayobject $data, \ArrayObject|\SplStack $list): string|int => 1),
+        ));
+    }
+
+    testAnIntersectionMatchesInAnyOrder(): void
+        => self::assertTrue(SignatureChecker::check(
+            new \ReflectionFunction(static fn(\Countable&\Traversable $items): int => 1),
+            new \ReflectionFunction(static fn(\Traversable&\Countable $items): int => 1),
+        ));
+
+    testIterableMatchesTheArrayOrTraversableItIs(): void
+        => self::assertTrue(SignatureChecker::check(
+            new \ReflectionFunction(static fn(iterable $items): ?iterable => null),
+            new \ReflectionFunction(static fn(array|\Traversable $items): array|\Traversable|null => null),
+        ));
+
+    #[DataProvider('differentParameters')]
+    testDifferentParametersDoNotMatch(\Closure $a, \Closure $b): void {
+        self::assertFalse(SignatureChecker::check(new \ReflectionFunction($a), new \ReflectionFunction($b)));
+        self::assertFalse(SignatureChecker::check(new \ReflectionFunction($b), new \ReflectionFunction($a)));
+    }
+
+    static differentParameters(): iterable<string, (\Closure, \Closure)> {
+        yield 'another type' => [static fn(string $name): int => 1, static fn(int $name): int => 1];
+        yield 'nullable' => [static fn(string $name): int => 1, static fn(?string $name): int => 1];
+        yield 'optional' => [static fn(string $name): int => 1, static fn(string $name = ''): int => 1];
+        yield 'another name' => [static fn(string $name): int => 1, static fn(string $key): int => 1];
+        yield 'one more' => [static fn(string $name): int => 1, static fn(string $name, string $key): int => 1];
+        yield 'by reference' => [static fn(array $list): int => 1, static fn(array &$list): int => 1];
+        yield 'variadic' => [static fn(string $name): int => 1, static fn(string ...$name): int => 1];
+        yield 'variadic or optional' => [static fn(string $name = ''): int => 1, static fn(string ...$name): int => 1];
+        yield 'untyped' => [static fn(string $name): int => 1, static fn($name): int => 1];
+        yield 'another intersection' => [static fn(\Countable&\Traversable $items): int => 1, static fn(\Countable&\Iterator $items): int => 1];
+    }
+}

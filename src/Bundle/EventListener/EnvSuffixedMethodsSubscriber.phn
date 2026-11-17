@@ -1,0 +1,68 @@
+namespace Klass8s\Bundle\EventListener;
+
+use Klass8s\Event\ContainerMethodCalledEvent;
+use Klass8s\Event\ManifestMethodCalledEvent;
+use Klass8s\Proxy\ProxyManager;
+use Klass8s\Util\SignatureChecker;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+use function Symfony\Component\String\u;
+
+final readonly class EnvSuffixedMethodsSubscriber implements EventSubscriberInterface
+{
+    private const string PATTERN_WORD_SEPARATORS = '/[\s\-_]+/';
+
+    private string $envSuffix;
+
+    private const list<string> SUPPORTED_EVENT_NAMES = [
+        ManifestMethodCalledEvent::NAME,
+        ContainerMethodCalledEvent::NAME,
+    ];
+
+    /**
+     * @param $eventsMap - A map of event names to the list of method names this subscriber should react to for that event.
+     */
+    __construct(
+        private map<string, list<string>> $eventsMap,
+        string $currentEnv,
+    ) {
+        $diff = array_diff(array_keys($eventsMap), self::SUPPORTED_EVENT_NAMES);
+        if ($diff) {
+            throw new \InvalidArgumentException(sprintf('Event names "%s" are not supported by "%s".', implode('", "', $diff), $this::class));
+        }
+
+        $this->envSuffix = u($currentEnv)->title()->replaceMatches(self::PATTERN_WORD_SEPARATORS, '')->toString();
+    }
+
+    onMethodCalled(ManifestMethodCalledEvent|ContainerMethodCalledEvent $event, string $eventName): void {
+        $methodNames = $this->eventsMap[$eventName] ?? [];
+        if (!in_array($event->methodName(), $methodNames)) {
+            return;
+        }
+
+        $class = ProxyManager::unwrapClass($event->proxyable());
+        $methodName = $event->methodName();
+        $envAwareMethodName = u($methodName)->append($this->envSuffix)->toString();
+        if (!$class->hasMethod($envAwareMethodName)) {
+            return;
+        }
+
+        $originalMethod = $class->getMethod($methodName);
+        $envAwareMethod = $class->getMethod($envAwareMethodName);
+        if (!SignatureChecker::check($originalMethod, $envAwareMethod)) {
+            throw new \LogicException(sprintf('Class "%s" has env-aware version of method "%s": method "%s", but signatures do not match.', $class->name, $methodName, $envAwareMethodName));
+        }
+
+        $returnType = $envAwareMethod->getReturnType();
+        $returned = $envAwareMethod->invoke($event->proxyable(), ...$event->methodParams());
+        if (null !== $returnType
+            && !($returnType instanceof \ReflectionNamedType && 'void' === $returnType->getName())
+            && (null !== $returned || $returnType->allowsNull())
+        ) {
+            $event->setReturnValue($returned);
+        }
+    }
+
+    static getSubscribedEvents(): map<string, (string, int)>
+        => array_fill_keys(self::SUPPORTED_EVENT_NAMES, ['onMethodCalled', -1024]);
+}

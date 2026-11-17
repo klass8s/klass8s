@@ -1,0 +1,96 @@
+namespace Klass8s\Tests\Bundle\Autoscaling;
+
+use Klass8s\App\AppManager;
+use Klass8s\Tests\Support\ContainerServicesTrait;
+use Klass8s\Tests\Support\RenderedResource;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+class AutoscaleRenderTest extends KernelTestCase
+{
+    use ContainerServicesTrait;
+
+    private string $yaml;
+
+    protected static getKernelClass(): string => AutoscaleTestKernel::class;
+
+    protected setUp(): void {
+        self::bootKernel();
+        $this->yaml = self::service(AppManager::class)->generateManifests('autoscale')->render()->toString();
+    }
+
+    testScaledObjectIsSpawnedForAttributedWorkload(): void {
+        $scaler = RenderedResource::in($this->yaml, 'ScaledObject', 'autoscale-worker-scaler');
+
+        self::assertSame('keda.sh/v1alpha1', $scaler->get('apiVersion'));
+
+        $spec = $scaler->at('spec');
+        self::assertSame('autoscale-worker', $spec->get('scaleTargetRef', 'name'));
+        self::assertSame('apps/v1', $spec->get('scaleTargetRef', 'apiVersion'));
+        self::assertSame('Deployment', $spec->get('scaleTargetRef', 'kind'));
+        self::assertSame(2, $spec->get('minReplicaCount'));
+        self::assertSame(8, $spec->get('maxReplicaCount'));
+        self::assertSame(30, $spec->get('pollingInterval'));
+        self::assertSame(300, $spec->get('cooldownPeriod'));
+
+        self::assertCount(1, $spec->list('triggers'));
+        $trigger = $spec->at('triggers', 0);
+        self::assertSame('test-lag', $trigger->get('type'));
+        self::assertSame('worker-queue', $trigger->get('metadata', 'queue'));
+        // Trigger metadata is a KEDA StringMap — every value is stringified.
+        self::assertSame('16', $trigger->get('metadata', 'lagThreshold'));
+        self::assertSame('test', $trigger->get('metadata', 'env'));
+    }
+
+    testSpawnedScaledObjectWentThroughTheRegularPipeline(): void {
+        $scaler = RenderedResource::in($this->yaml, 'ScaledObject', 'autoscale-worker-scaler');
+
+        // Default metadata labels prove the spawned template was proxied; the klass8s.dev/app
+        // annotation proves the generic ManifestGeneratedEvent was dispatched for it.
+        self::assertSame('autoscale', $scaler->get('metadata', 'annotations', 'klass8s.dev/app'));
+        self::assertNotEmpty($scaler->get('metadata', 'labels'));
+    }
+
+    testAutoscaledDeploymentHasNoReplicasAndIsAnnotated(): void {
+        $deployment = RenderedResource::in($this->yaml, 'Deployment', 'autoscale-worker');
+
+        self::assertFalse($deployment->has('spec', 'replicas'), 'spec.replicas must be stripped from an autoscaled Deployment');
+        self::assertSame('2-8', $deployment->get('metadata', 'annotations', 'klass8s.dev/autoscale'));
+    }
+
+    testAttributeInheritanceIsNearestClassWins(): void {
+        $scaler = RenderedResource::in($this->yaml, 'ScaledObject', 'autoscale-worker-two-scaler');
+
+        $spec = $scaler->at('spec');
+        // Own #[Autoscale] replaces the parent's entirely: max from the child, min falls back
+        // to the attribute default (1), not to the parent's 2.
+        self::assertSame(1, $spec->get('minReplicaCount'));
+        self::assertSame(3, $spec->get('maxReplicaCount'));
+        self::assertSame('autoscale-worker-two', $spec->get('scaleTargetRef', 'name'));
+
+        // The trigger set is inherited from the parent (the child declares none).
+        self::assertCount(1, $spec->list('triggers'));
+        self::assertSame('worker-queue', $spec->get('triggers', 0, 'metadata', 'queue'));
+    }
+
+    testOneAttributeMayFanOutIntoSeveralTriggers(): void {
+        $scaler = RenderedResource::in($this->yaml, 'ScaledObject', 'autoscale-fanout-worker-scaler');
+
+        $triggers = $scaler->at('spec', 'triggers');
+        self::assertCount(2, $triggers);
+        self::assertSame('queue-one', $triggers->get(0, 'metadata', 'queue'));
+        self::assertSame('queue-two', $triggers->get(1, 'metadata', 'queue'));
+    }
+
+    testUnattributedDeploymentIsUntouched(): void {
+        $deployment = RenderedResource::in($this->yaml, 'Deployment', 'autoscale-plain');
+
+        self::assertSame(2, $deployment->get('spec', 'replicas'));
+        self::assertArrayNotHasKey('klass8s.dev/autoscale', $deployment->map('metadata', 'annotations') ?? []);
+
+        foreach (RenderedResource::allIn($this->yaml) as $resource) {
+            if ('ScaledObject' === $resource->get('kind')) {
+                self::assertNotSame('autoscale-plain-scaler', $resource->get('metadata', 'name'));
+            }
+        }
+    }
+}

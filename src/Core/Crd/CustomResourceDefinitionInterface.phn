@@ -1,0 +1,25 @@
+namespace Klass8s\Core\Crd;
+
+use K8Schema\ApiextensionsApiserver\Pkg\Apis\Apiextensions\V1\CustomResourceDefinition;
+use Klass8s\Core\Crd\Configurator\CrdNamesConfigurator;
+use Klass8s\Core\Crd\Configurator\CrdVersionsConfigurator;
+use Klass8s\Manifest\ManifestInterface;
+
+interface CustomResourceDefinitionInterface extends ManifestInterface
+{
+    group(): string;
+
+    resourceKind(): string;
+
+    plural(): string;
+
+    scope(): CrdScope;
+
+    names(CrdNamesConfigurator $names): void;
+
+    versions(CrdVersionsConfigurator $versions): void;
+
+    preserveUnknownFields(): ?bool;
+
+    configureCrd(CustomResourceDefinition $crd): void;
+}

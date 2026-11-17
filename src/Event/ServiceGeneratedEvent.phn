@@ -1,0 +1,25 @@
+namespace Klass8s\Event;
+
+use K8Schema\Api\Core\V1\Service;
+use K8Schema\APIResourceInterface;
+use Klass8s\App\AppInterface;
+use Klass8s\Core\Service\ServiceInterface;
+
+final readonly class ServiceGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated.service';
+
+    __construct(
+        private ServiceInterface $manifest,
+        private Service $service,
+        private AppInterface $app,
+    ) {}
+
+    manifest(): ServiceInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->service;
+
+    service(): Service => $this->service;
+
+    app(): AppInterface => $this->app;
+}

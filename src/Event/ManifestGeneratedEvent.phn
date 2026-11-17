@@ -1,0 +1,23 @@
+namespace Klass8s\Event;
+
+use K8Schema\APIResourceInterface;
+use Klass8s\Manifest\ManifestInterface;
+
+class ManifestGeneratedEvent implements ManifestGeneratedEventInterface
+{
+    const string NAME = 'klass8s.manifest_generated';
+
+    /**
+     * If true, will prevent generated manifest from being printed / dumped and will exclude it from final manifests generation result
+     */
+    public bool $preventProcessing = false;
+
+    __construct(
+        private readonly ManifestInterface $manifest,
+        private readonly APIResourceInterface $resource,
+    ) {}
+
+    manifest(): ManifestInterface => $this->manifest;
+
+    apiResource(): APIResourceInterface => $this->resource;
+}

@@ -1,0 +1,43 @@
+namespace Klass8s\Autoscaling\Keda\API\ScaledJob;
+
+final class ScalingStrategy implements \JsonSerializable
+{
+    private string $strategy = 'default';
+    private ?int $customScalingQueueLengthDeduction = null;
+    private ?string $customScalingRunningJobPercentage = null;
+
+    private ?list<string> $pendingPodConditions = null;
+    private string $multipleScalersCalculation = 'max';
+
+    getStrategy(): string => $this->strategy;
+
+    setStrategy(string $strategy): void => $this->strategy = $strategy;
+
+    getCustomScalingQueueLengthDeduction(): ?int => $this->customScalingQueueLengthDeduction;
+
+    setCustomScalingQueueLengthDeduction(int $customScalingQueueLengthDeduction): void
+        => $this->customScalingQueueLengthDeduction = $customScalingQueueLengthDeduction;
+
+    getCustomScalingRunningJobPercentage(): ?string => $this->customScalingRunningJobPercentage;
+
+    setCustomScalingRunningJobPercentage(float $customScalingRunningJobPercentage): void
+        => $this->customScalingRunningJobPercentage = (string) $customScalingRunningJobPercentage;
+
+    getPendingPodConditions(): ?list<string> => $this->pendingPodConditions;
+
+    setPendingPodConditions(list<string> $pendingPodConditions): void
+        => $this->pendingPodConditions = $pendingPodConditions;
+
+    getMultipleScalersCalculation(): string => $this->multipleScalersCalculation;
+
+    setMultipleScalersCalculation(string $multipleScalersCalculation): void
+        => $this->multipleScalersCalculation = $multipleScalersCalculation;
+
+    jsonSerialize(): map<string, mixed> => [
+        'strategy' => $this->strategy,
+        'customScalingQueueLengthDeduction' => $this->customScalingQueueLengthDeduction,
+        'customScalingRunningJobPercentage' => $this->customScalingRunningJobPercentage,
+        'pendingPodConditions' => $this->pendingPodConditions,
+        'multipleScalersCalculation' => $this->multipleScalersCalculation,
+    ];
+}

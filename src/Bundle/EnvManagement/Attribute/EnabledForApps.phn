@@ -1,0 +1,15 @@
+namespace Klass8s\Bundle\EnvManagement\Attribute;
+
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS)]
+readonly class EnabledForApps
+{
+    private list<string> $appAliases;
+
+    __construct(string ...$appAliases) {
+        $this->appAliases = array_values($appAliases);
+    }
+
+    appAliases(): list<string> => $this->appAliases;
+}

@@ -1,0 +1,13 @@
+namespace Klass8s\Bundle\EnvManagement\Container;
+
+use K8Schema\Api\Core\V1\ResourceRequirements;
+use Klass8s\Core\Container\Resources\ResourcesConfigurator;
+
+readonly class ResourcePolicy
+{
+    public ResourcesConfigurator $defaults;
+
+    __construct() {
+        $this->defaults = new ResourcesConfigurator(new ResourceRequirements());
+    }
+}
