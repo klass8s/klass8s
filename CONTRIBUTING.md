@@ -18,8 +18,7 @@ satisfy to be merged.
 You need PHP 8.5 and Composer.
 
 ```bash
-composer install
-composer install -d tools/php-cs-fixer   # the code-style tool, pinned by its own lock
+composer install                         # also installs the code-style tool from its own lock (tools:install)
 composer test                            # the PHPUnit suite
 composer cs:check                        # the code-style check; `composer cs` fixes what it reports
 ```

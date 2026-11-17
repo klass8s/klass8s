@@ -6,7 +6,7 @@ repos:
       # the batches would race each other's builds.
       - id: check-cs
         name: Check code style before commit
-        entry: bash -c 'composer cs:check'
+        entry: bash -c 'composer tools:check && composer cs:check'
         language: system
         pass_filenames: false
         require_serial: true

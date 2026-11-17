@@ -8,8 +8,8 @@ wins.
 ## What a pull request must satisfy
 
 - It targets `main`, never the branch of another open pull request.
-- `composer test` and `composer cs:check` pass (`composer install -d tools/php-cs-fixer` installs the
-  style tool once).
+- `composer test` and `composer cs:check` pass (`composer install` installs the style tool with
+  the rest; `composer tools:install` does it alone).
 - A change in behaviour comes with a test that fails without it. The tests render manifests and
   compare the result; they need no cluster, and a test must not start one.
 - What a change makes wrong in `README.md` or `docs/` is corrected in the same pull request.

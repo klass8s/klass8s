@@ -38,6 +38,12 @@
         }
     },
     "scripts": {
+        "post-install-cmd": [
+            "@tools:install"
+        ],
+        "post-update-cmd": [
+            "@tools:install"
+        ],
         "build": "phn build",
         "build:check": [
             "phn build",
@@ -51,6 +57,8 @@
             "phn fmt --check",
             "@build:check"
         ],
+        "tools:check": "test -d tools/php-cs-fixer/vendor || { echo 'the dev tools are not installed — run: composer tools:install' >&2; exit 1; }",
+        "tools:install": "test \"$COMPOSER_DEV_MODE\" = 0 || (composer install -d tools/php-cs-fixer --no-interaction --no-progress)",
         "tools:update": "composer update -d tools/php-cs-fixer --no-scripts",
         "test": "./vendor/bin/phpunit --bootstrap=.tests/bootstrap.php .tests",
         "test:bundle": "./vendor/bin/phpunit --bootstrap=.tests/bootstrap.php .tests/Bundle"
@@ -61,6 +69,8 @@
         "check": "Type-check the .phn sources and write nothing",
         "cs": "Format the .phn: Phaenon's layout, then php-cs-fixer on the outputs with its changes carried back to the sources",
         "cs:check": "Report what composer cs would change, then run build:check",
+        "tools:check": "Fail with what to run when php-cs-fixer is not installed (the pre-commit hook calls it first)",
+        "tools:install": "Install php-cs-fixer from its committed lock — runs after composer install and update, skipped under --no-dev",
         "tools:update": "Update php-cs-fixer and rewrite its lock",
         "test": "Run the suite on the compiled tests",
         "test:bundle": "Run the bundle's part of the suite"
