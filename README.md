@@ -8,6 +8,11 @@ before they are rendered.
 The documentation is at [klass8s.dev](https://klass8s.dev).
 
 ## Example
+The examples are in [Phaenon](https://phaenon.dev), the typed dialect of PHP that Klass8s itself is
+written in. Manifests can be written in plain PHP just as well:
+[Phaenon and PHP](https://klass8s.dev/docs/getting-started/phaenon-and-php) says how a project uses
+either, and the documentation shows every example in both.
+
 An app groups manifests under one name; every manifest in it is named `<app>-<short name>`:
 
 ```php
@@ -17,10 +22,7 @@ use Klass8s\App\AbstractApp;
 
 final class HelloApp extends AbstractApp
 {
-    public static function name(): string
-    {
-        return 'hello';
-    }
+    static name(): string => 'hello';
 }
 ```
 
@@ -33,25 +35,15 @@ use Klass8s\Core\Deployment\AbstractContainerDeployment;
 
 class WebDeployment extends AbstractContainerDeployment
 {
-    public static function shortName(): string
-    {
-        return 'web';
-    }
+    static shortName(): string => 'web';
 
-    public function image(): Image
-    {
-        return Image::fromName('nginx')->setTag('1.29');
-    }
+    image(): Image => Image::fromName('nginx')->setTag('1.29');
 
-    public function replicas(): int
-    {
-        return 2;
-    }
+    replicas(): int => 2;
 
-    public function ports(PortsConfigurator $ports): void
-    {
-        $ports->add(80)->setName('http');
-    }
+    ports(PortsConfigurator $ports): void => $ports
+        ->add(80)
+        ->setName('http');
 }
 ```
 
@@ -63,15 +55,9 @@ use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
 
 class WebService extends AbstractService
 {
-    public static function shortName(): string
-    {
-        return WebDeployment::shortName();
-    }
+    static shortName(): string => WebDeployment::shortName();
 
-    public function ports(ServicePortsConfigurator $ports): void
-    {
-        $ports->add(80, 'http');
-    }
+    ports(ServicePortsConfigurator $ports): void => $ports->add(80, 'http');
 }
 ```
 
