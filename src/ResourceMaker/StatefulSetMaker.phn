@@ -12,7 +12,7 @@ use Klass8s\Proxy\ProxyFactory;
 use Klass8s\Registry\AppRegistry;
 use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
 
-class StatefulSetMaker extends AbstractResourceMaker<StatefulSetInterface, StatefulSet>
+final class StatefulSetMaker extends AbstractResourceMaker<StatefulSetInterface, StatefulSet>
 {
     use ConfigureSelectorTrait;
 

@@ -7,6 +7,10 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 /**
  * Makes the Kubernetes resource of one kind of manifest: a subclass names
  * the manifests it supports and builds the resource from one of them.
+ *
+ * This is the extension point for a kind the library does not make: the
+ * makers here are final, and a maker of one's own extends this class (or
+ * implements ResourceMakerInterface), which registers it with the bundle.
  */
 abstract class AbstractResourceMaker<M of ManifestInterface, R of APIResourceInterface> implements ResourceMakerInterface
 {

@@ -13,7 +13,7 @@ use Klass8s\Manifest\Reference\VersionedManifestClassReferenceConverter;
 use Klass8s\Proxy\ProxyManager;
 use Klass8s\ResourceMaker\AbstractResourceMaker;
 
-class ScaledObjectMaker extends AbstractResourceMaker<ScaledObjectInterface, ScaledObject>
+final class ScaledObjectMaker extends AbstractResourceMaker<ScaledObjectInterface, ScaledObject>
 {
     __construct(
         private readonly VersionedManifestClassReferenceConverter $referencesService,

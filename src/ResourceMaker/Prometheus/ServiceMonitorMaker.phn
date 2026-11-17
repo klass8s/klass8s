@@ -5,7 +5,7 @@ use Klass8s\Collection\GenericList;
 use Klass8s\Monitoring\Prometheus\Configurator\EndpointsConfigurator;
 use Klass8s\Monitoring\Prometheus\ServiceMonitor\ServiceMonitorInterface;
 
-class ServiceMonitorMaker extends AbstractMonitorMaker<ServiceMonitorInterface>
+final class ServiceMonitorMaker extends AbstractMonitorMaker<ServiceMonitorInterface>
 {
     protected supportedClass(): class<ServiceMonitorInterface> => ServiceMonitorInterface::class;
 

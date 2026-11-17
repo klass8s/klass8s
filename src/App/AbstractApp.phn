@@ -12,7 +12,7 @@ use Klass8s\Manifest\MetadataAwareInterface;
 use Klass8s\Manifest\MetadataConfigurator;
 use Klass8s\Registry\ManifestRegistry;
 
-abstract class AbstractApp implements AppInterface
+abstract class AbstractApp implements AppInterface, ReadsResourceFiles
 {
     use ConfigAwareTrait;
 
@@ -54,7 +54,6 @@ abstract class AbstractApp implements AppInterface
     resourceNameFromShortName(string $shortName): string
         => ManifestNameResolver::resourceNameFromShortNameAndPrefix($shortName, $this->alias);
 
-    /** The contents of a file in the Resources/ directory beside the app's class. */
     readFile(string $filePath): string {
         $path = dirname((string) new \ReflectionObject($this)->getFileName()) . '/Resources/' . ltrim($filePath, '/');
         $contents = file_exists($path) ? file_get_contents($path) : false;

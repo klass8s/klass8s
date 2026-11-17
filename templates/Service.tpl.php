@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-echo "<?php\n"; ?>
+echo "<?php\n\ndeclare(strict_types=1);\n"; ?>
 
 namespace <?php echo $variables['namespace']; ?>;
 
@@ -8,9 +8,7 @@ use Klass8s\Core\Service\Configurator\ServicePortsConfigurator;
 
 class <?php echo $variables['className']; ?> extends AbstractService
 {
-    public function ports(ServicePortsConfigurator $ports): void
-    {
-    }
+    public function ports(ServicePortsConfigurator $ports): void {}
 
     public static function shortName(): string
     {

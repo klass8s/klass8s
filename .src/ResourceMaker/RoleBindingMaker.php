@@ -13,7 +13,7 @@ use Klass8s\Core\Rbac\RoleBindingInterface;
 /**
  * @extends AbstractRoleBindingMaker<RoleBindingInterface, RoleBinding>
  */
-class RoleBindingMaker extends AbstractRoleBindingMaker
+final class RoleBindingMaker extends AbstractRoleBindingMaker
 {
     protected function roleBinding(RoleRef $ref): RoleBinding
     {

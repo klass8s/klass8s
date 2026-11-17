@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-echo "<?php\n"; ?>
+echo "<?php\n\ndeclare(strict_types=1);\n"; ?>
 
 namespace <?php echo $variables['namespace']; ?>;
 

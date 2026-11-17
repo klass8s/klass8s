@@ -4,7 +4,7 @@ use Klass8s\Collection\GenericList;
 use Klass8s\Monitoring\Prometheus\Configurator\EndpointsConfigurator;
 use Klass8s\Monitoring\Prometheus\PodMonitor\PodMonitorInterface;
 
-class PodMonitorMaker extends AbstractMonitorMaker<PodMonitorInterface>
+final class PodMonitorMaker extends AbstractMonitorMaker<PodMonitorInterface>
 {
     protected configureMonitor(PodMonitorInterface $manifest, \ArrayObject<string, mixed> $spec): void {
         $endpoints = new GenericList<\ArrayObject<string, mixed>>();

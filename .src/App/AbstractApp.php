@@ -16,7 +16,7 @@ use Klass8s\Manifest\MetadataAwareInterface;
 use Klass8s\Manifest\MetadataConfigurator;
 use Klass8s\Registry\ManifestRegistry;
 
-abstract class AbstractApp implements AppInterface
+abstract class AbstractApp implements AppInterface, ReadsResourceFiles
 {
     use ConfigAwareTrait;
 
@@ -81,7 +81,6 @@ abstract class AbstractApp implements AppInterface
         return ManifestNameResolver::resourceNameFromShortNameAndPrefix($shortName, $this->alias);
     }
 
-    /** The contents of a file in the Resources/ directory beside the app's class. */
     public function readFile(string $filePath): string
     {
         $path = dirname((string) new \ReflectionObject($this)->getFileName()) . '/Resources/' . ltrim($filePath, '/');
@@ -129,4 +128,4 @@ abstract class AbstractApp implements AppInterface
         return $meta;
     }
 }
-// phaenon-map v1 ../../src/App/AbstractApp.phn 1-6=1 7:1 11:7 29-31=24 32:25 34-36=26 37:27 39-41=28 42:29 44-46=30 47:31 48-50=32 51:32 52-52=32 53:33 62-65=42 66:42 67-67=42 68:43 80-80=54 81:55 82-82=55 83:56 86-86=58 87:59 98-100=70 101:70 102-102=70 103:71 104-104=71 105:72 106-110=73 111:73 112-112=73 113:74 117-117=77 118:78 120-120=79 121:80
+// phaenon-map v1 ../../src/App/AbstractApp.phn 1-6=1 7:1 11:7 29-31=24 32:25 34-36=26 37:27 39-41=28 42:29 44-46=30 47:31 48-50=32 51:32 52-52=32 53:33 62-65=42 66:42 67-67=42 68:43 80-80=54 81:55 82-82=55 83:56 85-85=57 86:58 97-99=69 100:69 101-101=69 102:70 103-103=70 104:71 105-109=72 110:72 111-111=72 112:73 116-116=76 117:77 119-119=78 120:79

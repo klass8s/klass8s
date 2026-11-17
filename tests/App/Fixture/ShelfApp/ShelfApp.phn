@@ -1,0 +1,9 @@
+namespace Klass8s\Tests\App\Fixture\ShelfApp;
+
+use Klass8s\App\AbstractApp;
+
+/** An app with a file in its Resources/ directory. */
+class ShelfApp extends AbstractApp
+{
+    static name(): string => 'shelf';
+}

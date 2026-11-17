@@ -23,7 +23,7 @@ use Klass8s\ResourceMaker\AbstractResourceMaker;
 /**
  * @extends AbstractResourceMaker<ScaledObjectInterface, ScaledObject>
  */
-class ScaledObjectMaker extends AbstractResourceMaker
+final class ScaledObjectMaker extends AbstractResourceMaker
 {
     public function __construct(
         private readonly VersionedManifestClassReferenceConverter $referencesService,

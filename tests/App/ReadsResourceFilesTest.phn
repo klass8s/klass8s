@@ -1,0 +1,31 @@
+namespace Klass8s\Tests\App;
+
+use Klass8s\App\AppInterface;
+use Klass8s\App\ReadsResourceFiles;
+use Klass8s\Tests\App\Fixture\ShelfApp\ShelfApp;
+use PHPUnit\Framework\TestCase;
+
+final class ReadsResourceFilesTest extends TestCase
+{
+    testAnAbstractAppReadsAFileBesideItsClass(): void {
+        $app = self::app();
+
+        self::assertInstanceOf(ReadsResourceFiles::class, $app);
+        self::assertSame("worker_processes 2;\n", $app->readFile('configs/nginx.conf'));
+        self::assertSame("worker_processes 2;\n", $app->readFile('/configs/nginx.conf'));
+    }
+
+    testAMissingFileIsNamed(): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('#^File ".+/ShelfApp/Resources/configs/missing\.conf" does not exist$#');
+
+        self::app()->readFile('configs/missing.conf');
+    }
+
+    /** An app implementing AppInterface directly need not keep files, so the interface asks for no readFile(). */
+    testAppInterfaceDoesNotAskForIt(): void
+        => self::assertFalse(new \ReflectionClass(AppInterface::class)->hasMethod('readFile'));
+
+    /** The app as reading a file needs it: nothing of what the container gives it is used. */
+    private static app(): ShelfApp => new \ReflectionClass(ShelfApp::class)->newInstanceWithoutConstructor();
+}

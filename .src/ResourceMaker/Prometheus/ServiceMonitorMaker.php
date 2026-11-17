@@ -15,7 +15,7 @@ use Klass8s\Monitoring\Prometheus\ServiceMonitor\ServiceMonitorInterface;
 /**
  * @extends AbstractMonitorMaker<ServiceMonitorInterface>
  */
-class ServiceMonitorMaker extends AbstractMonitorMaker
+final class ServiceMonitorMaker extends AbstractMonitorMaker
 {
     /**
      * @return class-string<ServiceMonitorInterface>

@@ -22,7 +22,7 @@ use Klass8s\ResourceMaker\Traits\ConfigureSelectorTrait;
 /**
  * @extends AbstractResourceMaker<StatefulSetInterface, StatefulSet>
  */
-class StatefulSetMaker extends AbstractResourceMaker
+final class StatefulSetMaker extends AbstractResourceMaker
 {
     use ConfigureSelectorTrait;
 

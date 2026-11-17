@@ -7,7 +7,7 @@ use Klass8s\Monitoring\Prometheus\PrometheusRuleApiResource;
 use Klass8s\Monitoring\Prometheus\PrometheusRuleInterface;
 use Klass8s\ResourceMaker\AbstractResourceMaker;
 
-class PrometheusRuleMaker extends AbstractResourceMaker<PrometheusRuleInterface, PrometheusRuleApiResource>
+final class PrometheusRuleMaker extends AbstractResourceMaker<PrometheusRuleInterface, PrometheusRuleApiResource>
 {
     protected supportedClass(): class<PrometheusRuleInterface> => PrometheusRuleInterface::class;
 

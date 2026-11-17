@@ -1,0 +1,19 @@
+namespace Klass8s\App;
+
+/**
+ * An app whose manifests read files kept beside the app's class, in its Resources/ directory: a
+ * config file a ConfigMap carries whole, a template, a key for a dev environment. AbstractApp
+ * reads them.
+ *
+ * The method is not on AppInterface: a method added to an interface is one every class that
+ * implements it directly must then have, and an app may implement AppInterface without keeping
+ * files. A manifest that reads one asks its app for this capability:
+ *
+ *     assert($this->app instanceof ReadsResourceFiles);
+ *     $data->add('nginx.conf', $this->app->readFile('configs/nginx.conf'));
+ */
+interface ReadsResourceFiles
+{
+    /** The contents of a file in the Resources/ directory beside the app's class. */
+    readFile(string $filePath): string;
+}

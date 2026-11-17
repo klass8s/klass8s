@@ -3,7 +3,7 @@ namespace Klass8s\ResourceMaker;
 use K8Schema\APIResourceInterface;
 use Klass8s\Manifest\SelfMakingManifestInterface;
 
-class SelfRenderingManifestResourceMaker extends AbstractResourceMaker<SelfMakingManifestInterface, APIResourceInterface>
+final class SelfRenderingManifestResourceMaker extends AbstractResourceMaker<SelfMakingManifestInterface, APIResourceInterface>
 {
     protected supportedClass(): class<SelfMakingManifestInterface> => SelfMakingManifestInterface::class;
 

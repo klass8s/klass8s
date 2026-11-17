@@ -17,7 +17,7 @@ use Klass8s\ResourceMaker\AbstractResourceMaker;
 /**
  * @extends AbstractResourceMaker<PrometheusRuleInterface, PrometheusRuleApiResource>
  */
-class PrometheusRuleMaker extends AbstractResourceMaker
+final class PrometheusRuleMaker extends AbstractResourceMaker
 {
     /**
      * @return class-string<PrometheusRuleInterface>

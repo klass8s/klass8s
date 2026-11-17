@@ -1,0 +1,49 @@
+namespace Klass8s\Tests\Bundle\CodeGeneration;
+
+use Klass8s\Bundle\CodeGeneration\TemplateRenderer;
+use Klass8s\Tests\Support\TestDirectory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+
+/** The classes the make commands write in a PHP project. */
+final class PhpTemplatesTest extends TestCase
+{
+    private const list<string> KINDS = ['App', 'ConfigMap', 'CronJob', 'Deployment', 'Ingress', 'Job', 'Secret', 'Service'];
+
+    #[DataProvider('kinds')]
+    testAGeneratedClassDeclaresStrictTypes(string $kind): void
+        => self::assertStringStartsWith("<?php\n\ndeclare(strict_types=1);\n\nnamespace Shop\\K8S\\Shop;\n\n", self::generate($kind));
+
+    static kinds(): iterable<string, list<string>> {
+        foreach (self::KINDS as $kind) {
+            yield $kind => [$kind];
+        }
+    }
+
+    /** As the library's own coding standard lays PHP out, where the style tool is installed. */
+    testTheGeneratedClassesNeedNoFixing(): void {
+        $root = dirname(__DIR__, 3);
+        $fixer = $root . '/tools/php-cs-fixer/vendor/bin/php-cs-fixer';
+        if (!is_executable($fixer)) {
+            self::markTestSkipped('php-cs-fixer is not installed in tools/php-cs-fixer');
+        }
+        $dir = TestDirectory::path('php-templates');
+        foreach (self::KINDS as $kind) {
+            new Filesystem()->dumpFile("{$dir}/Shop{$kind}.php", self::generate($kind));
+        }
+
+        $check = new Process([$fixer, 'fix', '--config=' . $root . '/.php-cs-fixer.dist.php', '--path-mode=override', '--dry-run', '--diff', '--using-cache=no', $dir], $root);
+        $check->run();
+
+        self::assertSame(0, $check->getExitCode(), $check->getOutput());
+    }
+
+    private static generate(string $kind): string => new TemplateRenderer(dirname(__DIR__, 3) . '/templates')->render($kind . '.tpl.php', [
+        'namespace' => 'Shop\K8S\Shop',
+        'className' => 'Shop' . $kind,
+        'appName' => 'shop',
+        'manifestName' => 'shop',
+    ]);
+}

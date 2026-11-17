@@ -18,7 +18,7 @@ use Klass8s\Manifest\Reference\ManifestClassReferenceConverter;
 /**
  * @extends AbstractResourceMaker<ServiceAccountInterface, ServiceAccount>
  */
-class ServiceAccountMaker extends AbstractResourceMaker
+final class ServiceAccountMaker extends AbstractResourceMaker
 {
     public function __construct(private readonly ManifestClassReferenceConverter $referencesService) {}
 

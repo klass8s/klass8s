@@ -13,7 +13,7 @@ use Klass8s\Manifest\SelfMakingManifestInterface;
 /**
  * @extends AbstractResourceMaker<SelfMakingManifestInterface, APIResourceInterface>
  */
-class SelfRenderingManifestResourceMaker extends AbstractResourceMaker
+final class SelfRenderingManifestResourceMaker extends AbstractResourceMaker
 {
     /**
      * @return class-string<SelfMakingManifestInterface>

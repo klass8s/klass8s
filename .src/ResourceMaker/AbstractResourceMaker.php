@@ -13,6 +13,10 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 /**
  * Makes the Kubernetes resource of one kind of manifest: a subclass names
  * the manifests it supports and builds the resource from one of them.
+ *
+ * This is the extension point for a kind the library does not make: the
+ * makers here are final, and a maker of one's own extends this class (or
+ * implements ResourceMakerInterface), which registers it with the bundle.
  * @template M of ManifestInterface
  * @template R of APIResourceInterface
  */
@@ -61,4 +65,4 @@ abstract class AbstractResourceMaker implements ResourceMakerInterface
         }
     }
 }
-// phaenon-map v1 ../../src/ResourceMaker/AbstractResourceMaker.phn 1-6=1 7:1 16-17=10 18:10 23-25=15 26:15 27-30=16 31:16 33-35=18 36:18 37-37=18 38:19 44-44=24 45:25 51-53=30 54:31 57-57=33 58:34
+// phaenon-map v1 ../../src/ResourceMaker/AbstractResourceMaker.phn 1-6=1 7:1 20-21=14 22:14 27-29=19 30:19 31-34=20 35:20 37-39=22 40:22 41-41=22 42:23 48-48=28 49:29 55-57=34 58:35 61-61=37 62:38

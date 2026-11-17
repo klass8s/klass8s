@@ -15,7 +15,7 @@ final class MakeAppCommandTest extends TestCase
         $this->makeApp($project . '/src/K8S', 'shop');
 
         $code = (string) file_get_contents($project . '/src/K8S/Shop/ShopApp.php');
-        self::assertStringStartsWith("<?php\n", $code);
+        self::assertStringStartsWith("<?php\n\ndeclare(strict_types=1);\n\nnamespace Shop\\K8S\\Shop;\n", $code);
         self::assertStringContainsString("namespace Shop\\K8S\\Shop;\n", $code);
         self::assertStringContainsString('class ShopApp extends AbstractApp', $code);
     }

@@ -14,7 +14,7 @@ use Klass8s\Monitoring\Prometheus\PodMonitor\PodMonitorInterface;
 /**
  * @extends AbstractMonitorMaker<PodMonitorInterface>
  */
-class PodMonitorMaker extends AbstractMonitorMaker
+final class PodMonitorMaker extends AbstractMonitorMaker
 {
     /**
      * @param PodMonitorInterface $manifest

@@ -13,7 +13,7 @@ use Klass8s\Core\Rbac\ClusterRoleBindingInterface;
 /**
  * @extends AbstractRoleBindingMaker<ClusterRoleBindingInterface, ClusterRoleBinding>
  */
-class ClusterRoleBindingMaker extends AbstractRoleBindingMaker
+final class ClusterRoleBindingMaker extends AbstractRoleBindingMaker
 {
     protected function roleBinding(RoleRef $ref): ClusterRoleBinding
     {
