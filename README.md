@@ -8,10 +8,10 @@ before they are rendered.
 The documentation is at [klass8s.dev](https://klass8s.dev).
 
 ## Example
-The examples are in [Phaenon](https://phaenon.dev), the typed dialect of PHP that Klass8s itself is
-written in. Manifests can be written in plain PHP just as well:
-[Phaenon and PHP](https://klass8s.dev/docs/getting-started/phaenon-and-php) says how a project uses
-either, and the documentation shows every example in both.
+The examples are in [Phaenon](https://phaenon.dev): modern, strict, expressive PHP that compiles to
+the PHP you would have written by hand. Klass8s itself is written in it. Manifests can be written in
+plain PHP just as well: [Phaenon and PHP](https://klass8s.dev/docs/getting-started/phaenon-and-php)
+says how a project uses either, and the documentation shows every example in both.
 
 An app groups manifests under one name; every manifest in it is named `<app>-<short name>`:
 
@@ -142,10 +142,10 @@ composer require klass8s/k8schema:~1.35.8
 > which may break your manifests if you're not using the newest version of Kubernetes.
 
 ## Development
-Klass8s is written in [Phaenon](https://phaenon.dev), a typed dialect of PHP that compiles to the PHP
-you would have written by hand. The sources are the `.phn` files in `src/` and `tests/`. The package
-ships the PHP they compile to, in `.src/`, so a project that installs Klass8s needs nothing beyond
-Composer: no compiler and no Composer plugin.
+Klass8s is written in [Phaenon](https://phaenon.dev): modern, strict, expressive PHP that compiles
+to the PHP you would have written by hand. The sources are the `.phn` files in `src/` and `tests/`.
+The package ships the PHP they compile to, in `.src/`, so a project that installs Klass8s needs
+nothing beyond Composer: no compiler and no Composer plugin.
 
 To work on Klass8s itself:
 
